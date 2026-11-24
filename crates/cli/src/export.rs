@@ -30,7 +30,7 @@ pub fn folders_csv(tree: &Tree, drive: char, path: &Path) -> std::io::Result<u64
             "\"{}\",{},{}",
             buf.replace('"', "\"\""),
             tree.size[i],
-            tree.alloc[i]
+            tree.alloc_bytes(node)
         )?;
         count += 1;
         let here = buf.len();

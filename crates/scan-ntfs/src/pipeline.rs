@@ -10,7 +10,7 @@ use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
 
-use diskdome_core::{FinishStats, NONE, Tree, flag};
+use diskdome_core::{Entry, FinishStats, NONE, SECURITY_OTHER, Tree, attr, flag};
 
 use crate::buf::AlignedBuf;
 use crate::record::{NS_DOS, apply_fixup, parse, push_name_utf8};
@@ -74,6 +74,10 @@ pub trait Source: Sync {
     fn record_size(&self) -> usize;
     /// Offsets and lengths of reads must be multiples of this (the cluster size for a volume).
     fn alignment(&self) -> usize;
+    /// The volume's cluster size: the unit of the size on disk.
+    fn cluster_size(&self) -> u32 {
+        4096
+    }
 }
 
 pub trait ChunkReader {
@@ -215,7 +219,9 @@ enum Extra {
     Data {
         rec: u32,
         size: Option<u64>,
-        alloc: u64,
+        /// Clusters.
+        alloc: u32,
+        fragmented: bool,
     },
 }
 
@@ -233,16 +239,29 @@ struct Slots<'a> {
     name_len: &'a mut [u16],
     parent: &'a mut [u32],
     size: &'a mut [u64],
-    alloc: &'a mut [u64],
+    alloc: &'a mut [u32],
     mtime: &'a mut [u32],
     flags: &'a mut [u8],
+    attrs: &'a mut [u16],
+    security: &'a mut [u16],
+}
+
+/// Bytes on disk to clusters.
+fn clusters(bytes: u64, cluster: u32) -> u32 {
+    u32::try_from(bytes.div_ceil(u64::from(cluster.max(1)))).unwrap_or(u32::MAX)
 }
 
 fn to_u32(n: u64) -> u32 {
     u32::try_from(n).unwrap_or(NONE)
 }
 
-fn parse_chunk(buf: &mut [u8], first_record: u64, rs: usize, slots: &mut Slots<'_>) -> ChunkOut {
+fn parse_chunk(
+    buf: &mut [u8],
+    first_record: u64,
+    rs: usize,
+    cluster: u32,
+    slots: &mut Slots<'_>,
+) -> ChunkOut {
     let mut out = ChunkOut {
         // ~25 bytes of name per record.
         names: Vec::with_capacity(buf.len() / rs * 28),
@@ -262,11 +281,12 @@ fn parse_chunk(buf: &mut [u8], first_record: u64, rs: usize, slots: &mut Slots<'
         if p.base != 0 {
             out.extension_records += 1;
             let base = to_u32(p.base);
-            if p.data.is_some() || p.stream_alloc > 0 {
+            if p.data.is_some() || p.stream_alloc > 0 || p.fragmented {
                 out.extras.push(Extra::Data {
                     rec: base,
                     size: p.data.map(|d| d.0),
-                    alloc: p.data.map_or(0, |d| d.1) + p.stream_alloc,
+                    alloc: clusters(p.data.map_or(0, |d| d.1) + p.stream_alloc, cluster),
+                    fragmented: p.fragmented,
                 });
             }
             for name in p.names() {
@@ -283,9 +303,17 @@ fn parse_chunk(buf: &mut [u8], first_record: u64, rs: usize, slots: &mut Slots<'
             continue;
         }
         slots.mtime[k] = p.mtime;
+        slots.attrs[k] = attr::from_windows(p.attributes);
+        slots.security[k] = u16::try_from(p.security_id).unwrap_or(SECURITY_OTHER);
         let mut f = IN_USE_BASE;
         if p.is_dir {
             f |= flag::DIR;
+        }
+        if p.fragmented {
+            f |= flag::FRAGMENTED;
+        }
+        if p.names().len() > 1 {
+            f |= flag::HARD_LINKS;
         }
         if let Some((size, _)) = p.data {
             slots.size[k] = size;
@@ -295,7 +323,7 @@ fn parse_chunk(buf: &mut [u8], first_record: u64, rs: usize, slots: &mut Slots<'
         } else {
             p.stream_alloc
         };
-        slots.alloc[k] = p.data.map_or(0, |d| d.1) + streams;
+        slots.alloc[k] = clusters(p.data.map_or(0, |d| d.1) + streams, cluster);
         for (i, name) in p.names().iter().enumerate() {
             let name_off = out.names.len() as u32;
             let len = push_name_utf8(rec, name, &mut out.names) as u16;
@@ -343,7 +371,9 @@ pub fn scan(source: &impl Source, opts: &Options) -> Result<(Tree, ScanReport), 
         ..ScanReport::default()
     };
 
-    let mut tree = Tree::with_slots(n, 0);
+    let mut tree = Tree::with_slots(n);
+    let cluster = source.cluster_size();
+    tree.cluster_size = cluster;
     let start = Instant::now();
     let outs: Vec<Mutex<Option<ChunkOut>>>;
     {
@@ -357,8 +387,13 @@ pub fn scan(source: &impl Source, opts: &Options) -> Result<(Tree, ScanReport), 
             .zip(tree.alloc.chunks_mut(per_chunk))
             .zip(tree.mtime.chunks_mut(per_chunk))
             .zip(tree.flags.chunks_mut(per_chunk))
+            .zip(tree.attrs.chunks_mut(per_chunk))
+            .zip(tree.security.chunks_mut(per_chunk))
             .map(
-                |((((((name_off, name_len), parent), size), alloc), mtime), flags)| {
+                |(
+                    (((((((name_off, name_len), parent), size), alloc), mtime), flags), attrs),
+                    security,
+                )| {
                     Mutex::new(Some(Slots {
                         name_off,
                         name_len,
@@ -367,6 +402,8 @@ pub fn scan(source: &impl Source, opts: &Options) -> Result<(Tree, ScanReport), 
                         alloc,
                         mtime,
                         flags,
+                        attrs,
+                        security,
                     }))
                 },
             )
@@ -379,7 +416,7 @@ pub fn scan(source: &impl Source, opts: &Options) -> Result<(Tree, ScanReport), 
                 .and_then(|mut g| g.take())
                 .ok_or(ScanError::BadMft("chunk without slots"))?;
             let first = offset / rs as u64;
-            let out = parse_chunk(&mut buf[..valid], first, rs, &mut slot);
+            let out = parse_chunk(&mut buf[..valid], first, rs, cluster, &mut slot);
             if let Some(m) = outs.get(index)
                 && let Ok(mut g) = m.lock()
             {
@@ -390,20 +427,17 @@ pub fn scan(source: &impl Source, opts: &Options) -> Result<(Tree, ScanReport), 
     }
     report.read_parse = start.elapsed();
 
-    // Join the names into one buffer, chunk by chunk, freeing each chunk's buffer as it goes.
+    // Hand each chunk's names to the tree as a page and rebase the chunk's offsets.
     let start = Instant::now();
     let mut outs: Vec<ChunkOut> = outs
         .into_iter()
         .map(|m| m.into_inner().ok().flatten().unwrap_or_default())
         .collect();
-    let total_names: usize = outs.iter().map(|o| o.names.len()).sum();
-    tree.names = Vec::with_capacity(total_names);
     let mut bases = Vec::with_capacity(outs.len());
     for (index, out) in outs.iter_mut().enumerate() {
-        let base = tree.names.len() as u32;
+        // Each chunk's buffer becomes a page of the tree's names: nothing is copied.
+        let base = tree.names.push_page(std::mem::take(&mut out.names));
         bases.push(base);
-        tree.names.extend_from_slice(&out.names);
-        out.names = Vec::new();
         let first = index * per_chunk;
         let last = (first + per_chunk).min(n);
         for off in &mut tree.name_off[first..last] {
@@ -414,16 +448,31 @@ pub fn scan(source: &impl Source, opts: &Options) -> Result<(Tree, ScanReport), 
     // Sizes first, so every extra link below can copy its file's final size.
     for out in &outs {
         for extra in &out.extras {
-            if let Extra::Data { rec, size, alloc } = *extra
+            if let Extra::Data {
+                rec,
+                size,
+                alloc,
+                fragmented,
+            } = *extra
                 && let Some(a) = tree.alloc.get_mut(rec as usize)
             {
-                *a += alloc;
+                *a = a.saturating_add(alloc);
                 if let Some(size) = size {
                     tree.size[rec as usize] = size;
+                }
+                if fragmented {
+                    tree.flags[rec as usize] |= flag::FRAGMENTED;
                 }
             }
         }
     }
+    // Extra links are appended: room for all of them at once, so the arrays never double.
+    let links = outs
+        .iter()
+        .flat_map(|o| o.extras.iter())
+        .filter(|e| matches!(e, Extra::Link { .. }))
+        .count();
+    tree.reserve_exact(links);
     for (out, base) in outs.iter().zip(bases) {
         for extra in &out.extras {
             match *extra {
@@ -459,17 +508,19 @@ pub fn scan(source: &impl Source, opts: &Options) -> Result<(Tree, ScanReport), 
                         // Folders cannot be hard-linked: an extra link is always a file. As in
                         // WizTree, every link shows the file's size, but its clusters are counted
                         // once (on the first link).
-                        let link_flags = IN_USE_BASE | flag::EXTRA_LINK;
-                        let size = tree.size[r];
-                        tree.push(
+                        tree.flags[r] |= flag::HARD_LINKS;
+                        let keep = tree.flags[r] & flag::FRAGMENTED;
+                        tree.push(Entry {
                             name_off,
                             name_len,
                             parent,
-                            size,
-                            0,
-                            tree.mtime[r],
-                            link_flags,
-                        );
+                            size: tree.size[r],
+                            alloc: 0,
+                            mtime: tree.mtime[r],
+                            flags: IN_USE_BASE | flag::EXTRA_LINK | flag::HARD_LINKS | keep,
+                            attrs: tree.attrs[r],
+                            security: tree.security[r],
+                        });
                         report.extra_links += 1;
                     }
                 }

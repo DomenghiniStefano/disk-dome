@@ -196,12 +196,12 @@ fn run_scan(source: &impl Source, args: &Args, drive: char) -> Result<(), String
         "model {:.0} MB = {:.1} bytes per entry (names {:.0} MB)",
         mb(tree.heap_bytes() as u64),
         tree.heap_bytes() as f64 / f64::from(r.tree.linked.max(1)),
-        mb(tree.names.capacity() as u64)
+        mb(tree.names.heap_bytes() as u64)
     );
     println!(
         "root: size {:.3} GB, allocated {:.3} GB",
         tree.size[tree.root as usize] as f64 / 1e9,
-        tree.alloc[tree.root as usize] as f64 / 1e9
+        tree.alloc_bytes(tree.root) as f64 / 1e9
     );
     print_memory("memory after the scan");
     if let Some(path) = &args.export {

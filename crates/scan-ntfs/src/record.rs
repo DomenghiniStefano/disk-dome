@@ -64,6 +64,13 @@ pub struct Record {
     /// compressed by Windows, the USN journal's `$J`). Counted in the size on disk, not in the size,
     /// as WizTree does.
     pub stream_alloc: u64,
+    /// Windows file attributes from `$STANDARD_INFORMATION` (`FILE_ATTRIBUTE_*`).
+    pub attributes: u32,
+    /// Number of the security descriptor in `$Secure` (0 on old volumes).
+    pub security_id: u32,
+    /// The unnamed stream is split into more than one run of clusters (or continues in an extension
+    /// record).
+    pub fragmented: bool,
     /// Names, at most one per parent folder: the best namespace wins (Win32 over DOS).
     pub names: [NameRef; MAX_NAMES],
     pub name_count: u8,
@@ -154,6 +161,11 @@ pub fn parse(rec: &[u8]) -> Option<Record> {
                 if let Some(ft) = u64_at(attr, voff + 8) {
                     out.mtime = filetime_to_unix(ft);
                 }
+                out.attributes = u32_at(attr, voff + 0x20).unwrap_or(0);
+                // NTFS 3.0+: the 72-byte form carries the security descriptor number.
+                if u32_at(attr, 0x10).unwrap_or(0) >= 0x48 {
+                    out.security_id = u32_at(attr, voff + 0x34).unwrap_or(0);
+                }
             }
             AT_FILE_NAME if !non_resident => {
                 let voff = u16_at(attr, 0x14)? as usize;
@@ -176,7 +188,15 @@ pub fn parse(rec: &[u8]) -> Option<Record> {
             }
             AT_DATA if non_resident => {
                 // Sizes are valid only in the segment that starts at VCN 0.
-                if u64_at(attr, 0x10)? == 0 {
+                let first_vcn = u64_at(attr, 0x10)?;
+                if name_len == 0 {
+                    // A later segment of the unnamed stream, or more than one real run in this one.
+                    let runs_off = u16_at(attr, 0x20)? as usize;
+                    if first_vcn != 0 || real_runs(attr.get(runs_off..).unwrap_or(&[])) > 1 {
+                        out.fragmented = true;
+                    }
+                }
+                if first_vcn == 0 {
                     let attr_flags = u16_at(attr, 0x0C)?;
                     let alloc = u64_at(attr, 0x28)?;
                     let size = u64_at(attr, 0x30)?;
@@ -202,6 +222,25 @@ pub fn parse(rec: &[u8]) -> Option<Record> {
         pos += len;
     }
     Some(out)
+}
+
+/// Number of runs with clusters on disk (sparse runs are not counted), up to 2: enough to tell a
+/// fragmented stream.
+fn real_runs(runs: &[u8]) -> u32 {
+    let mut pos = 0;
+    let mut count = 0;
+    while let Some(&header) = runs.get(pos) {
+        if header == 0 || count >= 2 {
+            break;
+        }
+        let len_bytes = (header & 0x0F) as usize;
+        let off_bytes = (header >> 4) as usize;
+        if off_bytes != 0 {
+            count += 1;
+        }
+        pos += 1 + len_bytes + off_bytes;
+    }
+    count
 }
 
 /// Keeps every hard link (several may share a folder, under different names) but drops DOS 8.3

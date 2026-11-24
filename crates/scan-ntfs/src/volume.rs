@@ -335,4 +335,7 @@ impl Source for Volume {
     fn alignment(&self) -> usize {
         self.info.bytes_per_cluster as usize
     }
+    fn cluster_size(&self) -> u32 {
+        self.info.bytes_per_cluster
+    }
 }

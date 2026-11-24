@@ -54,7 +54,7 @@ pub fn run(
     println!(
         "{path}: size {}, allocated {}, {} children",
         tree.size[node as usize],
-        tree.alloc[node as usize],
+        tree.alloc_bytes(node),
         tree.children(node).len()
     );
     let mut kids: Vec<u32> = tree.children(node).to_vec();
@@ -72,7 +72,7 @@ pub fn run(
             "  {:<48} size {:>14} alloc {:>14}  record {c}{marks}",
             tree.name(c),
             tree.size[i],
-            tree.alloc[i]
+            tree.alloc_bytes(c)
         );
         if u64::from(c) < records
             && tree.flags[i] & flag::DIR == 0

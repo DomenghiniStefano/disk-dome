@@ -7,7 +7,8 @@ use std::path::PathBuf;
 
 use crate::pipeline::{ChunkReader, ScanError, Source};
 
-/// The file starts with a 16-byte header: magic, record size, then the records.
+/// The file starts with a 16-byte header: magic, record size, cluster size (0 in early dumps: 4096),
+/// then the records.
 pub const MAGIC: &[u8; 8] = b"DDMFT001";
 pub const HEADER: u64 = 16;
 
@@ -15,6 +16,7 @@ pub struct DumpSource {
     path: PathBuf,
     len: u64,
     record_size: usize,
+    cluster_size: u32,
 }
 
 impl DumpSource {
@@ -30,11 +32,17 @@ impl DumpSource {
             return Err(ScanError::BadMft("not a DiskDome $MFT dump"));
         }
         let record_size = u32::from_le_bytes([header[8], header[9], header[10], header[11]]);
+        let cluster_size =
+            match u32::from_le_bytes([header[12], header[13], header[14], header[15]]) {
+                0 => 4096,
+                c => c,
+            };
         let len = file.metadata().map_err(io)?.len().saturating_sub(HEADER);
         Ok(Self {
             path,
             len,
             record_size: record_size as usize,
+            cluster_size,
         })
     }
 }
@@ -92,6 +100,9 @@ impl Source for DumpSource {
     fn alignment(&self) -> usize {
         self.record_size
     }
+    fn cluster_size(&self) -> u32 {
+        self.cluster_size
+    }
 }
 
 /// Copies every record of `source` into `out`, with the dump header. Single-threaded, in order.
@@ -103,6 +114,7 @@ pub fn write_dump(source: &impl Source, out: &mut impl std::io::Write) -> Result
     let mut header = [0u8; HEADER as usize];
     header[..8].copy_from_slice(MAGIC);
     header[8..12].copy_from_slice(&(source.record_size() as u32).to_le_bytes());
+    header[12..16].copy_from_slice(&source.cluster_size().to_le_bytes());
     out.write_all(&header).map_err(io)?;
     let align = source.alignment().max(source.record_size()) as u64;
     let chunk = (16u64 << 20) / align * align;
