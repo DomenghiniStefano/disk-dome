@@ -4,12 +4,10 @@ Step 4 of the plan. This is DiskDome's design system: the principles, the main w
 value, the data colours, the components with their variants and states, the patterns, the Kit window and the
 automatic checks. It is written to be implemented in Slint without further design work.
 
-**Status: proposal of 2026-11-24, from the first design session with the owner; the accent (Laguna) and the
-data colours by category are decided.** Every value below is concrete. Points still waiting for the owner are
-marked **⟨open⟩** and listed in «Open decisions» at the end; everything else is the proposal the code follows until
-the owner changes it. The reference mockup is the Design
+**Status: decided by the owner on 2026-11-24, after the design sessions** (§ 11 lists what was decided). Every
+value below is concrete. The few points still waiting are marked **⟨open⟩** and listed in § 11. The reference mockup is the Design
 canvas «DiskDome — design system» (https://claude.ai/artifact/9uEkqjsB82zrQAAr9x97CD): the main window at real
-size and interactive (dark / light, normal / compact, GB / GiB), the accent
+size and interactive (dark / light, normal / compact), the accent
 choice, the map styles (with «Folders» on a large window), the full and minimum windows, the Overview and the
 other new views (§ 4.5), Statistics, the charts and the features (§ 4.6–4.8), the flows, every control, its states and the errors (§ 6.11–6.14), the
 components, the data colours, the deletion dialogs and the first launch. Its values come from the
@@ -57,7 +55,7 @@ transparency, the hex is the result over its usual background, and the alpha for
 +------------------------------------------------------------------------------------------+
 | [<] [Analizza di nuovo] | [Cerca un file o una cartella  Aa .*] [Filtri]                   [S] [...] | toolbar
 +------------------------------------------------------------------------------------------+
-| Panoramica  Esplora  Pulizia  Tempo  Statistiche  Attivita     670 GiB usati . 284 liberi | section bar
+| Panoramica  Esplora  Pulizia  Timeline  Statistiche  Attivita  670 GiB usati . 284 liberi | section bar
 +----------------------------------------------------------+-------------------------------+
 | [Albero|Elenco file] [Tabella|Entrambi|Mappa] [P]     # Data 115 GiB [Mostra] [Cestino] [...] | Explore bar
 +----------------------------------------------------------+-------------------------------+
@@ -71,7 +69,7 @@ transparency, the hex is the result over its usual background, and the alpha for
 | |             |           |      |   map (treemap), full width                           |
 | +-------------+-----------+------+                                                       |
 +------------------------------------------------------------------------------------------+
-| 3.789.066 file . scansione 6,8 s (MFT) | 1 selezionato . 48,5 GiB | o in tempo reale | GiB | status bar
+| 3.789.066 file . analizzato oggi alle 21:14 | 1 selezionato . 48,5 GiB | o in tempo reale | GiB | status bar
 +------------------------------------------------------------------------------------------+
 ```
 
@@ -79,7 +77,7 @@ Window: default 1280 × 800, minimum 960 × 600, size and splitter positions rem
 
 | Region | Height normal / compact | Ground | Content |
 | --- | --- | --- | --- |
-| Title bar | 32 | `frame` (a step deeper than `bg`) | app mark, **drive tabs** (§ 5.27) and «+», drag area, caption buttons; the active tab takes `bg` and joins the toolbar. ⟨open⟩ placement of the tabs: title bar (proposal, needs the custom title bar spike, § 12), toolbar, or their own 30 px row under the native title bar |
+| Title bar | 32 | `frame` (a step deeper than `bg`) | app mark, **drive tabs** (§ 5.27) and «+», drag area, caption buttons; the active tab takes `bg` and joins the toolbar. the tabs sit in the title bar (owner, 2026-11-24), if the custom title bar spike passes (§ 12, test 1); otherwise in the toolbar |
 | Toolbar | 36 / 32 | `bg` | only what works everywhere: Back; «Scan again» (secondary; before the first scan the call to action is in the middle, § 2.2) or «Stop»; search («Search for a file or folder», case and regex toggles) and Filters once the drive is scanned; Settings; «⋯» (Export, Commands, Shortcuts, About) |
 | Filter bar | 28 / 24, only when a filter is active | `bg` | filter chips, «Clear filters» |
 | Info bar | 32 / 28, only when there is a message | state soft fill | one message with its action (scan mode, errors) |
@@ -87,7 +85,7 @@ Window: default 1280 × 800, minimum 960 × 600, size and splitter positions rem
 | Explore bar | 28 / 24, Explore only, full width | `bg` | «Tree · File list», the layout «Table · Both · Map», the File types panel toggle; on the right the **selection**: swatch, name, size and «Show», «Move to the Recycle Bin», «⋯» (the right-click menu), or with nothing selected «Select a file or folder to see what you can do with it» in `ink-faint` |
 | Content | rest | `surface` | the current section; in Explore the table and the side panel |
 | Splitter | 1 (6 to the pointer) | `line` | resizes table vs treemap |
-| Map header | 28 / 24 | `bg` | home / up, breadcrumb of the zoom root; on the right the hovered item (or the zoom root's summary), the «Free space» checkbox and the options menu (style, names; ⟨open⟩ shape and colours, § 4.5) |
+| Map header | 28 / 24 | `bg` | home / up, breadcrumb of the zoom root; on the right the hovered item (or the zoom root's summary), the «Free space» checkbox and the options menu (style, names, shape and colours, § 4.5) |
 | Map (treemap) | ≥ 120 | `bg` | the treemap, full width |
 | Status bar | 22 / 20 | `bg` | scan summary · selection · live state · scan mode · units |
 
@@ -128,11 +126,11 @@ changes with the size: the same regions, more rows and a larger map.
 
 | State | What the window shows |
 | --- | --- |
-| **Drive not scanned yet** (its tab is open) | **one call to action**, centred, 560 px wide: drive icon 32, «Find out what takes up space on E:» (`display`), label · file system · used of total (from Windows, no scan) and a 6 px usage bar; the **hero** button «Scan E:» (`primary`, 40 px, § 5.2), the only primary on screen, with «About a minute. It only reads: nothing is changed.» beside it; one line on the scan mode with «Change» (§ 6.7); then «Other drives» (one row each, «Scan» or «Open» secondary) and «Scan a folder…» with the drop target. No section bar; the toolbar shows only Settings and «⋯». The scan shows its progress in place, with «Stop» |
-| **Empty** (no scan yet) | the same call to action for the system drive (artboard «PrimaVolta») |
+| **Drive not scanned yet** (its tab is open) | **one call to action**, centred, 560 px wide: drive icon 32, «Find out what takes up space on E:» (`display`), label · file system · used of total (from Windows, no scan) and a 6 px usage bar; the **hero** button «Scan E:» (`primary`, 40 px, § 5.2), the only primary on screen, with «It only reads: nothing is changed.» beside it; one line on the scan mode with «Change» (§ 6.7); then «Other drives» (one row each, «Scan» or «Open» secondary) and «Scan a folder…» with the drop target. No section bar; the toolbar shows only Settings and «⋯». The scan shows its progress in place, with «Stop» |
+| **Empty** (no scan yet) | the **Start** tab (§ 6.16): «What do you want to analyze?», every drive of this PC as a card with Windows' numbers, the recommended one with the only primary button, «Choose a folder…», «Network path…», the drop target, the scan mode line and «How it works» in three steps (artboard «Inizio») |
 | **First launch** | the empty state above, no dialog (§ 6.7, proposal) |
-| **Scanning** | Scan becomes «Stop» (secondary); a 2 px progress line under the toolbar (accent); the status bar says the phase and real numbers («Reading the MFT · 8.2 / 13.7 GB · 3.1 s», «Adding up folders…»); the table stays empty for an MFT scan (≤ 8 s), fills progressively for a directory walk |
-| **Ready** | everything shown; the status bar keeps «Scanned in 6.8 s (MFT)» |
+| **Scanning** | a drive never scanned: the content becomes the **progress view** (artboard «Analisi»): «Analysis of Windows (C:)» and the percentage, an 8 px bar, what it is doing now («Reading the drive's index: 8.2 of 13.7 GB») with the time left on the right, three counters growing (files found, folders, space counted), the phases each with its state and its own bar, «You can keep using the PC. At the end C:'s Overview opens.», «Stop». A drive already scanned: its last scan stays on screen, a 2 px progress line under the toolbar and the same words in the status bar. With a folder walk Explore fills while it reads |
+| **Ready** | everything shown; the status bar says when the drive was scanned («scanned today at 21:14») |
 | **Live** | the status bar's dot is `success` with «Live»; an outside change updates rows in place, no animation |
 | **Paused live updates** | dot `ink-faint`, «Live updates paused» (the USN journal is unavailable or the drive is not NTFS) |
 | **Error** | an info bar (danger) under the toolbar with what happened and what to do; the previous scan stays visible if there is one |
@@ -146,7 +144,7 @@ changes with the size: the same regions, more rows and a larger map.
   `theme.slint` (`global Theme`: colours per theme), `data.slint` (`global Data`: file-category colours),
   `size.slint` (`global Size`: spacing, sizes, radii, borders; density), `type.slint` (`global Type`: font and
   the type steps), `motion.slint` (`global Motion`: durations and the easing).
-- Run-time switches, set by Rust from the settings: `Theme.mode: ThemeMode` (`dark`, `light`, `light-dim`; also
+- Run-time switches, set by Rust from the settings: `Theme.mode: ThemeMode` (`dark`, `light`; also
   follows the OS when the setting is «System»), `Size.compact: bool`, `Data.palette: DataPalette` and
   `Data.style: MapStyle` (§ 4.4). Every value that depends on them is a conditional binding in
   the token file, so switching re-renders without restarting.
@@ -164,25 +162,24 @@ changes with the size: the same regions, more rows and a larger map.
 A cool graphite, hue 255° in OKLCH with almost no chroma (0.005), so the file colours of the treemap stay the
 only colour on screen. Dark is the default theme; the light themes follow the same roles. **The light theme is a
 soft grey, never near-white** (owner, 2026-11-24: the first light theme, white surfaces at L 0.995, «hurts the
-eyes»): surfaces at L 0.94, the window ground at L 0.905. A dimmer variant, **Light dim** (`light-dim`, surfaces at
-L 0.89), is in the mockup for comparison ⟨open: ship one light theme or both⟩. The Slint switch becomes
-`Theme.mode: ThemeMode { dark, light, light-dim }`.
+eyes»): surfaces at L 0.94, the window ground at L 0.905. **Two themes, Dark and Light** (owner, 2026-11-24); the
+dimmer «Light dim» tried in the mockup was dropped. `Theme.mode: ThemeMode { dark, light }`.
 
-| Token | Dark | Light | Light dim | Role | `ink` on it (dark / light / dim) |
-| --- | --- | --- | --- | --- | --- |
-| `bg` | `#0f1113` | `#dee0e2` | `#cdcfd3` | deepest ground: toolbar, tab bar, headers, treemap area, status bar | 15.7 / 12.9 / 11.6 |
-| `surface` | `#161719` | `#eaebed` | `#d9dbdd` | content panels: tables, side panel | 14.9 / 14.3 / 13.0 |
-| `raised` | `#1f2123` | `#f2f3f5` | `#e1e3e5` | floating: menus, tooltips, dialogs, toasts | 13.4 / 15.4 / 14.1 |
-| `field` | `#1c1e20` | `#f1f2f4` | `#e0e1e3` | text fields | 13.9 / 15.3 / 13.8 |
-| `control` | `#232528` | `#d7d9dc` | `#c6c9cd` | secondary button, segmented control, chips | 12.7 / 12.1 / 10.9 |
-| `control-hover` | `#2c2e31` | `#cdd0d3` | `#bcc0c4` | hover of controls and menu items | 11.3 / 11.0 / 9.9 |
-| `control-pressed` | `#1a1c1f` | `#c3c6ca` | `#b3b6ba` | pressed controls | 14.2 / 10.0 / 8.9 |
-| `line` | `#282a2d` | `#cbced1` | `#bbbec2` | 1 px separators between panels, field edges |  |
-| `line-strong` | `#66696e` | `#717579` | `#606368` | checkbox and radio boxes (≥ 3:1) |  |
-| `edge` | `#35383c` | `#bbbec2` | `#a8abaf` | edge of popups and dialogs |  |
-| `ink` | `#e8eaec` | `#191c20` | `#14161a` | text, icons that act | on surface 14.9 / 14.3 / 13.0 |
-| `ink-muted` | `#abaeb3` | `#494d54` | `#3c4046` | secondary text, column headers, status bar, folder icons | on surface 8.1 / 7.1 / 7.5 |
-| `ink-faint` | `#7e8288` | `#65696f` | `#54585e` | placeholders, disabled text, missing-value dash | on surface 4.6 / 4.6 / 5.2 |
+| Token | Dark | Light | Role | `ink` on it (dark / light) |
+| --- | --- | --- | --- | --- |
+| `bg` | `#0f1113` | `#dee0e2` | deepest ground: toolbar, tab bar, headers, treemap area, status bar | 15.7 / 12.9 |
+| `surface` | `#161719` | `#eaebed` | content panels: tables, side panel | 14.9 / 14.3 |
+| `raised` | `#1f2123` | `#f2f3f5` | floating: menus, tooltips, dialogs, toasts | 13.4 / 15.4 |
+| `field` | `#1c1e20` | `#f1f2f4` | text fields | 13.9 / 15.3 |
+| `control` | `#232528` | `#d7d9dc` | secondary button, segmented control, chips | 12.7 / 12.1 |
+| `control-hover` | `#2c2e31` | `#cdd0d3` | hover of controls and menu items | 11.3 / 11.0 |
+| `control-pressed` | `#1a1c1f` | `#c3c6ca` | pressed controls | 14.2 / 10.0 |
+| `line` | `#282a2d` | `#cbced1` | 1 px separators between panels, field edges |  |
+| `line-strong` | `#66696e` | `#717579` | checkbox and radio boxes (≥ 3:1) |  |
+| `edge` | `#35383c` | `#bbbec2` | edge of popups and dialogs |  |
+| `ink` | `#e8eaec` | `#191c20` | text, icons that act | on surface 14.9 / 14.3 |
+| `ink-muted` | `#abaeb3` | `#494d54` | secondary text, column headers, status bar, folder icons | on surface 8.1 / 7.1 |
+| `ink-faint` | `#7e8288` | `#65696f` | placeholders, disabled text, missing-value dash | on surface 4.6 / 4.6 |
 
 #### Accent: Laguna (decided 2026-11-24)
 
@@ -208,11 +205,9 @@ the accent as text pass WCAG AA in both themes:
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Laguna (190°) | dark | `#37c2bb` | `#4dd2cb` | `#12aea8` | `#0f1113` | `#37c2bb` | `#37c2bb38` | `#37c2bb` | 8.6 | 8.2 |
 | Laguna (190°) | light | `#007c79` | `#006f6d` | `#006360` | `#ffffff` | `#006663` | `#007c7929` | `#006663` | 5.0 | 5.7 |
-| Laguna (190°) | light dim | `#006f6d` | `#006360` | `#005654` | `#ffffff` | `#005957` | `#006f6d29` | `#005957` | 6.0 | 5.9 |
 
-Lightness ⟨open⟩: the first Laguna (L 0.80, `#3dd7cf`) was too bright for the owner; the proposal is one step
-darker, **L 0.74, C 0.115 (`#37c2bb`)**, with L 0.68 (`#32ada7`) as the alternative, both in the mockup. The light
-themes keep `#007c79`.
+Lightness (owner, 2026-11-24): the first Laguna (L 0.80, `#3dd7cf`) was too bright; the accent is one step darker,
+**L 0.74, C 0.115 (`#37c2bb`)** on the dark theme; the light theme keeps `#007c79`.
 
 Compared on the mockup and not chosen: Volt (yellow-green, 118°: the tightest gap, 31° from SoundDome) and Fucsia
 (pink, 350°: next to `danger`, which matters in an app that deletes files).
@@ -225,14 +220,14 @@ text, sort arrow), `accent-soft` (selection fill of rows, chosen segment), `focu
 
 #### States
 
-| Token | Dark | Light | Light dim | Use |
-| --- | --- | --- | --- | --- |
-| `danger` | `#f66d67` (6.6:1 on bg) | `#b32322` (5.0:1) | `#a21a1b` (5.0:1) | deletion, errors, invalid input |
-| `danger-soft` | `#f66d6724` | `#b3232224` | `#a21a1b24` | fill of danger info bars and badges |
-| `warning` | `#f6b84d` (10.7:1 on bg) | `#8a5100` (4.9:1) | `#7a4702` (4.9:1) | system items, permission and space warnings |
-| `warning-soft` | `#f6b84d24` | `#8a510024` | `#7a470224` | fill of warning info bars and badges |
-| `success` | `#5fcf83` (9.7:1 on bg) | `#10703a` (4.7:1) | `#0d6332` (4.7:1) | live updates, completed actions |
-| `success-soft` | `#5fcf8324` | `#10703a24` | `#0d633224` | fill of success info bars and badges |
+| Token | Dark | Light | Use |
+| --- | --- | --- | --- |
+| `danger` | `#f66d67` (6.6:1 on bg) | `#b32322` (5.0:1) | deletion, errors, invalid input |
+| `danger-soft` | `#f66d6724` | `#b3232224` | fill of danger info bars and badges |
+| `warning` | `#f6b84d` (10.7:1 on bg) | `#8a5100` (4.9:1) | system items, permission and space warnings |
+| `warning-soft` | `#f6b84d24` | `#8a510024` | fill of warning info bars and badges |
+| `success` | `#5fcf83` (9.7:1 on bg) | `#10703a` (4.7:1) | live updates, completed actions |
+| `success-soft` | `#5fcf8324` | `#10703a24` | fill of success info bars and badges |
 
 A state colour always comes with an icon or a word (never colour alone). The `*-soft` fills are the state at
 14 % (`24` alpha), for info bars and badges.
@@ -259,7 +254,7 @@ colours in both themes: a file's colour never changes with the theme.
 | Sistema / System | `system` | `#7d6e63` | `#928377` | `#695b50` | `#ffffff` (4.9) | 0.55 0.025 60 | `cpu` | pagefile.sys hiberfil.sys swapfile.sys $MFT |
 | Altro / Other | `other` | `#55585d` | `#696c70` | `#424549` | `#ffffff` (7.1) | 0.46 0.008 255 | `file-question` | (everything else, no extension) |
 
-- **Palettes** ⟨open⟩: besides the standard colours, two variants as a setting («Colours of the map»):
+- **Palettes** (owner, 2026-11-24: all three ship): besides the standard colours, two variants as a setting («Colours of the map»):
   **Soft** (Tenue: every colour 42 % toward its own grey, luminance kept) and **Vivid** (Vivace: 30 % away from
   it). `on-data` is recomputed for each colour (dark ink where it reaches 4.5:1, else white). The transform is
   applied by the treemap crate and by `Data` in Slint from the same numbers.
@@ -276,9 +271,9 @@ colours in both themes: a file's colour never changes with the theme.
 - Accent: no category sits closer than ΔE OK 0.12 to the accent (Programmi, the nearest, is 32° and a step darker
   away), and the accent is never drawn inside the data area.
 
-#### Data: age ⟨open⟩
+#### Data: age
 
-For «Colours: Age» and the Time tab (§ 4.5): one hue (58°, amber-brown, far from the accent), **bright = recent,
+For «Colours: Age» and the Timeline section (§ 4.5): one hue (58°, amber-brown, far from the accent), **bright = recent,
 dim = old**, six buckets by the file's last-modified date. Lightness falls 0.08–0.10 per step, so the order reads
 without the legend and in grey-scale; the same colours in every theme, like the categories.
 
@@ -293,19 +288,19 @@ without the legend and in grey-scale; the same colours in every theme, like the 
 
 #### Other colour tokens
 
-| Token | Dark | Light | Light dim | Use |
-| --- | --- | --- | --- | --- |
-| `hover` | `#222325` | `#e0e1e3` | `#cfd1d3` | row hover (ink 5.5 % / 4.5 % over surface) |
-| `selected-inactive` | `#2b2c2e` | `#d7d8db` | `#c7c9cb` | selected rows when the table has no focus (ink 10 % / 8 %) |
-| `bar-track` | `#2b2c2e` | `#d5d6d9` | `#c5c7ca` | percent and usage bar track |
-| `bar-fill` | `#6e7072` | `#96989b` | `#8a8c8f` | percent and usage bar fill (neutral) |
-| `scroll-thumb` | `#e8eaec3d` | `#191c2038` | `#14161a38` | scrollbar thumb (ink at 24 % / 22 %) |
-| `scroll-thumb-hover` | `#e8eaec66` | `#191c205c` | `#14161a5c` | scrollbar thumb, hovered or dragged |
-| `scrim` | `#0000008c` | `#1a1c2059` | `#1a1c205c` | over the window behind a dialog |
-| `shadow` | `#00000099` | `#1a1c2033` | `#1a1c2038` | drop shadows of levels 1 and 2 |
-| `data-gap` | = `bg` | = `bg` | = `bg` | 1 px gap between treemap folders |
-| `data-hover` | = `ink` | = `ink` | = `ink` | 1 px hover outline in the treemap |
-| `data-selection` | = `ink` + `bg` halo | = `ink` + `bg` halo | = `ink` + `bg` halo | 2 px selection outline in the treemap |
+| Token | Dark | Light | Use |
+| --- | --- | --- | --- |
+| `hover` | `#222325` | `#e0e1e3` | row hover (ink 5.5 % / 4.5 % over surface) |
+| `selected-inactive` | `#2b2c2e` | `#d7d8db` | selected rows when the table has no focus (ink 10 % / 8 %) |
+| `bar-track` | `#2b2c2e` | `#d5d6d9` | percent and usage bar track |
+| `bar-fill` | `#6e7072` | `#96989b` | percent and usage bar fill (neutral) |
+| `scroll-thumb` | `#e8eaec3d` | `#191c2038` | scrollbar thumb (ink at 24 % / 22 %) |
+| `scroll-thumb-hover` | `#e8eaec66` | `#191c205c` | scrollbar thumb, hovered or dragged |
+| `scrim` | `#0000008c` | `#1a1c2059` | over the window behind a dialog |
+| `shadow` | `#00000099` | `#1a1c2033` | drop shadows of levels 1 and 2 |
+| `data-gap` | = `bg` | = `bg` | the gaps between treemap folders (3, 2, 1 px) |
+| `data-hover` | = `ink` | = `ink` | 1 px hover outline in the treemap |
+| `data-selection` | = `ink` + `bg` halo | = `ink` + `bg` halo | 2 px selection outline in the treemap |
 
 ### 3.3 Typography
 
@@ -516,9 +511,9 @@ the dialog scrim and dialog (10), toasts (20). They are `Size.z-*` tokens.
 
 - **Sizes**: three significant figures, the unit switching at 1000 of the current unit: `512 B`, `1,23 KB`,
   `12,3 MB`, `123 GB`, `1,02 TB` (Italian) / `1.23 KB` (English). Zero is `0 B`.
-- **Units setting**: decimal (`KB MB GB TB`, ×1000) or binary (`KiB MiB GiB TiB`, ×1024), always labelled
-  honestly. ⟨open⟩ Default: binary, because it gives the numbers Explorer shows (931 for a «1 TB» drive) with
-  the correct label.
+- **Units** (owner, 2026-11-24): a setting with three choices: **like File Explorer** (binary values labelled `KB MB
+  GB TB`, the default: the same numbers the user sees in Windows, 931 GB for a «1 TB» drive), binary with honest
+  labels (`KiB MiB GiB TiB`), decimal (`KB MB GB TB`, ×1000). The mockup still shows GiB in places.
 - **Size cell**: the number right-aligned and the unit in its own 24 px slot, left-aligned, `ink-muted`; so
   numbers align on their last digit whatever the unit.
 - **Counts**: grouped by the interface language (`13.817.523` / `13,817,523`); in the narrow side panel and the
@@ -555,12 +550,14 @@ the code and the docs.
 
 - **Layout**: squarified, files only. Rectangles under 2 px are merged into their folder's remainder, coloured
   with the folder's largest category.
-- **Folder separation**: a 1 px gap in `bg` between the children of the zoom root and of the next level; deeper
-  folders have no gap (it would turn into noise), except in the «Structure» style.
+- **Folder separation** (owner, 2026-11-24: «in Vignette the folders don't show»): **every style** leaves gaps in
+  `bg` of 3, 2 and 1 px between the folders of the first three levels under the zoom root; deeper folders have no
+  gap (it would turn into noise). A style only changes how a file's rectangle is painted.
 - **Styles** (owner, 2026-11-24: «more options for the coloured squares, so I choose the best or we keep them
   all»): a setting «Map style», all drawn by the same renderer and compared on the canvas. Tiles, Outline and
   Folders were dropped by the owner the same day; Folders came back for large windows, at the owner's request.
-  ⟨open: default, and whether all ship⟩
+  All ship as a setting (T4: every style redraws in under 2 ms). ⟨open: the default, to choose again on the canvas
+  now that the folders show in every style⟩
 
 | Style | How each file rectangle is drawn | Character |
 | --- | --- | --- |
@@ -608,10 +605,11 @@ the code and the docs.
   total free bytes); with disk quotas the user's own free space goes in the tooltip. The tab bar's summary always
   says «670 GiB used · 284 GiB free».
 
-### 4.5 More views from the same scan ⟨open⟩
+### 4.5 More views from the same scan
 
 Owner, 2026-11-24: «more views: we could go well beyond WizTree with the information we collect». A proposal,
-drawn in the mockup (artboards «Panoramica» and «Viste»); which views ship in v1 is open decision 15.
+drawn in the mockup (artboards «Panoramica» and «Viste»). **All of them ship in v1** (owner, 2026-11-24: «and as
+many features as possible»).
 
 Every view below uses **only what the scan already reads**: from the `$MFT`, for every file, size, allocated
 size, last-modified date, attributes (hidden, system, compressed, sparse, reparse point) and link count; from
@@ -624,7 +622,7 @@ written. A view whose data is missing in a scan mode (no-admin walk, a drive tha
 | **Overview** (Panoramica) | first section | totals, categories, folders, dates, system files | «what is going on with this drive», in one screen |
 | **Rings** (Anelli) | map header menu › Shape: Rectangles / Rings / Layers (§ 4.7) | the folder tree | the same as the map, for people who do not read rectangles |
 | **Colours: Age** (Colori: Età) | map header menu › Colours: Type / Age | last-modified date | «what big things have I not touched in years?» |
-| **Time** (Tempo) | section | last-modified date, saved scan summaries | «when did the space arrive?», «what changed since Tuesday?» |
+| **Timeline** | section | last-modified date, saved scan summaries | «when did the space arrive?», «what changed since Tuesday?» |
 | **Activity** (Attività) | section | USN journal | «what is growing right now?» |
 | **Windows' space** (Spazio di Windows) | a card in Overview | system files and folders | «what does Windows keep for itself, and where do I manage it?» |
 
@@ -643,7 +641,7 @@ The first section (Ctrl+1; open decision 16: the first view after scanning a dri
 | **File types** | one stacked bar of the twelve categories (category colours, 1 px `bg` gaps), the legend with size and % | a click on a category highlights it in the map (§ 4.4) and switches to the map view |
 | **Where the space goes** | the six folders where the space really is: a folder is listed only when none of its sub-folders holds more than 35 % of it, and never together with its ancestor or descendant (so «Registrazioni OBS», not «C:\Users») | a click selects the folder in the tree |
 | **You can free** (Puoi liberare), beside the map, with the screen's primary button «Free up space…» → Clean-up | rebuildable folders (the Clean-up view's total), temporary files (`%TEMP%`), Downloads older than a year, the Recycle Bin, the hibernation file; total «up to 182 GiB» («up to»: they are suggestions) | buttons only navigate («Open Clean-up», «Show») or open Windows' own tool (external-link icon). **Nothing is deleted from this card**: deleting stays in the views and goes through § 6.4 |
-| **Modified in the last 7 days** (moved to Time by the new-user walk-through) | bytes of the files whose last modification falls on each of the last seven days, one bar per day | a click filters the tree by that day |
+| **Modified in the last 7 days** (moved to Timeline by the new-user walk-through) | bytes of the files whose last modification falls on each of the last seven days, one bar per day | a click filters the tree by that day |
 | **Largest files** | the five largest files, name, folder (elided in the middle), size | «All» opens the Largest files view |
 
 «Modified in the last 7 days» is not growth: a single scan has no earlier state. Real growth is the Activity
@@ -666,7 +664,7 @@ category. Last-access dates are not used (Windows updates them lazily or not at 
 (a copy resets them). The side panel's «Categories» list becomes the six age buckets with their totals; hover and
 selection as usual. Works with every map style and with Rings.
 
-#### Time
+#### Timeline
 
 A section (Ctrl+3) with these blocks (the calendar, history and compare charts are in § 4.7):
 
@@ -711,7 +709,7 @@ library:
 - The `Card` of § 5.23 with an optional right-hand header slot.
 - Tokens: the age ramp (§ 3.2) and the two map name steps (§ 3.3).
 
-### 4.6 Statistics ⟨open⟩
+### 4.6 Statistics
 
 A section (Ctrl+4) of cards in three columns, every row `label · detail · value` at row height, the value
 right-aligned in tabular figures, the detail in `caption` `ink-faint`. **Every row is a link**: a click opens
@@ -731,18 +729,18 @@ artboard «Statistiche».
 | From the internet | files downloaded (Windows' «mark of the web»), those older than a year, the main source | the `Zone.Identifier` stream, resident in the MFT record |
 | NTFS | cluster size, MFT size and records in use, USN journal size and the days it covers, files in more than 16 fragments («matters only on hard disks») | volume data, data runs |
 
-### 4.7 Charts ⟨open⟩
+### 4.7 Charts
 
 Seven charts on the same data (artboard «Grafici»), each placed where it answers a question:
 
 | Chart | Form | Where | Reads |
 | --- | --- | --- | --- |
 | **Concentration** | cumulative curve, log x (share of files, largest first) vs share of space; two direct labels | Statistics › Sizes | how few files hold the space |
-| **Calendar** | 53 × 7 heatmap of GiB modified per day, five steps of `chart-space` from `bar-track` | Time | the days the space arrived |
-| **Big and old** | scatter of the largest folders, log x (days since the newest file) × log y (size); the quadrant «over a year, over 10 GiB» on `hover`, its dots in `ink` and labelled, the rest `bar-fill` | Explore › Map › Colours: Age, as dots ⟨open⟩ | space you probably no longer need |
+| **Calendar** | 53 × 7 heatmap of GiB modified per day, five steps of `chart-space` from `bar-track` | Timeline | the days the space arrived |
+| **Big and old** | scatter of the largest folders, log x (days since the newest file) × log y (size); the quadrant «over a year, over 10 GiB» on `hover`, its dots in `ink` and labelled, the rest `bar-fill` | Explore › Map › Colours: Age, as dots | space you probably no longer need |
 | **Layers** | icicle: one row per folder level, width = size, the Rings colours | Explore › Map › Shape: Layers | the hierarchy with readable names |
-| **History and forecast** | line of the used space at every scan, the capacity as a hairline, the trend of the last 10 weeks as a lighter line | Time › History | «when will the drive be full?» (a projection, said so) |
-| **What changed** | diverging bars per folder against a scan the user picks: grown right (`delta-up`), shrunk left (`delta-down`), net total in the header | Time › Compare | what grew since Tuesday |
+| **History and forecast** | line of the used space at every scan, the capacity as a hairline, the trend of the last 10 weeks as a lighter line | Timeline › History | «when will the drive be full?» (a projection, said so) |
+| **What changed** | diverging bars per folder against a scan the user picks: grown right (`delta-up`), shrunk left (`delta-down`), net total in the header | Timeline › Compare | what grew since Tuesday |
 | **All drives** | stacked bars on one shared axis, the five largest categories plus Other, free space hatched; a drive not scanned shows used and free only | Home, «+» menu | every drive at once |
 
 Rules for every chart (the `dataviz` method, with DiskDome's tokens): one y-axis, never two; marks thin, a 1–2 px
@@ -753,16 +751,17 @@ Explore. Bytes are `chart-space`, counts `bar-fill`, growth and shrinkage `delta
 colours are never series. Drawn with Slint `Path` and `Rectangle` (the heatmap and the scatter by the CPU
 renderer if they pass a few thousand marks).
 
-| Token | Dark | Light | Light dim | Use |
-| --- | --- | --- | --- | --- |
-| `chart-space` | `#e79551` (7.5) | `#ae6626` (3.7) | `#a45d1a` (3.6) | bytes in every chart (lines, bars, heatmap steps) |
-| `delta-up` | `#e79551` (7.5) | `#ae6626` (3.7) | `#a45d1a` (3.6) | grown (diverging bars) |
-| `delta-down` | `#4caccb` (6.9) | `#1c87a5` (3.5) | `#087e9b` (3.4) | shrunk (diverging bars) |
-| counts | = `bar-fill` | = `bar-fill` | = `bar-fill` | file counts, context dots |
+| Token | Dark | Light | Use |
+| --- | --- | --- | --- |
+| `chart-space` | `#e79551` (7.5) | `#ae6626` (3.7) | bytes in every chart (lines, bars, heatmap steps) |
+| `delta-up` | `#e79551` (7.5) | `#ae6626` (3.7) | grown (diverging bars) |
+| `delta-down` | `#4caccb` (6.9) | `#1c87a5` (3.5) | shrunk (diverging bars) |
+| counts | = `bar-fill` | = `bar-fill` | file counts, context dots |
 
-### 4.8 Features beyond WizTree ⟨open⟩
+### 4.8 Features beyond WizTree
 
-Twenty proposals (artboard «Funzioni»), ten for v1. The owner decides which become cards; `docs/features.md`
+Twenty proposals (artboard «Funzioni»). The owner chose the four groups marked v1 below on 2026-11-24, plus the
+File Explorer menu entry and the command line (§ 6.16); the rest stays «after v1» until chosen. `docs/features.md`
 changes only then.
 
 | Group | Feature | Data | Proposal |
@@ -772,9 +771,9 @@ changes only then.
 | | Written filters: `ext:mp4 size:>1GB modified:<2024 attr:hidden owner:stefa path:Downloads`, saved filters | MFT | v1 |
 | | OneDrive and online-only files: declared vs local space | MFT | v1 |
 | Discover | Links and junctions: where they point, never counted twice | MFT | v1 |
-| | Space per owner | MFT (`$Secure`) | after v1 |
-| | Downloaded from the internet, and from where | MFT (`Zone.Identifier`) | after v1 |
-| | Duplicates: candidates by size from the MFT; content compared only on request, in the background, with the user's rights; never offers to delete the last copy | MFT + reading files | after v1 |
+| | Space per owner | MFT (`$Secure`) | v1 |
+| | Downloaded from the internet, and from where | MFT (`Zone.Identifier`) | v1 |
+| | Duplicates: candidates by size from the MFT; content compared only on request, in the background, with the user's rights; never offers to delete the last copy | MFT + reading files | v1 |
 | Act | Guided clean-up: rebuildable folders, Temp, old Downloads in one list, always to the Recycle Bin | MFT | v1 |
 | | Move to another drive, with progress; across drives it is a copy plus a delete, and says so | file actions | v1 |
 | | Compress with NTFS (LZX) for games and programs, reversible | file actions | after v1 |
@@ -791,21 +790,15 @@ changes only then.
 **Saved scan summaries** (what Compare, History and the instant view at the next launch use): after every scan
 DiskDome writes the folders down to 6 levels or above 0.01 % of the drive, the totals per extension and category,
 and the drive's used and free space; 1–3 MB per scan, in `%LOCALAPPDATA%\DiskDome\scans\<volume serial>\`, never a
-file's content. Kept: the last 30 and one per month ⟨open⟩.
+file's content. Kept: the last 30 and one per month (owner, 2026-11-24).
 
-**Memory.** Performance is the product, so every new per-entry field is paid for 13.8 million entries:
-
-| Field | Type | Bytes per entry | Used by |
-| --- | --- | --- | --- |
-| allocated size | `u32`, clusters | 4 | Statistics, lost space, compression |
-| last modified | `u32`, minutes since 2000 | 4 | Time, Age, Calendar, date filters |
-| attributes | `u16` | 2 | Statistics, filters, online-only files |
-| owner | `u16`, index into an owners table | 2 | space per owner |
-| link and fragment flags | `u8` | 1 | hard links, fragmentation |
-
-From 61.5 to 74.5 bytes per entry, 0.96 GiB on the reference drive, under the 1.5 GB limit. Rare data (link
-targets, alternate streams, download sources, very fragmented files) goes in side tables sorted by entry index,
-never a hash map. The fields are measured with `diskdome-cli` before they are added (§ 12, test 13).
+**Memory.** Performance is the product, so every per-entry field is paid for 13.8 million entries. Done on
+2026-11-24 (card 4.T13, `docs/architecture.md`): size on disk as `u32` clusters (`alloc`), last modified as `u32`
+Unix seconds (`mtime`, equal to what File Explorer shows), attributes `u16` (`attrs`), the security descriptor's
+number `u16` (`security`, the owner resolved from it later), link and fragment flags in the existing `flags` byte.
+The model stays at 61.5 bytes per entry; peak 0.89 GB on 14.3 million generated records, 0.39 GB on the owner's C:.
+Rare data (link targets, alternate streams, download sources, very fragmented files) goes in side tables sorted by
+entry index, never a hash map.
 
 ## 5. Components
 
@@ -899,7 +892,10 @@ A card-sized radio (scan mode, first launch): `surface` fill, 1 px `line`, radiu
 
 ### 5.10 Table (the virtual table)
 
-The heart of the app: Tree, Largest files and Clean-up are the same component with different columns.
+The heart of the app: Tree, File list and Clean-up are the same component with different columns. Built on Slint's
+`ListView` (dense rows, full keyboard), with our own virtual scrolling: the scrollbar maps to the row index, so
+14 million rows scroll precisely to the last one (owner, 2026-11-24, from test 3c). Default columns of the tree:
+Name, Size, %, Files, Modified, Allocated (owner, 2026-11-24); Folders and Attributes from the header's menu.
 
 - **Rows** come from a Rust `Model` that serves only the visible rows (`docs/architecture.md`): 14 million
   rows scroll as smoothly as 10. Row height `row`; no zebra stripes; no lines between rows.
@@ -907,8 +903,8 @@ The heart of the app: Tree, Largest files and Clean-up are the same component wi
   `line` under it. Columns are resized by dragging the 6 px handle at a header's right edge (a 1 px `line` shows on
   hover), reordered by dragging, hidden from the header's context menu («Columns…»).
 - **Columns of the Tree view** (default widths, normal density): Name (flex, ≥ 240), Size (88), % of parent
-  (104: bar + number), Allocated (88), Files (76), Folders (68), Modified (120), Attributes (56). Allocated,
-  Folders and Attributes can be hidden by default ⟨open⟩.
+  (104: bar + number), Allocated (88), Files (76), Folders (68), Modified (120), Attributes (56). Folders and
+  Attributes are hidden by default (owner, 2026-11-24).
 - **Cells**: `NameCell` (indent `indent` × depth, `chevron-right` / `chevron-down` 16 px for folders, icon,
   name `body`, then badges), `SizeCell` (§ 4.1), `PercentCell` (§ 4.2), `CountCell`, `DateCell`, `AttrCell`,
   `PathCell` (middle-elided, `ink-muted`). Numbers right-aligned, text left. Side padding `cell-pad-x`.
@@ -937,7 +933,7 @@ Inputs: `buffer: image`, `hover-rect`, `selected-rects: [Rect]`, `labels: [Treem
 `pointer-moved(x, y)`, `clicked(x, y, modifiers)`, `double-clicked(x, y)`, `context-menu(x, y)`. Hit-testing is
 done in Rust on the layout, never in Slint. Its header: `house` and `corner-left-up` (ghost, small), the
 `Breadcrumb`, then on the right the hovered item (swatch, name, size, %, category; the zoom root's summary when
-nothing is hovered), the «Free space» `Checkbox` (§ 4.4) and an `ellipsis` menu with «Map style» and «Names» (⟨open⟩ «Shape» and «Colours», § 4.5).
+nothing is hovered), the «Free space» `Checkbox` (§ 4.4) and an `ellipsis` menu with «Map style», «Names», «Shape» and «Colours» (§ 4.5).
 
 ### 5.12 Side panel: extensions and categories
 
@@ -1053,10 +1049,12 @@ opened. Switching tab is instant: each scanned tab keeps its model, selection, e
   fill), not scanned (letter and icon `ink-faint`; selecting it shows the «not scanned yet» state of § 2.2),
   scanning (a 2 px progress arc instead of the icon), live updates paused (the bar in `ink-faint`). The tooltip
   says letter, label, file system, used of total.
+- **Start** (owner, 2026-11-24; called «Start» in Italian too): a tab (`house` and the word) before the drive tabs, never closed: every drive and recent folder at a glance and the ways to choose what to analyze (§ 6.16). The app opens there the first time; afterwards it opens where the user left it.
 - **«+»**: a small ghost icon button after the tabs; opens the `DrivePicker` menu (§ 5.5). Ctrl+T opens it.
 - **Keyboard**: Ctrl+Tab / Ctrl+Shift+Tab next / previous tab, Ctrl+W closes a folder tab (drive tabs do not
   close), Ctrl+Shift+T reopens the last closed one.
-- **Placement** ⟨open⟩, all three in the mockup («schede» in the Tweaks):
+- **Placement** (owner, 2026-11-24): the title bar, if test 1 passes; otherwise the toolbar. The three options stay in
+  the mockup («schede» in the Tweaks):
   - **title bar** (proposal): as Explorer, Terminal and browsers on Windows 11. No extra height. Needs DiskDome's
     own title bar (§ 12, test 1). The window title «DiskDome — C:» stays the window's name for the taskbar.
   - **toolbar**: at its left, letters only (labels in the tooltip), search narrows to 220 px. No custom title
@@ -1071,6 +1069,16 @@ opened. Switching tab is instant: each scanned tab keeps its model, selection, e
 The `SegmentedControl` of the three layouts in Explore's bar (§ 2.1), 22 px tall there: `list-tree`
 «Table», `panel-bottom` «Both», `layout-dashboard` «Map». Words, not icons alone: the views must be obvious to
 anyone. Ctrl+Alt+1 / 2 / 3.
+
+### 5.29 ActionProgress
+
+A card per running file action (owner, 2026-11-24: actions are never disabled; each shows its progress), stacked
+at the bottom right above the status bar, 360 px wide, `raised`, level 2: icon, what it does («Moving 3 items to
+the Recycle Bin», «Copying 12 files to D:»), a 4 px bar with the percentage, the numbers («1.2 of 4.2 GB · 40 of
+112 files») and the time left, «Stop». Several run in parallel, newest on top; above three they collapse into one
+card «4 actions running» that expands. When one ends it becomes a notice («3 items moved to the Recycle Bin ·
+4.2 GB freed», with «Show in the Recycle Bin»), which leaves after 5 s; a failure stays until closed, with «Show
+details». The model and the parents' totals update when each item is done.
 
 ## 6. Patterns
 
@@ -1102,7 +1110,7 @@ anyone. Ctrl+Alt+1 / 2 / 3.
 | Ctrl+E | show in Explorer |
 | Ctrl+F | search |
 | F5 / Ctrl+F5 | rescan the folder / the drive |
-| Ctrl+1 … 6 | sections: Overview, Explore, Clean-up, Time, Statistics, Activity (§ 6.11) |
+| Ctrl+1 … 6 | sections: Overview, Explore, Clean-up, Timeline, Statistics, Activity (§ 6.11) |
 | Ctrl+Alt+1 / 2 / 3 | Explore's layout: Tree / Both / Map |
 | Ctrl+Alt+T / L | Explore's table: Tree / File list |
 | Alt+← / Alt+→ | back / forward (section, filter, selection, zoom) |
@@ -1170,28 +1178,26 @@ Nothing is deleted without a confirmation; the Recycle Bin is the default; syste
 
 ### 6.7 First launch: the scan mode
 
-**Proposal of the new-user walk-through (§ 6.15), changes a decision ⟨open 25⟩**: no dialog at first launch. The
-recommended mode is already chosen and said in one line under the call to action («Fast scan: Windows asks for
-permission, because DiskDome reads the drive's index» · «Change»); «Change» opens the three `OptionCard`s below
-the line, in place. The UAC prompt appears only when the user presses «Scan». Artboard «PrimaVolta».
+**Decided (owner, 2026-11-24), replacing the first-launch dialog**: no dialog at first launch. The recommended mode
+is already chosen and said in one line under the call to action («DiskDome reads the drive's index: Windows will
+ask for permission» · «Change»); «Change» opens three `OptionCard`s below the line, in place:
 
-The decided version, kept until the owner chooses: dialog `large`, not dismissable without a choice (the window's
-close quits the app). Title «How should DiskDome scan your drives?», three `OptionCard`s:
+1. **Drive's index, asks each time** · Recommended — «Reads the drive's index (MFT). Windows asks for permission
+   (UAC) at every scan.»
+2. **Drive's index, never asks** — «Installs a small service once that reads the index. Asks for permission only now.»
+3. **Folder by folder** — «No permissions. It takes longer and some system folders can't be read.»
 
-1. **Fast, asks each time** · Recommended — «Windows asks for permission (UAC) at every scan. Reads the drive's
-   index (MFT): seconds instead of minutes.»
-2. **Fast, never asks** — «Installs a small service once that reads the index. Asks for permission only now.»
-3. **Without administrator rights** — «Scans folder by folder: slower, and some folders can't be read.»
-
-Footer: «You can change it in Settings.» left, «Continue» (`primary`) right.
+«You can change it in Settings.» under them. The UAC prompt appears only when the user presses «Scan». Artboards
+«Start» and «PrimaVolta»; the old dialog stays on the canvas as «Avvio», no longer used.
 
 ### 6.8 The Clean-up view
 
-The Clean-up section (Ctrl+6) lists the rebuildable developer folders (`node_modules`, `target`, the npm, pnpm, cargo and gradle
+The Clean-up section (Ctrl+3) lists the rebuildable developer folders (`node_modules`, `target`, the npm, pnpm, cargo and gradle
 caches, Android `build`): a header line with the recycle icon and «You can free 147 GiB with rebuildable folders»
 plus one caption line on why it is safe; a table (checkbox, folder, project path middle-elided, size, last used);
 a 44 px footer bar on `bg` with «6 selected · 87.9 GiB» and «Move to Recycle Bin» (`primary`: it is the view's main
-action and reversible). The deletion follows § 6.4. The six largest are preselected ⟨open⟩.
+action and reversible). The deletion follows § 6.4. **Nothing is preselected** (owner, 2026-11-24): the user ticks
+what to remove. The guided clean-up of § 4.8 (rebuildable folders, Temp, old Downloads in one list) is in v1.
 
 ### 6.9 Messages and tone
 
@@ -1200,14 +1206,25 @@ buttons, no exclamation marks. Errors say what happened and what to do: «Can't 
 NTFS. Scan it folder by folder.» with the action «Scan folder by folder». No codes in sentences (the engine sends
 codes; the interface words them; details go to the log).
 
+**Global terms where Italian users use them** (owner, 2026-11-24): «Start», «Home», «Timeline» stay in English in
+the Italian interface; Italian everywhere else.
+
+**Say what DiskDome does and what it found, not how well it does it** (owner, 2026-11-24). No timings or speed to
+show off in the interface: not «Scanned in 6.8 s», «a few seconds», «fast». While something works, a progress bar
+tells how it is going (percentage, what it is doing, numbers growing, time left); when it ends, a short notice says
+what was found or what changed («Analysis of C: complete · 3,789,066 files»). Scan modes are named by what they do
+(«Drive's index», «Folder by folder»), not by speed; the speed difference is said once, where the user chooses
+(«it takes longer»). Timings belong in the log and in `diskdome-cli`. Each screen's purpose, and what it says first:
+artboard «Scopo».
+
 ### 6.10 Settings
 
 Dialog `large` (680 × 520) with a list of sections on the left (160 px): General (language, units), Appearance
-(theme System / Dark / Light / Light dim, density Normal / Compact with a live preview of three table rows, map style
+(theme System / Dark / Light, density Normal / Compact with a live preview of three table rows, map style
 with a small live map, map colours Standard / Soft / Vivid, map names None / Few / Many / All), Scan (scan mode, drives to skip), Columns (visible
 columns per view). Changes apply at once; no OK / Apply.
 
-### 6.11 Flows and navigation ⟨open⟩
+### 6.11 Flows and navigation
 
 Owner, 2026-11-24: «fix the flows too: what you see before and after the analysis, the sections and how to reach
 them». Artboard «Flussi»; in the «Main» artboard the sections and Back work.
@@ -1221,12 +1238,12 @@ bar: how to look at it) → 3 · in Explore only, the **layout** (Tree · Both �
 | Overview | Ctrl+1 | § 4.5: one sentence on the drive, the map, what you can free | automatically after a drive's scan |
 | Explore | Ctrl+2 | the table (Tree or File list), the map, the side panel | the map and every number, row, bar or dot elsewhere; Enter in the search |
 | Clean-up | Ctrl+3 | § 6.8 | «Free up space…» (Overview's primary button) and «Open Clean-up» |
-| Time | Ctrl+4 | months, calendar, history, compare, modified in the last 7 days (§ 4.5, § 4.7) | the day bars |
+| Timeline | Ctrl+4 | months, calendar, history, compare, modified in the last 7 days (§ 4.5, § 4.7) | the day bars |
 | Statistics | Ctrl+5 | § 4.6 | the summary in the section bar and the status bar |
 | Activity | Ctrl+6 | § 4.5; empty at first: «Here you see what changes while DiskDome is open. Nothing yet.» | «Live» in the status bar |
 
 - **Section bar**: a row at `tabbar` height under the toolbar, full width, present once the drive has been scanned:
-  the six section tabs left, ordered by use (Overview, Explore, Clean-up, Time, Statistics, Activity), the summary «670 GiB used · 284 GiB free» right (a ghost button to Statistics). It
+  the six section tabs left, ordered by use (Overview, Explore, Clean-up, Timeline, Statistics, Activity), the summary «670 GiB used · 284 GiB free» right (a ghost button to Statistics). It
   replaces the old view tabs (Tree, Largest files, Clean-up): Largest files becomes Explore › File list.
 - **Explore's bar** (full width under the section bar, Explore only): «Tree · File list» (Ctrl+Alt+T / L), the layout
   «Table · Both · Map» and the panel toggle, which therefore never appear disabled in other sections; on the right
@@ -1238,14 +1255,14 @@ bar: how to look at it) → 3 · in Explore only, the **layout** (Tree · Both �
 - **Before the analysis** (a drive never scanned): no section bar, no search, filters or layout control; the
   content is the one call to action of § 2.2 («Scan C:», `hero`), the mode line with «Change», the other drives and
   «Scan a folder…».
-- **While scanning**: «Stop» replaces «Scan»; a 2 px progress line under the toolbar; the content shows the drive,
-  the phases with real numbers (reading the MFT · adding up folders · statistics) and «Stop». With an MFT scan the
-  sections wait (seconds); with a folder walk Explore fills while it reads and Overview arrives at the end.
-- **After the scan**: Overview, the section bar, search and filters, a toast «Scanned in 6.8 s · 3,789,066 files»,
+- **While scanning**: the progress view of § 2.2 (percentage, bar, what it is doing, counters, phases, time left,
+  «Stop»). With the drive's index the sections wait for the end; with a folder walk Explore fills while it reads and
+  Overview arrives at the end.
+- **After the scan**: Overview, the section bar, search and filters, a toast «Analysis of C: complete · 3,789,066 files in 270,761 folders. From now on changes update by themselves.»,
   the drive tab's usage bar, live updates on; «Scan again» appears in the toolbar, secondary.
 - **Next launch**: the tabs come back as they were. A drive with a saved summary shows it at once with an info
   bar «Yesterday's scan at 21:14 · updating», and NTFS drives rescan by themselves (a setting, on by default for
-  MFT scans, off for folder walks and network paths) ⟨open⟩.
+  MFT scans, off for folder walks and network paths; owner, 2026-11-24).
 - **Without administrator rights**: everything works, slower; an info bar (`warning`) says what is missing
   («214 folders could not be read: totals are lower than real») with «Change mode»; Activity is disabled.
 
@@ -1259,7 +1276,7 @@ bar: how to look at it) → 3 · in Explore only, the **layout** (Tree · Both �
 | Table · Both · Map | absent | in Explore's bar |
 | Status bar | mode and units | plus files, scan time, «Live» |
 
-### 6.12 Every control ⟨open⟩
+### 6.12 Every control
 
 The owner asked for the analysis to include every single button. This is the complete inventory, region by region
 (artboard «Comandi», in Italian, from the same source: `controls.py` of the design work). «→» means it leads to
@@ -1304,7 +1321,7 @@ another section. A new control is added here before it is drawn; the Kit (§ 9) 
 | Overview | Ctrl+1 | the drive at a glance; the section you land on after a scan |
 | Explore | Ctrl+2 | tree, file list and map |
 | Clean-up | Ctrl+3 | what you can free, to send to the Recycle Bin |
-| Time | Ctrl+4 | when the space arrived |
+| Timeline | Ctrl+4 | when the space arrived |
 | Statistics | Ctrl+5 | the drive's numbers, each one clickable |
 | Activity | Ctrl+6 | what changes now (disabled without live updates) |
 | Summary on the right |  | click: Statistics |
@@ -1395,7 +1412,7 @@ another section. A new control is added here before it is drawn; the Kit (§ 9) 
 | Move to the Recycle Bin | Del | confirmation dialog (§ 6.4) |
 | Delete permanently | Shift+Del | confirmation dialog, «Cancel» is the default |
 
-**Time** (Time section)
+**Timeline** (Timeline section)
 
 | Control | Keys | Does |
 | --- | --- | --- |
@@ -1447,7 +1464,7 @@ another section. A new control is added here before it is drawn; the Kit (§ 9) 
 | Selection |  | → Explore with the selection in view |
 | Live |  | → Activity |
 | Scan mode |  | → Settings › Scan |
-| GiB / GB |  | switches the units |
+| Units |  | switches the units: like File Explorer, GiB, decimal GB |
 
 **Toasts** (after an action)
 
@@ -1456,21 +1473,23 @@ another section. A new control is added here before it is drawn; the Kit (§ 9) 
 | Show in the Recycle Bin |  | opens Windows' Recycle Bin |
 | Show details |  | list of the failed items with the reason |
 
-### 6.13 States of every control ⟨open⟩
+### 6.13 States of every control
 
 When each control of § 6.12 is enabled, disabled, hidden or asks first, in ten situations (artboard «Stati»). A
 disabled control **stays in place**, so nothing moves, and its tooltip says why («Select an item», «Needs the USN
-journal», «E: is not connected»); a hidden one has no meaning in that situation. Only one file action runs at a
-time: while it runs, the other file actions are disabled with «Wait for the current action» and closing asks.
+journal», «E: is not connected»); a hidden one has no meaning in that situation. **File actions are never disabled
+because another one is running** (owner, 2026-11-24: «disabling them looks slow; only a loading modal would
+justify it, and we have none»): they run in parallel, each with its own progress card at the bottom right (§ 5.29);
+only closing the window asks while one runs.
 
-| Control | Never scanned | MFT scan | Folder walk | Ready, nothing selected | One item | Several items | System item | No-admin mode | File action running | Drive unavailable | Note |
+| Control | Never scanned | MFT scan | Folder walk | Ready, nothing selected | One item | Several items | System item | No-admin mode | File action running (in parallel) | Drive unavailable | Note |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Back | disabled | on | on | on | on | on | on | on | on | on | disabled with no history |
-| Scan (middle) · Scan again (toolbar) | on | on | on | on | on | on | on | limited | disabled | disabled | never scanned: large in the middle; after: secondary in the toolbar; while scanning: Stop |
-| Rescan the folder (F5) | — | disabled | disabled | disabled | on | disabled | on | limited | disabled | disabled | one folder only |
+| Scan (middle) · Scan again (toolbar) | on | on | on | on | on | on | on | limited | on | disabled | never scanned: large in the middle; after: secondary in the toolbar; while scanning: Stop |
+| Rescan the folder (F5) | — | disabled | disabled | disabled | on | disabled | on | limited | on | disabled | one folder only |
 | Search, Filters | — | — | limited | on | on | on | on | on | on | on | during a walk: on what was read; drive gone: on the last scan |
 | Table · Both · Map | — | — | on | on | on | on | on | on | on | on | in Explore’s bar |
-| Selection: Show · Bin · ⋯ | — | — | limited | — | on | on | confirms twice | on | disabled | disabled | in Explore’s bar; the Bin asks first |
+| Selection: Show · Bin · ⋯ | — | — | limited | — | on | on | confirms twice | on | on | disabled | in Explore’s bar; the Bin asks first |
 | Sections | — | disabled | limited | on | on | on | on | on | on | on | during a walk Explore only |
 | Activity | — | disabled | disabled | on | on | on | on | disabled | on | disabled | needs the USN journal |
 | Open (Enter) | — | — | limited | disabled | on | confirms | on | on | on | disabled | more than 10 files: asks |
@@ -1478,19 +1497,19 @@ time: while it runs, the other file actions are disabled with «Wait for the cur
 | Open terminal here | — | — | limited | disabled | on | disabled | on | on | on | disabled | one item only |
 | Properties | — | — | limited | disabled | on | on | on | on | on | disabled |  |
 | Copy path, name, list | — | — | on | disabled | on | on | on | on | on | on | also with the drive gone |
-| Rename (F2) | — | — | disabled | disabled | on | disabled | confirms twice | on | disabled | disabled | one at a time; one action at a time |
-| Move to…, Cut, Paste | — | — | disabled | disabled | on | on | confirms twice | on | disabled | disabled | Paste onto a folder only |
-| Move to the Recycle Bin (Del) | — | — | disabled | disabled | confirms | confirms | confirms twice | confirms | disabled | disabled | always confirmed (§ 6.4) |
-| Delete permanently | — | — | disabled | disabled | confirms | confirms | confirms twice | confirms | disabled | disabled | «Cancel» is the default |
+| Rename (F2) | — | — | disabled | disabled | on | disabled | confirms twice | on | on | disabled | one at a time |
+| Move to…, Cut, Paste | — | — | disabled | disabled | on | on | confirms twice | on | on | disabled | Paste onto a folder only |
+| Move to the Recycle Bin (Del) | — | — | disabled | disabled | confirms | confirms | confirms twice | confirms | confirms | disabled | always confirmed (§ 6.4) |
+| Delete permanently | — | — | disabled | disabled | confirms | confirms | confirms twice | confirms | confirms | disabled | «Cancel» is the default |
 | Zoom in the map | — | — | limited | disabled | on | disabled | on | on | on | on | a folder |
 | Free space | — | — | disabled | on | on | on | on | on | on | disabled | drives only, not folders |
-| Clean-up: Move to the Recycle Bin | — | — | disabled | disabled | confirms | confirms | — | confirms | disabled | disabled | needs at least one ticked folder |
+| Clean-up: Move to the Recycle Bin | — | — | disabled | disabled | confirms | confirms | — | confirms | confirms | disabled | needs at least one ticked folder |
 | Export | disabled | disabled | disabled | on | on | on | on | on | on | on |  |
 | Close tab (folders) | on | limited | limited | on | on | on | on | on | confirms | on | stops a scan; asks during an action |
 | Close the window | on | on | on | on | on | on | on | on | confirms | on | asks only during a file action |
 | Settings | on | limited | limited | on | on | on | on | on | on | on | a changed mode applies to the next scan |
 
-### 6.14 When something goes wrong ⟨open⟩
+### 6.14 When something goes wrong
 
 Eighteen cases (artboard «Errori»), each shown by one component: an **info bar** for what blocks or limits the
 scan (it stays until solved or closed), a **toast** for an action that failed in part (with «Show details»), an
@@ -1500,7 +1519,7 @@ sentence; the details go to the log (§ 6.9).
 
 | Case | Shown in | Message | Actions | Engine code |
 | --- | --- | --- | --- | --- |
-| Permission refused (UAC) | info bar, warning | You did not give permission: the fast scan can’t start. | Try again · Scan folder by folder | `ElevationDenied` |
+| Permission refused (UAC) | info bar, warning | You did not give permission: the drive’s index can’t be read. | Try again · Scan folder by folder | `ElevationDenied` |
 | Drive not NTFS | info bar, neutral | E: is exFAT: scanning it folder by folder, it takes longer. | — | `NotNtfs { fs }` |
 | Drive locked (BitLocker) | info bar, danger | D: is locked by BitLocker. Unlock it in File Explorer and try again. | Try again | `VolumeLocked` |
 | The service does not answer | info bar, danger | DiskDome’s service does not answer. | Restart the service · Ask for permission this time | `ServiceUnavailable` |
@@ -1510,7 +1529,7 @@ sentence; the details go to the log (§ 6.9).
 | Network path unreachable | empty state | \\nas\foto does not answer. Check the connection and try again. | Try again | `NetworkUnreachable` |
 | File in use | toast, danger | 2 items were not moved to the Recycle Bin. | Show details → «In use by Steam» · Try again | `InUse { by }` |
 | No permission for the action | toast, danger | You don’t have permission to move 3 items. DiskDome doesn’t ask for administrator rights for file actions. | Show in File Explorer | `AccessDenied` |
-| Not enough space to move | the dialog | D: has 12 GiB free, 48.5 are needed. | «Move» disabled · Choose another folder | `NoSpace { free, need }` |
+| Not enough space to move | the dialog | D: has 12 GB free, 48.5 are needed. | «Move» disabled · Choose another folder | `NoSpace { free, need }` |
 | Too large for the Recycle Bin | the dialog | 2 items are too large for the Recycle Bin: Windows would delete them for good. | Leave them out · Delete permanently | `TooLargeForBin` |
 | Invalid or taken name | the field | A file with this name already exists. | the field stays open | `NameTaken / NameInvalid` |
 | Path too long | toast, warning | File Explorer can’t open paths this long (318 characters). | Open terminal here · Copy path | `PathTooLong` |
@@ -1519,7 +1538,7 @@ sentence; the details go to the log (§ 6.9).
 | Internal scan error | info bar, danger | The scan stopped because of an error. The details are in the log. | Try again · Open the log | `Internal { id }` |
 | Saved summary unreadable | no message | Home says «last scan: not available»; the rest goes to the log. | — | `SummaryCorrupt` |
 
-### 6.15 The new-user walk-through ⟨open⟩
+### 6.15 The new-user walk-through
 
 Owner, 2026-11-24: «go round again as a new user, it must be intuitive: if scanning is the first thing to do, it
 can't be a small hidden button; reason like this». The path redone as someone who opens DiskDome for the first
@@ -1529,22 +1548,69 @@ shortcuts? Are the words those of a Windows user? Artboards «Giro» and «Prima
 
 | # | Moment | What a new user meets | Change | Status |
 | --- | --- | --- | --- | --- |
-| 1 | First launch | A dialog asks how to scan (UAC, service, no admin) before the app is seen. | No dialog: the recommended mode is chosen and said in one line under the button; «Change» opens the options in place; Windows asks for permission when Scan is pressed. | to decide |
+| 1 | First launch | A dialog asks how to scan (UAC, service, no admin) before the app is seen. | No dialog: the recommended mode is chosen and said in one line under the button; «Change» opens the options in place; Windows asks for permission when Scan is pressed. | done in the mockup |
 | 2 | First launch | Scanning is the first thing to do, but the button was small in the toolbar and Home had three equal small buttons. | One large call to action: «Find out what takes up space on C:», a usage bar, «Scan C:» 40 px tall (new `hero` size), «A few seconds. It only reads: nothing is changed.» | done in the mockup |
 | 3 | First launch | Search, Filters and the layout control shown disabled. | Before the first scan the toolbar has only Settings and «⋯»; search and filters arrive after. | done in the mockup |
 | 4 | First launch | Two primary buttons: «Scan» in the toolbar and «Scan C:» in the middle. | The toolbar button appears only after a scan, as «Scan again», secondary. | done in the mockup |
 | 5 | After the scan | Overview had no map, the most intuitive view for newcomers. | The map is Overview's first card (click → Explore › Map), «What you can free» beside it. | done in the mockup |
 | 6 | After the scan | No sentence saying what is going on. | One sentence at the top: how full, the biggest things, how much can be freed. | done in the mockup |
-| 7 | After the scan | «What you can free» had five different buttons and no main step. | A primary «Free up space…» to Clean-up; Clean-up gathers rebuildable folders, Temp and old Downloads (guided clean-up, to decide). | to decide |
+| 7 | After the scan | «What you can free» had five different buttons and no main step. | A primary «Free up space…» to Clean-up; Clean-up gathers rebuildable folders, Temp and old Downloads (guided clean-up, to decide). | done in the mockup |
 | 8 | After the scan | Clean-up was the last section. | Order by use: Overview, Explore, Clean-up, Time, Statistics, Activity. | done in the mockup |
 | 9 | Explore | The layout control and the panel toggle sat in the toolbar, disabled in the other sections. | They live in Explore's bar with «Tree · File list»; the toolbar keeps global things only. | done in the mockup |
 | 10 | Explore | Delete, show or open only through right-click. | With a selection, Explore's bar shows name, size, «Show», «Move to the Recycle Bin», «⋯». | done in the mockup |
 | 11 | Explore | Double-click to zoom into the map is not discoverable. | The map header says «double-click a rectangle to go into it» when nothing is hovered. | done in the mockup |
 | 12 | Words | «regex», «MFT», «UAC», «USN journal» in visible text. | «Search for a file or folder» (syntax in the tooltip); «Fast scan» in the status bar; «the drive's index» for MFT in user text. | done in the mockup |
 | 13 | Words | «Esplora risorse» in the menu, «Esplora file» elsewhere. | «Esplora file» everywhere, as Windows 10 and 11. | done in the mockup |
-| 14 | Words | «GiB» instead of «GB». | Proposal: like File Explorer (binary values labelled GB) by default; GiB and decimal GB in Settings. | to decide |
-| 15 | Words | «Tempo» as a section name says little. | Proposal: «Cronologia». | to decide |
+| 14 | Words | «GiB» instead of «GB». | Proposal: like File Explorer (binary values labelled GB) by default; GiB and decimal GB in Settings. | done in the mockup |
+| 15 | Words | «Tempo» as a section name says little. | Proposal: «Cronologia». | done in the mockup |
 | 16 | Activity | Empty right after opening, looks broken. | An empty state that explains it. | to decide |
+
+### 6.16 The flow from zero
+
+Owner, 2026-11-24: «how do I choose the drive or folder to analyze? You take too much for granted: everything must
+have a source, the user's or another; start from a flow as if you knew nothing about the subject». The path is
+redone for someone who does not know what DiskDome does, what «C:» is or which drive is full (artboard «DaZero»),
+and drawn at real size, clickable in Play, as the canvas's first row: Inizio → Permesso → Analisi → Panoramica →
+Main, plus Cartella and Ritorno.
+
+**Every piece of information on screen has a source**, one of five:
+
+| Source | What it gives |
+| --- | --- |
+| Windows | the list of drives, their names (as in «This PC»: «Windows (C:)») and type, used and free space, the system drive, the known folders (Downloads, Documents, Temp), Windows' own dialogs (folder picker, UAC, Recycle Bin) |
+| Scan | size, dates and attributes of every file and folder, from the drive's index or folder by folder |
+| Saved | the summaries of past scans, recent folders, settings: all on the PC |
+| User | what they choose, drop, type or confirm |
+| DiskDome | rules and texts we write: which drive to recommend (the system drive, or the fullest above 90 %), which folders are rebuildable, time estimates, «What is it?» (not for now, owner 2026-11-24⟩ |
+
+**Where the user comes from**: the Start menu (first time: the Start tab); Windows' «low disk space» warning
+(Windows does not open DiskDome; the drive is marked «almost full» on Start); File Explorer › right-click a drive or
+folder › «Analyze with DiskDome» (v1, owner 2026-11-24: a menu entry registered by the installer, no shell extension); a folder
+dropped on the icon or the window; the next launches (the tab and section of before, § 6.11).
+
+**All the ways to choose what to analyze**
+
+| Way | Where | Source | What happens |
+| --- | --- | --- | --- |
+| A drive's card | Start | Windows | scans the drive: fast if it is an internal NTFS drive (asks permission), folder by folder for USB, exFAT, network |
+| The drive's tab | title bar | Windows | never scanned: its call to action; else its last scan |
+| «Choose a folder…» | Start, «+» | User, Windows' folder picker | a new closable tab, scanned folder by folder, no permission |
+| Drop a folder | anywhere in the window | User | as «Choose a folder…» |
+| «Network path…» | Start, «+» | User | type `\\server\share` or pick it under Network; mapped network drives are listed with the drives |
+| Recent | Start, «+» | Saved | reopens the tab with its last scan and updates it |
+| Right-click a folder in Explore › «Open in a new tab» | DiskDome | Scan | a tab of that folder, no new read |
+| Command line `diskdome D:\Projects` (v1) | terminal | User | as a dropped folder |
+
+**Step by step**: (1) opening: «What do you want to analyze?» and one sentence on what DiskDome does (it only
+reads); (2) the drives as in «This PC», each with a usage bar, used and free, type, «never scanned», and one
+«recommended» with its reason; (3) or a folder through Windows' picker; (4) the permission, explained before the
+click, with a way out («Scan folder by folder») after «No»; (5) the scan: a bar with the percentage, what it is doing, files, folders and space counted growing, the phases, the
+time left and «you can keep using the PC»; at the end a notice says what it found; (6) the result: one sentence, the map with its caption, «Free up
+space…»; (7) a file: name, folder, type, size (not for now) «What is it?», two lines we write for the most
+common large files and folders (`hiberfil.sys`, `pagefile.sys`, `.vhdx`, `node_modules`, Steam libraries,
+OneDrive…), offline; (8) freeing space: the Recycle Bin by default, why each Clean-up item is safe, system files
+left out; (9) the next time: where they were, the last scan at once and «since yesterday +3.2 GiB» with where it
+came from.
 
 ## 7. Accessibility and languages
 
@@ -1575,12 +1641,12 @@ shortcuts? Are the words those of a Windows user? Artboards «Giro» and «Prima
   focus: polite for results, assertive only for errors ⟨to verify: Slint 1.19's support for live announcements, § 12
   test 15⟩.
 
-  - Drive tab: «C: Windows, NTFS, 670 GiB used of 954. Tab 1 of 4, selected.»
-  - Tree row: «Users, folder, 310 GiB, 46.4 percent, expanded, level 2.»
-  - Map rectangle: «docker_data.vhdx, Archives, 48.5 GiB, 7.2 percent of C:.»
+  - Drive tab: «C: Windows, NTFS, 670 GB used of 954. Tab 1 of 4, selected.»
+  - Tree row: «Users, folder, 310 GB, 46.4 percent, expanded, level 2.»
+  - Map rectangle: «docker_data.vhdx, Archives, 48.5 GB, 7.2 percent of C:.»
   - Progress bar: «Scanning C:, 62 percent, reading the index.»
   - Chart: «Calendar, 365 days; Enter opens the table of values.»
-  - Announcement, polite: «Scan done in 6.8 seconds.» · «3 items moved to the Recycle Bin, 4.2 GB freed.»
+  - Announcement, polite: «C: scanned: 3,789,066 files.» · «3 items moved to the Recycle Bin, 4.2 GB freed.»
   - Announcement, assertive: errors only: «The scan stopped because of an error.»
 
 - Text scale: Windows' «Text size» setting is not applied by Slint; DiskDome reads it and multiplies the type
@@ -1612,39 +1678,38 @@ crates/ui/ui/
 
 ```slint
 // tokens/theme.slint (excerpt). Values: the tables of § 3.2.
-export enum ThemeMode { dark, light, light-dim }
+export enum ThemeMode { dark, light }
 
 export global Theme {
     in-out property <ThemeMode> mode: ThemeMode.dark;
     out property <bool> dark: mode == ThemeMode.dark;
-    out property <bool> dim: mode == ThemeMode.light-dim;
 
-    out property <color> bg:                dark ? #0f1113 : dim ? #cdcfd3 : #dee0e2;
-    out property <color> surface:           dark ? #161719 : dim ? #d9dbdd : #eaebed;
-    out property <color> raised:            dark ? #1f2123 : dim ? #e1e3e5 : #f2f3f5;
-    out property <color> field:             dark ? #1c1e20 : dim ? #e0e1e3 : #f1f2f4;
-    out property <color> control:           dark ? #232528 : dim ? #c6c9cd : #d7d9dc;
-    out property <color> control-hover:     dark ? #2c2e31 : dim ? #bcc0c4 : #cdd0d3;
-    out property <color> line:              dark ? #282a2d : dim ? #bbbec2 : #cbced1;
-    out property <color> line-strong:       dark ? #66696e : dim ? #606368 : #717579;
-    out property <color> edge:              dark ? #35383c : dim ? #a8abaf : #bbbec2;
-    out property <color> ink:               dark ? #e8eaec : dim ? #14161a : #191c20;
-    out property <color> ink-muted:         dark ? #abaeb3 : dim ? #3c4046 : #494d54;
-    out property <color> ink-faint:         dark ? #7e8288 : dim ? #54585e : #65696f;
-    out property <color> hover:             dark ? #222325 : dim ? #cfd1d3 : #e0e1e3;
-    out property <color> selected-inactive: dark ? #2b2c2e : dim ? #c7c9cb : #d7d8db;
-    out property <color> danger:            dark ? #f66d67 : dim ? #a21a1b : #b32322;
-    out property <color> warning:           dark ? #f6b84d : dim ? #7a4702 : #8a5100;
-    out property <color> success:           dark ? #5fcf83 : dim ? #0d6332 : #10703a;
+    out property <color> bg:                dark ? #0f1113 : #dee0e2;
+    out property <color> surface:           dark ? #161719 : #eaebed;
+    out property <color> raised:            dark ? #1f2123 : #f2f3f5;
+    out property <color> field:             dark ? #1c1e20 : #f1f2f4;
+    out property <color> control:           dark ? #232528 : #d7d9dc;
+    out property <color> control-hover:     dark ? #2c2e31 : #cdd0d3;
+    out property <color> line:              dark ? #282a2d : #cbced1;
+    out property <color> line-strong:       dark ? #66696e : #717579;
+    out property <color> edge:              dark ? #35383c : #bbbec2;
+    out property <color> ink:               dark ? #e8eaec : #191c20;
+    out property <color> ink-muted:         dark ? #abaeb3 : #494d54;
+    out property <color> ink-faint:         dark ? #7e8288 : #65696f;
+    out property <color> hover:             dark ? #222325 : #e0e1e3;
+    out property <color> selected-inactive: dark ? #2b2c2e : #d7d8db;
+    out property <color> danger:            dark ? #f66d67 : #b32322;
+    out property <color> warning:           dark ? #f6b84d : #8a5100;
+    out property <color> success:           dark ? #5fcf83 : #10703a;
 
     // Accent: Laguna
-    out property <color> accent:            dark ? #37c2bb : dim ? #006f6d : #007c79;
-    out property <color> accent-hover:      dark ? #4dd2cb : dim ? #006360 : #006f6d;
-    out property <color> accent-pressed:    dark ? #12aea8 : dim ? #005654 : #006360;
-    out property <color> on-accent:         dark ? #0f1113 : dim ? #ffffff : #ffffff;
-    out property <color> accent-text:       dark ? #37c2bb : dim ? #005957 : #006663;
-    out property <color> accent-soft:       dark ? #37c2bb38 : dim ? #006f6d29 : #007c7929;
-    out property <color> focus:             dark ? #37c2bb : dim ? #005957 : #006663;
+    out property <color> accent:            dark ? #37c2bb : #007c79;
+    out property <color> accent-hover:      dark ? #4dd2cb : #006f6d;
+    out property <color> accent-pressed:    dark ? #12aea8 : #006360;
+    out property <color> on-accent:         dark ? #0f1113 : #ffffff;
+    out property <color> accent-text:       dark ? #37c2bb : #006663;
+    out property <color> accent-soft:       dark ? #37c2bb38 : #007c7929;
+    out property <color> focus:             dark ? #37c2bb : #006663;
 }
 
 // tokens/size.slint (excerpt)
@@ -1688,7 +1753,7 @@ can be fully set by our tokens (or not at all: for behaviour such as `TextInput`
 `cargo run -p diskdome-ui --features kit -- --kit` (debug builds only; the feature is never in a release) opens
 `KitWindow`: every component in every variant, size and state, side by side.
 
-- A top bar: theme (Dark / Light / Light dim), density (Normal / Compact), language (English / Italian), map style
+- A top bar: theme (Dark / Light), density (Normal / Compact), language (English / Italian), map style
   and palette.
 - One section per component; each shows its states with the real component, never a picture. Main screens'
   parts (a table with 30 fake rows, a treemap from a fixed fake tree, the side panel, the status bar) are shown too.
@@ -1727,41 +1792,30 @@ them in both themes and densities:
 What only review holds: one primary button per view; the accent never in the data area; the tone of the text;
 that a component does what its name says.
 
-## 11. Open decisions
+## 11. Decisions
+
+**Decided by the owner on 2026-11-24** (`docs/decisions.md`): the accent Laguna at L 0.74 (§ 3.2); two themes, Dark
+and Light; the data colours by category with three palettes, Standard, Soft and Vivid; the three layouts of
+Explore, starting on Both; the map names on «Many»; gaps between folders in every map style; the free space as a
+checkbox; drive tabs in the title bar (if test 1 passes); the «Start» tab and no first-launch dialog; the six
+sections ordered by use, with «Timeline» for the time section; Overview after scanning a drive, Explore after a
+folder; every new view and the chosen feature groups in v1, with the File Explorer menu entry and the command line;
+units like File Explorer by default; the tree's default columns with Allocated; compact density 18 / 12 px;
+nothing preselected in Clean-up; saved summaries (the last 30 and one per month) and a rescan at launch for NTFS
+drives; file actions in parallel with their own progress, never disabled; Activity's aggregation rule; drive names
+as in «This PC»; no «What is it?» for now; the table on `ListView` with our own virtual scrolling; global terms
+(«Start», «Home», «Timeline») kept in English in the Italian interface.
+
+**Still open**
 
 | # | Decision | Proposal |
 | --- | --- | --- |
-| 1 | Accent lightness | Laguna at L 0.74 (`#37c2bb`); L 0.80 and 0.68 in the mockup |
-| 2 | Light themes | the soft grey «Light»; ship «Light dim» too, or not |
-| 3 | Map style: default, and which ship | default Vignette; all seven as a setting |
-| 4 | Map palettes | Standard by default; Soft and Vivid as a setting |
-| 5 | Drive tabs placement | title bar, if test 1 passes; otherwise toolbar |
-| 6 | Default view | Both; Map for a first-time user? (test 6) |
-| 7 | Units default | like File Explorer: binary values labelled «GB»; GiB and decimal GB in Settings (new-user walk-through) |
-| 8 | Font | Segoe UI; Segoe UI Variable only if tabular and crisper in the Kit |
-| 9 | Renderer | decide in the Kit at 12–13 px (femtovg vs Skia) |
-| 10 | Default columns of the tree | Name, Size, %, Files, Modified; Allocated, Folders, Attributes off |
-| 11 | Menus and tooltips: Slint's elements or ours | ours if Slint's cannot take the tokens (Kit) |
-| 12 | Compact density values (18 px rows, 12 px table text) | as § 3.5 |
-| 13 | Clean-up view: preselection | the six largest folders |
-| 14 | Map names default | Many (§ 4.4); All only if test 10 passes |
-| 15 | Which new views ship in v1 (§ 4.5) | Overview, «Colours: Age» and Time in v1; Rings and Activity after v1 (they need the second renderer and the live engine) |
-| 16 | First view after a scan | Overview for a drive, Tree for a folder |
-| 17 | Activity: level at which changes are added up | the deepest folder that holds ≥ 5 % of the change, at most 4 levels under the drive |
-| 18 | Sections and navigation (§ 6.11) | six sections in a full-width bar, Explore with Tree · File list, Back with history |
-| 19 | Features for v1 (§ 4.8) | the ten marked v1 |
+| 3 | Default map style | to choose again on the canvas now that every style shows the folders; Vignette proposed |
+| 8 | Font | Segoe UI; Segoe UI Variable only if tabular and crisper in the Kit (test 7) |
+| 9 | Renderer | decided in the Kit at 12–13 px, femtovg vs Skia (test 7) |
+| 11 | Menus and tooltips: Slint's elements or ours | ours if Slint's cannot take the tokens (test 8) |
 | 20 | «Folders» map style | offered, not default; maybe only when the map is at least 1400 px wide |
-| 21 | Saved scan summaries: what and how many | folders to 6 levels or ≥ 0.01 %; the last 30 and one per month |
-| 22 | Rescan at launch | on for MFT drives, off for folder walks and network paths |
-| 23 | One file action at a time | yes: the others wait, disabled, with the reason (§ 6.13) |
 | 24 | Open with many files selected | asks above 10 files |
-| 25 | First launch without the scan-mode dialog (§ 6.7) | yes: the mode in one line under the call to action, «Change» in place |
-| 26 | Order of the sections | Overview, Explore, Clean-up, Time, Statistics, Activity |
-| 27 | Name of «Time» | «Cronologia» (History) |
-
-Decided on 2026-11-24: the accent hue (Laguna, § 3.2), the data colours by category (§ 3.2), the free space as a
-checkbox in the map header (off by default, § 4.4), the three views (§ 2.1), drive tabs (§ 5.27), a softer light
-theme (§ 3.2), the four «Names» options of the map (§ 4.4).
 
 ## 12. Tests before the code relies on them
 
@@ -1773,16 +1827,16 @@ the rest is checked in the Kit as the components are built.
 | 1 | **Own title bar with tabs** in Slint on Windows 10 and 11 | a spike window with `no-frame`, our caption buttons, tabs, drag area; resize edges; `crates/platform` handles `WM_NCHITTEST` (Snap Layouts on the maximize button) | drag and double-click to maximize, Snap Layouts flyout on Windows 11, Aero Snap, resize from every edge, Alt+Space menu, no flicker at 100–200 % DPI and across two monitors, dark / light |
 | 2 | **Memory with several drives** | step 3's engine: C: + D: + a USB drive scanned together, peak and steady memory with `diskdome-cli` | the total of the open models stays within the limit we set (proposal: 2.5 GB), or the release policy of § 5.27 is needed |
 | 3 | **Live updates on several drives** | USN journal readers on 2–3 volumes, idle for 10 min, then a burst of 100 000 file changes (`npm install`) | idle CPU ≈ 0 %, the burst applied within 1 s, no missed change |
-| 4 | **Map styles in the CPU renderer** | each style at 1920 × 1080 with 50 000 rectangles, release build | redraw ≤ 16 ms per style (gradients per rectangle are the costliest) |
+| 4 | **Map styles in the CPU renderer** (done 2026-11-24: redraw 0.4–1.9 ms, Cushion the slowest) | each style at 1920 × 1080 with 50 000 rectangles, release build | redraw ≤ 16 ms per style (gradients per rectangle are the costliest) |
 | 5 | **Free space values** | `GetDiskFreeSpaceExW` on NTFS, exFAT, a network share with quotas | used + free = capacity within 1 %, the quota case explained in the tooltip |
 | 6 | **People test** | the mockup's «Map» and «Both» views, then Overview, Rings and «Colours: Age», shown to 3 people who never used a disk analyzer: «what takes the most space? where is it? what haven't you touched in years?» | they answer in < 30 s without help; the view and style they find clearest becomes the default |
 | 7 | **Text and digits** | the Kit at 12–13 px with Segoe UI and Segoe UI Variable, femtovg and Skia | digits tabular, text crisp (owner's eye) |
 | 8 | **Slint menus and tooltips** | `ContextMenuArea`, `Menu`, `Tooltip` with our tokens in the Kit | they take our colours, radii and sizes; otherwise ours (§ 5.16, § 5.17) |
-| 9 | **Contrast of every theme and palette** | the automatic test of § 10, extended to `light-dim`, the Soft / Vivid palettes and the age ramp | every pair of § 7 passes |
-| 10 | **Map names** | placement in Rust on 50 000 rectangles at 1920 × 1080 with «All»; Slint draws 700 names over the image while the window is resized | placement ≤ 2 ms (release); resizing stays smooth (≥ 60 fps); otherwise «All» is dropped and «Many» capped lower |
+| 9 | **Contrast of every theme and palette** | the automatic test of § 10, extended to the Soft / Vivid palettes and the age ramp | every pair of § 7 passes |
+| 10 | **Map names** (placement done 2026-11-24: ≤ 0.05 ms; Slint's drawing of 700 names still to check) | placement in Rust on 50 000 rectangles at 1920 × 1080 with «All»; Slint draws 700 names over the image while the window is resized | placement ≤ 2 ms (release); resizing stays smooth (≥ 60 fps); otherwise «All» is dropped and «Many» capped lower |
 | 11 | **Windows' own tools** | each button of «Windows' space» (§ 4.5) on Windows 10 and 11, as a standard user | the right tool opens; DiskDome never elevates (a tool that needs it shows its own UAC prompt) |
 | 12 | **Dates and allocated sizes from the MFT** | step 3's reader: last-modified date, allocated size, compressed and sparse flags, link count for 1 000 sample files | equal to what Explorer's Properties shows; the age buckets and the «lost space» tiles add up to the drive's numbers |
-| 13 | **The new per-entry fields** | allocated size, modified time, attributes, owner and flags added to the model, `diskdome-cli` on the reference drive | ≤ 1.5 GB peak and the scan still ≤ 8 s; the numbers in the PR |
+| 13 | **The new per-entry fields** (done 2026-11-24: 61.5 bytes per entry, peak 0.89 GB) | allocated size, modified time, attributes, owner and flags added to the model, `diskdome-cli` on the reference drive | ≤ 1.5 GB peak and the scan still ≤ 8 s; the numbers in the PR |
 | 14 | **Saved summaries** | write and read a summary of the reference drive; compare two | ≤ 3 MB, written in < 200 ms after the scan, read in < 100 ms at launch |
 | 15 | **Narrator** | the Kit's components and the table, map and charts with Narrator on Windows 11; announcements of a finished scan and of an error | every element of § 7 read as written; announcements without moving the focus, or a fallback (a hidden live text) |
 | 16 | **Drive removed** | unplug a USB drive during an MFT scan, a folder walk and a move | the scan stops cleanly with the info bar of § 6.14, the model stays readable, no file action half-done without a report |
