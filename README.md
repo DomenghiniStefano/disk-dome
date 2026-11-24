@@ -42,7 +42,7 @@ cargo run -p diskdome-cli         # the command line
 
 - [`docs/architecture.md`](docs/architecture.md) — crates, data model, scan pipeline, privileges
 - [`docs/features.md`](docs/features.md) — what is in v1 and what comes later
-- [`docs/design-system.md`](docs/design-system.md) — where the interface's design starts from
+- [`docs/design-system.md`](docs/design-system.md) — the design system: principles, tokens, components, patterns
 - [`docs/research.md`](docs/research.md) — measurements, alternatives considered, sources
 - [`docs/decisions.md`](docs/decisions.md) — every decision and its reason
 
