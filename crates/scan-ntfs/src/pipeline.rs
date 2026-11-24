@@ -398,15 +398,21 @@ pub fn scan(source: &impl Source, opts: &Options) -> Result<(Tree, ScanReport), 
         }
         report.extension_records += out.extension_records;
     }
+    // Sizes first, so every extra link below can copy its file's final size.
+    for out in &outs {
+        for extra in &out.extras {
+            if let Extra::Data { rec, size, alloc } = *extra
+                && let Some(s) = tree.size.get_mut(rec as usize)
+            {
+                *s = size;
+                tree.alloc[rec as usize] = alloc;
+            }
+        }
+    }
     for (out, base) in outs.iter().zip(bases) {
         for extra in &out.extras {
             match *extra {
-                Extra::Data { rec, size, alloc } => {
-                    if let Some(s) = tree.size.get_mut(rec as usize) {
-                        *s = size;
-                        tree.alloc[rec as usize] = alloc;
-                    }
-                }
+                Extra::Data { .. } => {}
                 Extra::Link {
                     rec,
                     parent,
@@ -433,9 +439,20 @@ pub fn scan(source: &impl Source, opts: &Options) -> Result<(Tree, ScanReport), 
                             f & !DOS_NAME
                         };
                     } else if tree.parent[r] != parent {
-                        // Folders cannot be hard-linked: an extra link is always a file.
+                        // Folders cannot be hard-linked: an extra link is always a file. As in
+                        // WizTree, every link shows the file's size, but its clusters are counted
+                        // once (on the first link).
                         let link_flags = IN_USE_BASE | flag::EXTRA_LINK;
-                        tree.push(name_off, name_len, parent, 0, 0, tree.mtime[r], link_flags);
+                        let size = tree.size[r];
+                        tree.push(
+                            name_off,
+                            name_len,
+                            parent,
+                            size,
+                            0,
+                            tree.mtime[r],
+                            link_flags,
+                        );
                         report.extra_links += 1;
                     }
                 }

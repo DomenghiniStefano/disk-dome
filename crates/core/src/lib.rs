@@ -15,8 +15,8 @@ pub mod flag {
     pub const PRESENT: u8 = 1 << 0;
     /// The entry is a folder.
     pub const DIR: u8 = 1 << 1;
-    /// A second (third…) hard link to a file already counted elsewhere: shown, but its size is 0 so
-    /// the file is counted once.
+    /// A second (third…) hard link to a file listed elsewhere: it shows the file's size, but its
+    /// size on disk is 0, so the clusters are counted once (as WizTree does).
     pub const EXTRA_LINK: u8 = 1 << 2;
     /// Set by [`super::Tree::finish`]: the entry is reachable from the root.
     pub const LINKED: u8 = 1 << 3;
