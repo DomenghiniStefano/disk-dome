@@ -75,8 +75,8 @@ Full description: `docs/architecture.md`.
   names in UTF-8 pages, children in CSR arrays, no full path stored (~62 bytes per entry measured).
 - Every file action updates the model and the parents' totals at once; outside changes come from the USN
   journal.
-- Administrator rights: the user picks the scan mode at first launch (UAC prompt / installed service / no
-  admin), changeable in the settings. See rule 4.
+- Administrator rights: three scan modes (UAC prompt / installed service / no admin); the UAC one is preselected,
+  said in one line on the Start tab with «Change», and changeable in the settings; no first-launch dialog. See rule 4.
 
 ## Performance
 

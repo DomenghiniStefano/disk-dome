@@ -102,7 +102,8 @@ once. Changes made outside the app arrive through the USN change journal, with n
   with Explorer works (Windows blocks it between processes at different integrity levels).
 - Only a small elevated component reads the `$MFT` and hands the data to the interface through shared memory
   (the array layout of the model suits it).
-- The user picks the scan mode in a dialog at first launch and can change it in the settings:
+- Three scan modes; the first is preselected and said in one line on the Start tab, with «Change» (no first-launch
+  dialog, `docs/decisions.md`); the settings change it too:
   1. fast, with a UAC prompt at each scan (recommended);
   2. fast, without prompts: a service installed once (as Everything does);
   3. without administrator rights: directory walk, slower.
