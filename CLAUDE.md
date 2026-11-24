@@ -42,7 +42,7 @@ entries, NVMe Gen4): scan ≤ 8 s and memory ≤ 1.5 GB, against WizTree's 24 s 
 Step 1 of the plan (repository) is done: the workspace builds, nothing is implemented yet.
 Next: step 3, the technical proof that decides whether the project goes on (see «Performance»), and step 4,
 the design system (with the owner). The plan and its status: https://claude.ai/artifact/6b7K1hVhjpupdAURw4CfFP
-and the Trello board.
+and the Trello board: https://trello.com/b/BrdLKkTt/diskdome (personal account, workspace DomeHub).
 
 ## Commands
 

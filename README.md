@@ -7,7 +7,7 @@ act on it: delete, move, rename, copy paths, find the folders you can safely reb
 than the tools it replaces while using a fraction of their memory.
 
 > **Status: early development.** Nothing to download yet. The plan and the decisions behind it are in
-> [`docs/`](docs/).
+> [`docs/`](docs/); the work in progress is on the [Trello board](https://trello.com/b/BrdLKkTt/diskdome).
 
 ## Goals
 
