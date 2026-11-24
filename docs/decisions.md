@@ -5,6 +5,7 @@ never an edit of an old one.
 
 | Date | Decision | Why |
 | --- | --- | --- |
+| 2026-11-24 | Branches: `develop` for development, `main` for releases only (merge from `develop` + tag, by the owner) | the owner's usual flow in the Dome projects |
 | 2026-11-24 | Licence: GPL-3.0-or-later | an application, so companies use it freely; no closed forks; Slint under the GPL needs no attribution; a commercial licence stays possible (with a CLA) |
 | 2026-11-24 | v1: Windows only; macOS after v1, built in CI from day one | the `$MFT` scanner is Windows-only; macOS needs its own scanner, signing and notarisation |
 | 2026-11-24 | v1 is complete: analysis plus file-manager actions (`docs/features.md`) | the owner wants a finished tool, not a viewer |

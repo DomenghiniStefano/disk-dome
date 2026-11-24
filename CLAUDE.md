@@ -112,5 +112,9 @@ and after, and the numbers go in the PR.
 
 - Work comes from the Trello board, card by card, in priority order. Say on the card what was done, what was
   measured, and what could not be done.
-- Git: always commit and push; feature branches with a PR to `main`; the CI must be green.
-- Owner-only actions: repository settings, releases and tags, code signing, licence changes, design decisions.
+- Git: `develop` is the development branch, `main` holds releases only. Work happens on branches (one per card,
+  in worktrees under `C:\PersonalProjects\disk-dome.wt\<name>`) merged into `develop`; always commit and push the
+  branch and `develop`; the CI must be green. **No push to `main`**: a release is `develop` merged into `main`
+  plus a tag, done by the owner.
+- Owner-only actions: anything on `main`, releases and tags, repository settings, code signing, licence
+  changes, design decisions.
