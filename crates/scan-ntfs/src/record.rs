@@ -225,13 +225,12 @@ pub fn push_name_utf8(rec: &[u8], name: &NameRef, out: &mut Vec<u8>) -> usize {
     };
     let before = out.len();
     // Fast path: plain ASCII, the common case.
-    if bytes.chunks_exact(2).all(|c| c[1] == 0 && c[0] < 0x80) {
-        out.extend(bytes.chunks_exact(2).map(|c| c[0]));
+    let (pairs, _) = bytes.as_chunks::<2>();
+    if pairs.iter().all(|c| c[1] == 0 && c[0] < 0x80) {
+        out.extend(pairs.iter().map(|c| c[0]));
         return out.len() - before;
     }
-    let units = bytes
-        .chunks_exact(2)
-        .map(|c| u16::from_le_bytes([c[0], c[1]]));
+    let units = pairs.iter().map(|c| u16::from_le_bytes(*c));
     let mut tmp = [0u8; 4];
     for ch in char::decode_utf16(units) {
         let ch = ch.unwrap_or(char::REPLACEMENT_CHARACTER);

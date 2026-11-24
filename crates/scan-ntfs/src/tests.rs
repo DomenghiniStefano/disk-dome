@@ -11,7 +11,8 @@ const RS: usize = 1024;
 /// An image of `count` records, all free except those `fill` writes.
 fn image(count: usize, fill: impl Fn(u64, &mut [u8])) -> MemorySource {
     let mut data = vec![0u8; count * RS];
-    for (r, rec) in data.chunks_exact_mut(RS).enumerate() {
+    let (records, _) = data.as_chunks_mut::<RS>();
+    for (r, rec) in records.iter_mut().enumerate() {
         fill(r as u64, rec);
     }
     MemorySource {
