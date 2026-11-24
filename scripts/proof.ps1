@@ -70,11 +70,22 @@ try {
         if ($wiz) {
             Write-Host "`n==> 3. WizTree's export of the same drive (folders only)" -ForegroundColor Cyan
             $theirs = Join-Path $OutDir 'wiztree-folders.csv'
-            $t = Measure-Command {
-                Start-Process -Wait -FilePath $wiz -ArgumentList "`"$($Drive):`"", "/export=`"$theirs`"",
-                    '/admin=1', '/exportfiles=0', '/exportdrivecapacity=0'
+            # Its memory is sampled every 100 ms while it runs: the peaks are not readable after it exits.
+            $clock = [Diagnostics.Stopwatch]::StartNew()
+            $p = Start-Process -PassThru -FilePath $wiz -ArgumentList "`"$($Drive):`"", "/export=`"$theirs`"",
+                '/admin=1', '/exportfiles=0', '/exportdrivecapacity=0'
+            $peakWs = 0; $peakPrivate = 0
+            while (-not $p.HasExited) {
+                try {
+                    $p.Refresh()
+                    $peakWs = [math]::Max($peakWs, $p.PeakWorkingSet64)
+                    $peakPrivate = [math]::Max($peakPrivate, $p.PrivateMemorySize64)
+                } catch {}
+                Start-Sleep -Milliseconds 100
             }
-            Write-Host ("WizTree scan + export: {0:N1} s" -f $t.TotalSeconds)
+            $clock.Stop()
+            Write-Host ("WizTree scan + export: {0:N1} s; memory: peak working set {1:N0} MB, peak private {2:N0} MB (sampled)" -f `
+                $clock.Elapsed.TotalSeconds, ($peakWs / 1MB), ($peakPrivate / 1MB))
             Write-Host "`n==> 4. Folder totals, DiskDome vs WizTree" -ForegroundColor Cyan
             & $cli compare $ours $theirs --top 25
         } else {
