@@ -27,12 +27,15 @@ One array per field (struct of arrays), `u32` indices, no full path stored (a pa
 the parents when needed). `diskdome_core::Tree`.
 
 ```
-names:       Vec<u8>   every name, UTF-8, in one buffer
+names:       Names     every name, UTF-8, in pages (one per scanned chunk, never copied), one global offset
 name_off:    Vec<u32>  + name_len: Vec<u16>
 parent:      Vec<u32>
-size, alloc: Vec<u64>  folders: the totals of their subtree
-mtime:       Vec<u32>  Unix seconds, enough until 2106
-flags:       Vec<u8>   present, folder, extra hard link, linked to the root
+size:        Vec<u64>  bytes; folders: the totals of their subtree
+alloc:       Vec<u32>  size on disk in clusters (an NTFS volume has at most 2^32); folders: totals
+mtime:       Vec<u32>  Unix seconds, enough until 2106 (seconds, to equal what Explorer shows)
+flags:       Vec<u8>   present, folder, extra hard link, linked to the root, has hard links, fragmented
+attrs:       Vec<u16>  file attributes, our own 16 bits (`diskdome_core::attr`)
+security:    Vec<u16>  number of the security descriptor; the owner is resolved from it later
 child_start: Vec<u32>  + children: Vec<u32>  (CSR: the children of i are children[child_start[i]..child_start[i+1]])
 ext:         Vec<u16>  interned extensions (not yet: arrives with the extension statistics)
 ```
@@ -43,7 +46,14 @@ record straight into its slot and nothing is copied or renumbered afterwards; fr
 sums the totals in one breadth-first pass.
 
 Measured on a generated drive of 14.3 million records (13.9 million entries, `scan --synthetic`): 817 MB,
-61.5 bytes per entry (names 286 MB); peak private memory of the whole scan 1.1 GB. WizTree: 6.2 GB.
+61.5 bytes per entry (names 286 MB) with every field above; peak private memory of the whole scan 0.89 GB.
+On the owner's C: (3.4 million entries, card 4.T13): 266 MB, 82 bytes per entry (a quarter of the MFT's
+records are free or extension records, whose slots stay empty), peak 0.39 GB. WizTree: 6.2 GB on the
+reference drive.
+
+Checked against Windows (card 4.T12, `diskdome-cli verify` on 3 000 files): last-modified date, size and size
+on disk equal for all (files resident in the MFT take 0 bytes, as Explorer shows), attributes for 99.9% (the
+API hides the inner flags of cloud placeholders), hard links for 99.97%.
 
 ## NTFS scan pipeline
 

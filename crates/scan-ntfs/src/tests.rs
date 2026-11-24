@@ -165,14 +165,14 @@ fn builds_the_tree_with_totals() {
 
     let users = 10_000 + 100 + 5_000 + 1_000_000;
     assert_eq!(tree.size[16], users);
-    assert_eq!(tree.alloc[16], 12_288 + 8_192 + 1_048_576);
+    assert_eq!(tree.alloc_bytes(16), 12_288 + 8_192 + 1_048_576);
     assert_eq!(
         tree.size[5],
         users + 40 * 1024 + 5_000,
         "the extra link shows the file's size"
     );
     assert_eq!(
-        tree.alloc[5],
+        tree.alloc_bytes(5),
         12_288 + 8_192 + 1_048_576 + 40 * 1024,
         "the extra link's clusters are counted once"
     );
@@ -187,6 +187,8 @@ fn builds_the_tree_with_totals() {
     assert_ne!(tree.flags[extra as usize] & flag::EXTRA_LINK, 0);
     assert_eq!(tree.size[extra as usize], 5_000);
     assert_eq!(tree.alloc[extra as usize], 0);
+    assert_ne!(tree.flags[extra as usize] & flag::HARD_LINKS, 0);
+    assert_ne!(tree.flags[19] & flag::HARD_LINKS, 0);
 }
 
 #[test]

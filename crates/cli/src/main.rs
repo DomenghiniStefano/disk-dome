@@ -9,12 +9,14 @@
 //! diskdome-cli scan --synthetic RECORDS [options]            the same on a generated drive
 //! diskdome-cli mft-dump C: FILE                              save the $MFT to a file (admin)
 //! diskdome-cli compare OURS.csv WIZTREE.csv [--top N]        compare folder totals
+//! diskdome-cli verify --dump FILE [--top N] [--drive X]       MFT values vs Windows' for N files
 //! diskdome-cli inspect --dump FILE --path "C:\dir" [--top N]  a folder's children and their records
 //! ```
 
 mod compare;
 mod export;
 mod inspect;
+mod verify;
 
 use std::path::PathBuf;
 use std::process::ExitCode;
@@ -32,6 +34,7 @@ usage:
   diskdome-cli mft-dump C: FILE
   diskdome-cli compare OURS.csv WIZTREE.csv [--top N]
   diskdome-cli inspect --dump FILE --path FOLDER [--top N]
+  diskdome-cli verify --dump FILE [--top N] [--drive X]
 
 mft-read, scan C: and mft-dump read the volume directly: run them as administrator.";
 
@@ -196,12 +199,12 @@ fn run_scan(source: &impl Source, args: &Args, drive: char) -> Result<(), String
         "model {:.0} MB = {:.1} bytes per entry (names {:.0} MB)",
         mb(tree.heap_bytes() as u64),
         tree.heap_bytes() as f64 / f64::from(r.tree.linked.max(1)),
-        mb(tree.names.capacity() as u64)
+        mb(tree.names.heap_bytes() as u64)
     );
     println!(
         "root: size {:.3} GB, allocated {:.3} GB",
         tree.size[tree.root as usize] as f64 / 1e9,
-        tree.alloc[tree.root as usize] as f64 / 1e9
+        tree.alloc_bytes(tree.root) as f64 / 1e9
     );
     print_memory("memory after the scan");
     if let Some(path) = &args.export {
@@ -248,6 +251,16 @@ fn cmd_inspect(args: &Args) -> Result<(), String> {
     inspect::run(&tree, &source, report.records, path, args.top)
 }
 
+fn cmd_verify(args: &Args) -> Result<(), String> {
+    let dump = args.dump.as_ref().ok_or("verify needs --dump FILE")?;
+    let source = DumpSource::open(dump.clone()).map_err(|e| e.to_string())?;
+    let (tree, report) = scan(&source, &options(args)).map_err(|e| e.to_string())?;
+    // `--top` is the sample size here; 20 is too few, so the default is 1000.
+    let sample = if args.top == 20 { 1000 } else { args.top };
+    verify::run(&tree, report.records, args.drive.unwrap_or('C'), sample);
+    Ok(())
+}
+
 fn cmd_mft_dump(args: &Args) -> Result<(), String> {
     let (volume, _) = open_volume(args)?;
     let path = args.positional.get(2).ok_or("where to? a file path")?;
@@ -277,6 +290,7 @@ fn main() -> ExitCode {
         Some("scan") => cmd_scan(&args),
         Some("mft-dump") => cmd_mft_dump(&args),
         Some("inspect") => cmd_inspect(&args),
+        Some("verify") => cmd_verify(&args),
         Some("compare") => compare::run(&args.positional[1..], args.top),
         Some(_) | None => {
             println!("diskdome-cli {}\n\n{USAGE}", env!("CARGO_PKG_VERSION"));
