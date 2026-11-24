@@ -1,0 +1,14 @@
+[package]
+name = "diskdome-platform"
+description = "Operating-system services DiskDome needs outside the scanners: process memory, later the shell actions."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { workspace = true }
+
+[lints]
+workspace = true

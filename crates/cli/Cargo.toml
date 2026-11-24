@@ -15,6 +15,7 @@ path = "src/main.rs"
 diskdome-core.workspace = true
 diskdome-scan-fs.workspace = true
 diskdome-scan-ntfs.workspace = true
+diskdome-platform.workspace = true
 
 [lints]
 workspace = true
