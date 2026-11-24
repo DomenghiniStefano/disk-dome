@@ -18,7 +18,9 @@ param(
     [switch]$Elevated
 )
 
-$ErrorActionPreference = 'Stop'
+# Not 'Stop': Windows PowerShell 5.1 turns a native program's stderr output (cargo's progress) into
+# a terminating error. Native exit codes are checked by hand.
+$ErrorActionPreference = 'Continue'
 $Drive = $Drive.TrimEnd(':', '\').ToUpper()
 $repo = Split-Path -Parent $PSScriptRoot
 $cli = Join-Path $repo 'target\release\diskdome-cli.exe'
