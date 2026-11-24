@@ -123,9 +123,22 @@ Hover is a rectangle drawn on top. Rectangles under 1–2 px are merged. wgpu (S
 
 ## Technical proof (step 3): the go / no-go
 
-On the reference drive: scan ≤ 8 s, memory ≤ 1.5 GB, folder totals equal to WizTree's. Alongside: a Slint
-table with 14 million fake rows that scrolls smoothly. If the engine misses the target, the project stops
-before the design work is spent.
+Targets: scan ≤ 8 s, memory ≤ 1.5 GB, folder totals equal to WizTree's. Alongside: a Slint table with 14
+million fake rows that scrolls smoothly. If the engine missed the target, the project would have stopped
+before the design work was spent.
+
+Result (2026-11-24, **go**), measured on the owner's desktop: Ryzen 7 9700X, C: on a Crucial P3 1 TB, 3.4
+million entries, a 4.3 GB `$MFT`; not repeated on the laptop with the KIOXIA drive (owner's choice).
+
+| | DiskDome | WizTree 4.31, same PC |
+| --- | --- | --- |
+| scan | 7.0 s (the drive reads the `$MFT` at ~640 MB/s whatever the threads; computing takes 0.3 s) | 22–31 s |
+| peak memory | 0.40 GB | 1.6 GB |
+| folder totals | 99.1% of folders identical; size +0.04%, size on disk +0.015% on the whole drive | |
+
+The Slint table (headless, software renderer): frames ≤ 2.6 ms at the 99th percentile on 14 million rows, sorts
+0.15–1.5 s on a worker thread. Open: Slint's f32 positions lose small scroll steps near the end of such a
+list, and the table widget is to be chosen; both go to the design sessions.
 
 `./scripts/proof.ps1` runs it on the PC it is launched on: it builds the CLI, asks for administrator rights
 once, reads the `$MFT` alone three times (`mft-read`), scans three times (`scan`), exports the folder totals,

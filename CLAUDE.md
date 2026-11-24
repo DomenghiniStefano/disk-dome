@@ -39,9 +39,10 @@ entries, NVMe Gen4): scan ≤ 8 s and memory ≤ 1.5 GB, against WizTree's 24 s 
 
 ## Current state
 
-Steps 0–2 are done. Step 3, the technical proof that decides whether the project goes on (see «Performance»):
-the `$MFT` engine is written and measured on a generated drive; the measurement on the reference drive
-(`./scripts/proof.ps1`, needs the owner for the UAC prompt) is pending. Step 4,
+Steps 0–3 are done. Step 3, the technical proof, ended in a **go** (2026-11-24) on the owner's desktop C:
+(3.4 million entries): scan 7.0 s against WizTree's 22–31 s, 0.40 GB against 1.6 GB, 99.1% of folder totals
+identical (`docs/decisions.md`). The engine and the CLI are in place; the Slint proof table shows the open
+interface questions (row virtualisation, table widget), which go to the design sessions. Step 4,
 the design system (with the owner). The plan and its status: https://claude.ai/artifact/6b7K1hVhjpupdAURw4CfFP
 and the Trello board: https://trello.com/b/BrdLKkTt/diskdome (personal account, workspace DomeHub).
 
@@ -86,7 +87,8 @@ and after, and the numbers go in the PR.
 - No hash map where an index works (the MFT record number is already a dense index).
 - The interface asks only for the visible rows (Slint `Model`); nothing copies the whole tree.
 - The treemap is redrawn only on resize or zoom.
-- Step 3's go / no-go on the reference drive: scan ≤ 8 s, memory ≤ 1.5 GB, folder totals equal to WizTree's.
+- Step 3's targets (met, 2026-11-24): scan ≤ 8 s, memory ≤ 1.5 GB, folder totals equal to WizTree's. Any engine
+  change is checked again with `./scripts/proof.ps1` (time, memory, `compare` against WizTree).
 
 ## Project rules
 
