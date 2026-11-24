@@ -13,7 +13,8 @@ fields, text).
 | `crates/scan-fs` | `diskdome-scan-fs` | other drives, single folders, network paths, the no-admin mode and macOS: parallel directory walk (`getattrlistbulk` on macOS) |
 | `crates/treemap` | `diskdome-treemap` | squarified layout and its rendering into a pixel buffer |
 | `crates/ui` | `diskdome-ui` (binary `diskdome`) | the Slint app: design system, screens, a lazy `Model` that serves only the visible rows |
-| `crates/cli` | `diskdome-cli` | scan benchmarks and JSON export; every engine change is measured here |
+| `crates/cli` | `diskdome-cli` | scan benchmarks and exports; every engine change is measured here |
+| `crates/platform` | `diskdome-platform` | OS services outside the scanners: process memory now, the shell actions later |
 
 Packages are prefixed `diskdome-` because `core` is the name of Rust's own core library.
 
@@ -23,30 +24,48 @@ copying; the treemap hands `ui` nothing but a pixel buffer.
 ## Data model
 
 One array per field (struct of arrays), `u32` indices, no full path stored (a path is rebuilt by walking up
-the parents when needed).
+the parents when needed). `diskdome_core::Tree`.
 
 ```
 names:       Vec<u8>   every name, UTF-8, in one buffer
 name_off:    Vec<u32>  + name_len: Vec<u16>
 parent:      Vec<u32>
-first_child: Vec<u32>  + child_count: Vec<u32>  (children contiguous, CSR layout)
-size, alloc: Vec<u64>
+size, alloc: Vec<u64>  folders: the totals of their subtree
 mtime:       Vec<u32>  Unix seconds, enough until 2106
-ext:         Vec<u16>  interned extensions
-flags:       Vec<u8>
+flags:       Vec<u8>   present, folder, extra hard link, linked to the root
+child_start: Vec<u32>  + children: Vec<u32>  (CSR: the children of i are children[child_start[i]..child_start[i+1]])
+ext:         Vec<u16>  interned extensions (not yet: arrives with the extension statistics)
 ```
 
-About 41 fixed bytes plus ~25 bytes of name: ~65 bytes per entry, ~0.9 GB for the 13.8 million entries of the
-reference drive (WizTree: 6.2 GB).
+An entry's index is the scanner's own dense number: for NTFS, the MFT record number. The scanner writes each
+record straight into its slot and nothing is copied or renumbered afterwards; free records stay as empty slots
+(a few percent). Extra hard links are appended after the last record. `Tree::finish` builds the CSR arrays and
+sums the totals in one breadth-first pass.
+
+Measured on a generated drive of 14.3 million records (13.9 million entries, `scan --synthetic`): 817 MB,
+61.5 bytes per entry (names 286 MB); peak private memory of the whole scan 1.1 GB. WizTree: 6.2 GB.
 
 ## NTFS scan pipeline
 
-1. Get the `$MFT`'s extents with `FSCTL_GET_RETRIEVAL_POINTERS` (a 13.7 GB MFT is fragmented).
-2. Read in 8–32 MB blocks with several requests in flight, to approach the drive's 4–5 GB/s.
-3. Parse the blocks already read on every core while the next ones are being read.
-4. Find each parent by array access: the MFT record number is already a dense index, so no hash map
-   (`ntfs-reader`'s benchmark: 3.8 s with a `Vec`, 5.3 s with a `HashMap`).
-5. Sum sizes in one bottom-up pass, in parallel per subtree.
+1. Get the `$MFT`'s extents with `FSCTL_GET_RETRIEVAL_POINTERS` on `X:\$MFT` (a 13.7 GB MFT is
+   fragmented); if that is refused, decode the data runs of record 0.
+2. Cut the `$MFT` into 4 MB chunks. A pool of threads (twice the cores, at most 32) takes chunks in turn: each
+   reads its chunk with an unbuffered read on its own volume handle (Windows serialises synchronous reads on a
+   shared handle), then parses it. With more threads than cores, some always wait on the drive while others
+   parse: reading and parsing overlap with no queue.
+3. Each record is parsed in place (fixup, `$STANDARD_INFORMATION`, `$FILE_NAME`, unnamed `$DATA`) into its
+   own slot: the record number is the index, so no hash map and no lock (`ntfs-reader`'s benchmark: 3.8 s with
+   a `Vec`, 5.3 s with a `HashMap`). Names go to a per-chunk buffer, joined into one at the end.
+4. Extension records (attribute lists) and second hard links are collected per chunk and merged after.
+5. Sum sizes in one bottom-up pass (sequential: 0.55 s for 14 million entries; parallel only if it matters).
+
+Measured (`scan --synthetic 14300000`, Ryzen 7 9700X, 8 cores): parsing and building 1.1 s in all
+(read+parse 0.46 s on 16 threads, merge 0.06 s, totals 0.55 s). On a real drive the read is the bound: a
+13.7 GB `$MFT` at 4–5 GB/s is 3–3.5 s, so ~4 s is expected; `scripts/proof.ps1` measures it.
+
+What is counted: a file's size is its unnamed `$DATA` stream (alternate streams not yet); its size on disk is
+the allocated size, or the compressed size for compressed and sparse files; resident files take no cluster.
+A hard-linked file is counted once: its other links are listed with size 0.
 
 NTFS cases to handle: attribute lists, non-resident attributes and data runs, hard links (counted once),
 sparse and compressed files, alternate data streams, logical vs allocated size, reparse points. Check: folder
@@ -100,3 +119,9 @@ Hover is a rectangle drawn on top. Rectangles under 1–2 px are merged. wgpu (S
 On the reference drive: scan ≤ 8 s, memory ≤ 1.5 GB, folder totals equal to WizTree's. Alongside: a Slint
 table with 14 million fake rows that scrolls smoothly. If the engine misses the target, the project stops
 before the design work is spent.
+
+`./scripts/proof.ps1` runs it on the PC it is launched on: it builds the CLI, asks for administrator rights
+once, reads the `$MFT` alone three times (`mft-read`), scans three times (`scan`), exports the folder totals,
+has WizTree export the same drive and compares the two (`compare`). Report in
+`%TEMP%\diskdome-proof\<date-time>\report.txt`. With `-Dump` it also saves the `$MFT` to a file, so the
+parser can be measured and debugged later without administrator rights (`scan --dump`).

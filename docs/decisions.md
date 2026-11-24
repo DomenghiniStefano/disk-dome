@@ -5,6 +5,11 @@ never an edit of an old one.
 
 | Date | Decision | Why |
 | --- | --- | --- |
+| 2026-11-24 | Data model indexed by the MFT record number, children in CSR arrays (`child_start` + `children`) instead of renumbering entries so children are adjacent | the parser writes each record straight into its slot from any thread and nothing is copied after; costs 4 bytes per entry plus the few percent of free records; measured 61.5 bytes per entry |
+| 2026-11-24 | Read and parse on the same threads (twice the cores, 4 MB chunks), one volume handle per thread | overlaps reading and parsing without a queue; Windows serialises synchronous reads on a shared handle |
+| 2026-11-24 | Our own `$MFT` parser, no `ntfs` / `ntfs-reader` / `mft` crate | they allocate per record or per attribute; ours parses in place into the model's arrays |
+| 2026-11-24 | `crates/platform` created now, for the process memory the benchmarks report | keeps `#[cfg(windows)]` out of the CLI; the shell actions will join it |
+| 2026-11-24 | A file counts its unnamed `$DATA` only; hard links counted once (other links shown with size 0) | first version, to check against WizTree; alternate streams decided on what the comparison shows |
 | 2026-11-24 | Branches: `develop` for development, `main` for releases only (merge from `develop` + tag, by the owner) | the owner's usual flow in the Dome projects |
 | 2026-11-24 | Licence: GPL-3.0-or-later | an application, so companies use it freely; no closed forks; Slint under the GPL needs no attribution; a commercial licence stays possible (with a CLA) |
 | 2026-11-24 | v1: Windows only; macOS after v1, built in CI from day one | the `$MFT` scanner is Windows-only; macOS needs its own scanner, signing and notarisation |
