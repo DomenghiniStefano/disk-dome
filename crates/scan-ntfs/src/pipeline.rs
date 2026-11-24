@@ -17,6 +17,9 @@ use crate::record::{NS_DOS, apply_fixup, parse, push_name_utf8};
 
 /// Record number of the root folder (`.`) on every NTFS volume.
 pub const ROOT_RECORD: u32 = 5;
+/// Record number of `$BadClus`, whose `$Bad` stream is a sparse map as large as the volume: its
+/// streams take no real space and are not counted.
+const BADCLUS_RECORD: u64 = 8;
 
 /// Scratch flags used only during the scan, cleared before `Tree::finish`.
 const IN_USE_BASE: u8 = 1 << 6;
@@ -207,8 +210,13 @@ enum Extra {
         name_len: u16,
         namespace: u8,
     },
-    /// The unnamed `$DATA` sizes of record `rec`, found in one of its extension records.
-    Data { rec: u32, size: u64, alloc: u64 },
+    /// Sizes of record `rec` found in one of its extension records: the unnamed stream's size if
+    /// it is there, and the size on disk of the streams there (added to the record's).
+    Data {
+        rec: u32,
+        size: Option<u64>,
+        alloc: u64,
+    },
 }
 
 /// One chunk's output besides its slots.
@@ -254,11 +262,11 @@ fn parse_chunk(buf: &mut [u8], first_record: u64, rs: usize, slots: &mut Slots<'
         if p.base != 0 {
             out.extension_records += 1;
             let base = to_u32(p.base);
-            if let Some((size, alloc)) = p.data {
+            if p.data.is_some() || p.stream_alloc > 0 {
                 out.extras.push(Extra::Data {
                     rec: base,
-                    size,
-                    alloc,
+                    size: p.data.map(|d| d.0),
+                    alloc: p.data.map_or(0, |d| d.1) + p.stream_alloc,
                 });
             }
             for name in p.names() {
@@ -279,10 +287,15 @@ fn parse_chunk(buf: &mut [u8], first_record: u64, rs: usize, slots: &mut Slots<'
         if p.is_dir {
             f |= flag::DIR;
         }
-        if let Some((size, alloc)) = p.data {
+        if let Some((size, _)) = p.data {
             slots.size[k] = size;
-            slots.alloc[k] = alloc;
         }
+        let streams = if first_record + k as u64 == BADCLUS_RECORD {
+            0
+        } else {
+            p.stream_alloc
+        };
+        slots.alloc[k] = p.data.map_or(0, |d| d.1) + streams;
         for (i, name) in p.names().iter().enumerate() {
             let name_off = out.names.len() as u32;
             let len = push_name_utf8(rec, name, &mut out.names) as u16;
@@ -402,10 +415,12 @@ pub fn scan(source: &impl Source, opts: &Options) -> Result<(Tree, ScanReport), 
     for out in &outs {
         for extra in &out.extras {
             if let Extra::Data { rec, size, alloc } = *extra
-                && let Some(s) = tree.size.get_mut(rec as usize)
+                && let Some(a) = tree.alloc.get_mut(rec as usize)
             {
-                *s = size;
-                tree.alloc[rec as usize] = alloc;
+                *a += alloc;
+                if let Some(size) = size {
+                    tree.size[rec as usize] = size;
+                }
             }
         }
     }
@@ -438,7 +453,9 @@ pub fn scan(source: &impl Source, opts: &Options) -> Result<(Tree, ScanReport), 
                         } else {
                             f & !DOS_NAME
                         };
-                    } else if tree.parent[r] != parent {
+                    } else if namespace != NS_DOS {
+                        // Another hard link (in another folder, or in the same one under another
+                        // name); a DOS alias found here belongs to a name already listed.
                         // Folders cannot be hard-linked: an extra link is always a file. As in
                         // WizTree, every link shows the file's size, but its clusters are counted
                         // once (on the first link).
