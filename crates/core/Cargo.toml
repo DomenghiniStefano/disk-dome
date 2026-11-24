@@ -1,0 +1,11 @@
+[package]
+name = "diskdome-core"
+description = "DiskDome's data model: the scanned tree, folder totals, sorting and per-extension statistics."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true

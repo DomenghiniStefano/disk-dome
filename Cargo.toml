@@ -1,0 +1,33 @@
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "GPL-3.0-or-later"
+repository = "https://github.com/DomenghiniStefano/disk-dome"
+publish = false
+
+[workspace.dependencies]
+diskdome-core = { path = "crates/core" }
+diskdome-scan-ntfs = { path = "crates/scan-ntfs" }
+diskdome-scan-fs = { path = "crates/scan-fs" }
+diskdome-treemap = { path = "crates/treemap" }
+slint = "1.19"
+slint-build = "1.19"
+
+[workspace.lints.rust]
+unsafe_op_in_unsafe_fn = "deny"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+# No unwrap() outside tests (clippy.toml allows it in tests), no `_ =>` on an enum, no glob imports.
+unwrap_used = "deny"
+wildcard_enum_match_arm = "deny"
+wildcard_imports = "deny"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+panic = "abort"

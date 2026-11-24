@@ -1,0 +1,24 @@
+[package]
+name = "diskdome-ui"
+description = "DiskDome's desktop interface, built with Slint."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+build = "build.rs"
+
+[[bin]]
+name = "diskdome"
+path = "src/main.rs"
+
+[dependencies]
+diskdome-core.workspace = true
+diskdome-treemap.workspace = true
+slint.workspace = true
+
+[build-dependencies]
+slint-build.workspace = true
+
+[lints]
+workspace = true

@@ -1,0 +1,13 @@
+// Placeholder window: it proves the Slint toolchain builds on every platform.
+// The design system (ui/design-system/) and the real screens arrive with step 4 of the plan.
+// User-visible text always goes through @tr() (English source, Italian translation).
+
+export component MainWindow inherits Window {
+    title: @tr("DiskDome");
+    preferred-width: 960px;
+    preferred-height: 600px;
+
+    Text {
+        text: @tr("DiskDome");
+    }
+}
