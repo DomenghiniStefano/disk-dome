@@ -39,6 +39,10 @@ wildcards = "deny"
 allow-wildcard-paths = true
 
 [advisories]
+# "Unmaintained" notices count only for our direct dependencies: the ones further down (several come with
+# Slint) have no known vulnerability and only their parent crate can replace them. Vulnerabilities are
+# still checked on every crate.
+unmaintained = "workspace"
 ignore = []
 
 [sources]
