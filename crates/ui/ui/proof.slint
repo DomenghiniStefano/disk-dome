@@ -1,0 +1,276 @@
+// Technical proof of step 3 (Trello card 3c): a table over millions of fake rows.
+// Functional placeholder only: no styling of our own, the design comes with step 4.
+// Two variants are compared: the standard StandardTableView and a plain ListView with our own rows.
+// The rows come from a lazy Rust model (src/proof/model.rs) that builds only the visible ones.
+
+import { StandardTableView, ListView, Palette } from "std-widgets.slint";
+
+// One row as the ListView variant receives it: already formatted by Rust.
+export struct ProofRow {
+    name: string,
+    size: string,
+    percent: string,
+    modified: string,
+}
+
+// The parts shared by both variants: row count, sort state, status line.
+component ProofStatus inherits Text {
+    in property <int> row-count;
+    in property <bool> sorting;
+    in property <int> last-sort-ms: -1;
+
+    text: root.sorting
+        ? @tr("{} rows, sorting…", root.row-count)
+        : root.last-sort-ms >= 0
+            ? @tr("{} rows, sorted in {} ms", root.row-count, root.last-sort-ms)
+            : @tr("{} rows", root.row-count);
+}
+
+// Variant A: Slint's StandardTableView. Sorting comes from its column headers,
+// the keyboard gives up / down only (the widget's own behaviour).
+export component ProofTableWindow inherits Window {
+    title: @tr("DiskDome: table proof");
+    preferred-width: 960px;
+    preferred-height: 600px;
+
+    in property <[[StandardListViewItem]]> rows;
+    in property <int> row-count;
+    in property <bool> sorting;
+    in property <int> last-sort-ms: -1;
+
+    // Read and written by the measurements, which scroll without a mouse.
+    in-out property <length> scroll-y <=> table.content-y;
+    out property <length> content-height: table.content-height;
+    out property <length> visible-height: table.visible-height;
+    out property <int> current-row: table.current-row;
+
+    // column: 0 name, 1 size, 2 % of parent, 3 modified.
+    callback sort(column: int, descending: bool);
+
+    public function focus-table() {
+        table.focus();
+    }
+
+    VerticalLayout {
+        table := StandardTableView {
+            columns: [
+                { title: @tr("Name"), horizontal-stretch: 4 },
+                { title: @tr("Size"), horizontal-stretch: 1 },
+                { title: @tr("% of parent"), horizontal-stretch: 1 },
+                { title: @tr("Modified"), horizontal-stretch: 2 },
+            ];
+            rows: root.rows;
+            sort-ascending(column) => {
+                root.sort(column, false);
+            }
+            sort-descending(column) => {
+                root.sort(column, true);
+            }
+        }
+
+        ProofStatus {
+            row-count: root.row-count;
+            sorting: root.sorting;
+            last-sort-ms: root.last-sort-ms;
+        }
+    }
+}
+
+// A column header of the ListView variant: a clickable title that shows the sort direction.
+component ProofHeader inherits Rectangle {
+    in property <string> title;
+    in property <bool> sorted;
+    in property <bool> descending;
+    in property <TextHorizontalAlignment> alignment: left;
+
+    callback clicked <=> area.clicked;
+
+    min-height: label.preferred-height;
+    // Columns are shared by the stretch factors alone, so the header lines up with the rows.
+    min-width: 0px;
+    preferred-width: 0px;
+
+    label := Text {
+        width: 100%;
+        text: root.sorted ? (root.descending ? root.title + " ▼" : root.title + " ▲") : root.title;
+        overflow: elide;
+        horizontal-alignment: root.alignment;
+    }
+
+    area := TouchArea { }
+}
+
+// Variant B: a plain ListView with one Text per cell and our own keyboard handling
+// (up / down, page up / page down, home / end).
+export component ProofListWindow inherits Window {
+    title: @tr("DiskDome: list proof");
+    preferred-width: 960px;
+    preferred-height: 600px;
+
+    in property <[ProofRow]> rows;
+    in property <int> row-count;
+    in property <bool> sorting;
+    in property <int> last-sort-ms: -1;
+
+    in-out property <length> scroll-y <=> list.content-y;
+    out property <length> content-height: list.content-height;
+    out property <length> visible-height: list.visible-height;
+    in-out property <int> current-row: -1;
+
+    in-out property <int> sort-column: -1;
+    in-out property <bool> sort-descending;
+
+    callback sort(column: int, descending: bool);
+
+    public function focus-table() {
+        keys.focus();
+    }
+
+    function sort-by(column: int) {
+        root.sort-descending = root.sort-column == column ? !root.sort-descending : false;
+        root.sort-column = column;
+        root.sort(column, root.sort-descending);
+    }
+
+    function select(row: int) {
+        if (root.row-count == 0) {
+            return;
+        }
+        root.current-row = max(0, min(root.row-count - 1, row));
+        list.ensure-row-visible(root.current-row, ScrollBehavior.instant);
+    }
+
+    private property <int> page-rows: max(1, floor(list.visible-height / max(1px, list.content-height / max(1, root.row-count))));
+
+    VerticalLayout {
+        HorizontalLayout {
+            ProofHeader {
+                horizontal-stretch: 4;
+                title: @tr("Name");
+                sorted: root.sort-column == 0;
+                descending: root.sort-descending;
+                clicked => {
+                    root.sort-by(0);
+                }
+            }
+
+            ProofHeader {
+                horizontal-stretch: 1;
+                title: @tr("Size");
+                alignment: right;
+                sorted: root.sort-column == 1;
+                descending: root.sort-descending;
+                clicked => {
+                    root.sort-by(1);
+                }
+            }
+
+            ProofHeader {
+                horizontal-stretch: 1;
+                title: @tr("% of parent");
+                alignment: right;
+                sorted: root.sort-column == 2;
+                descending: root.sort-descending;
+                clicked => {
+                    root.sort-by(2);
+                }
+            }
+
+            ProofHeader {
+                horizontal-stretch: 2;
+                title: @tr("Modified");
+                alignment: right;
+                sorted: root.sort-column == 3;
+                descending: root.sort-descending;
+                clicked => {
+                    root.sort-by(3);
+                }
+            }
+        }
+
+        keys := FocusScope {
+            key-pressed(event) => {
+                if (event.text == Key.DownArrow) {
+                    root.select(root.current-row + 1);
+                    return accept;
+                }
+                if (event.text == Key.UpArrow) {
+                    root.select(root.current-row - 1);
+                    return accept;
+                }
+                if (event.text == Key.PageDown) {
+                    root.select(root.current-row + root.page-rows);
+                    return accept;
+                }
+                if (event.text == Key.PageUp) {
+                    root.select(root.current-row - root.page-rows);
+                    return accept;
+                }
+                if (event.text == Key.Home) {
+                    root.select(0);
+                    return accept;
+                }
+                if (event.text == Key.End) {
+                    root.select(root.row-count - 1);
+                    return accept;
+                }
+                reject
+            }
+
+            list := ListView {
+                // Each cell starts from zero width, so the stretch factors alone share the row and every
+                // row lines up with the header.
+                for row[index] in root.rows: Rectangle {
+                    background: index == root.current-row ? Palette.selection-background : transparent;
+
+                    HorizontalLayout {
+                        Text {
+                            min-width: 0px;
+                            preferred-width: 0px;
+                            horizontal-stretch: 4;
+                            text: row.name;
+                            overflow: elide;
+                        }
+
+                        Text {
+                            min-width: 0px;
+                            preferred-width: 0px;
+                            horizontal-stretch: 1;
+                            text: row.size;
+                            horizontal-alignment: right;
+                        }
+
+                        Text {
+                            min-width: 0px;
+                            preferred-width: 0px;
+                            horizontal-stretch: 1;
+                            text: row.percent;
+                            horizontal-alignment: right;
+                        }
+
+                        Text {
+                            min-width: 0px;
+                            preferred-width: 0px;
+                            horizontal-stretch: 2;
+                            text: row.modified;
+                            horizontal-alignment: right;
+                        }
+                    }
+
+                    TouchArea {
+                        clicked => {
+                            keys.focus();
+                            root.current-row = index;
+                        }
+                    }
+                }
+            }
+        }
+
+        ProofStatus {
+            row-count: root.row-count;
+            sorting: root.sorting;
+            last-sort-ms: root.last-sort-ms;
+        }
+    }
+}
