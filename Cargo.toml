@@ -14,6 +14,16 @@ diskdome-core = { path = "crates/core" }
 diskdome-scan-ntfs = { path = "crates/scan-ntfs" }
 diskdome-scan-fs = { path = "crates/scan-fs" }
 diskdome-treemap = { path = "crates/treemap" }
+diskdome-platform = { path = "crates/platform" }
+windows-sys = { version = "0.61", features = [
+    "Win32_Foundation",
+    "Win32_Security",
+    "Win32_Storage_FileSystem",
+    "Win32_System_IO",
+    "Win32_System_Ioctl",
+    "Win32_System_ProcessStatus",
+    "Win32_System_Threading",
+] }
 slint = "1.19"
 slint-build = "1.19"
 
