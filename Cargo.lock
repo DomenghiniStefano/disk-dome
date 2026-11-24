@@ -985,6 +985,7 @@ name = "diskdome-treemap"
 version = "0.1.0"
 dependencies = [
  "diskdome-core",
+ "rayon",
 ]
 
 [[package]]

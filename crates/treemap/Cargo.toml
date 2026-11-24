@@ -9,6 +9,7 @@ publish.workspace = true
 
 [dependencies]
 diskdome-core.workspace = true
+rayon = "1.12"
 
 [lints]
 workspace = true

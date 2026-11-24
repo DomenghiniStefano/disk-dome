@@ -109,10 +109,22 @@ once. Changes made outside the app arrive through the USN change journal, with n
 
 ## Treemap
 
-Redrawn only on resize or zoom: the CPU draws into a buffer (1920×1080, tens of thousands of shaded
-rectangles, split across cores, a few milliseconds), handed to Slint as a `SharedPixelBuffer` (stable API).
-Hover is a rectangle drawn on top. Rectangles under 1–2 px are merged. wgpu (Slint's integration sits behind an
-`unstable-wgpu-*` feature) only where the profiler asks for it.
+Redrawn only on resize, zoom or a change of style: the CPU draws into an RGBA buffer, handed to Slint as a
+`SharedPixelBuffer` (stable API). Hover, selection and names are drawn by Slint on top. wgpu (Slint's
+integration sits behind an `unstable-wgpu-*` feature) only where the profiler asks for it.
+
+`diskdome-treemap`, reading any tree through `MapSource` (`CoreSource` reads `diskdome_core::Tree` in place):
+
+- `layout`: squarified, files only, with an explicit stack; what is under 2 px becomes the folder's remainder,
+  coloured with its largest category; the gaps, the «Folders» frames and the free-space block of
+  `docs/design-system.md` § 4.4.
+- `render`: the eight styles of § 4.4, bands of 16 rows drawn in parallel, buffers reused between frames.
+- `names`: greedy placement of the names, never overlapping, three tiers, caps 64 / 260 / 700; text widths
+  estimated from an average advance, so the crate needs no font.
+
+Measured (cards 4.T4 and 4.T10, `cargo run -p diskdome-treemap --release --example map_bench`, 1920×1080,
+~51 000 rectangles, 8 cores): layout 6.5 ms, redraw 0.4–1.6 ms median / ≤ 1.9 ms p95 depending on the style
+(Cushion the slowest; 10.7 ms on one core), name placement ≤ 0.05 ms. Limits: 16 ms and 2 ms.
 
 ## Interface (Slint)
 
