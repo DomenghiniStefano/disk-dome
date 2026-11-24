@@ -44,14 +44,15 @@ pub mod attr {
     pub const PINNED: u16 = 1 << 11;
     /// Cloud files: may be freed from this device.
     pub const UNPINNED: u16 = 1 << 12;
-    /// Cloud files: the content is online only and downloaded when opened.
-    pub const RECALL_ON_OPEN: u16 = 1 << 13;
+    /// Cloud files: the content is online only and downloaded when read.
     pub const RECALL_ON_DATA_ACCESS: u16 = 1 << 14;
 
     /// Maps Windows' `FILE_ATTRIBUTE_*` bits (as stored in NTFS) to ours. Plain bit arithmetic: no OS
     /// dependency.
     pub fn from_windows(a: u32) -> u16 {
-        const MAP: [(u32, u16); 15] = [
+        // 0x0004_0000 is not mapped: on disk NTFS uses it for «has extended attributes» (the signed
+        // files of WinSxS), which the API reports as nothing; `RECALL_ON_OPEN` shares the value.
+        const MAP: [(u32, u16); 14] = [
             (0x0000_0001, READONLY),
             (0x0000_0002, HIDDEN),
             (0x0000_0004, SYSTEM),
@@ -65,7 +66,6 @@ pub mod attr {
             (0x0000_4000, ENCRYPTED),
             (0x0008_0000, PINNED),
             (0x0010_0000, UNPINNED),
-            (0x0004_0000, RECALL_ON_OPEN),
             (0x0040_0000, RECALL_ON_DATA_ACCESS),
         ];
         MAP.iter()
