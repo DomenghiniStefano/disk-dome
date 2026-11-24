@@ -984,6 +984,7 @@ version = "0.1.0"
 dependencies = [
  "diskdome-core",
  "diskdome-treemap",
+ "rayon",
  "slint",
  "slint-build",
 ]

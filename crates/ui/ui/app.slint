@@ -2,6 +2,9 @@
 // The design system (ui/design-system/) and the real screens arrive with step 4 of the plan.
 // User-visible text always goes through @tr() (English source, Italian translation).
 
+// The technical proof of step 3 (card 3c): a table over millions of fake rows.
+export { ProofRow, ProofTableWindow, ProofListWindow } from "proof.slint";
+
 export component MainWindow inherits Window {
     title: @tr("DiskDome");
     preferred-width: 960px;
