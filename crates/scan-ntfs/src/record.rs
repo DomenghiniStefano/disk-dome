@@ -284,6 +284,70 @@ pub fn decode_runs(runs: &[u8], first_vcn: u64) -> Option<Vec<Run>> {
     Some(out)
 }
 
+/// One attribute as stored, for diagnostics (`diskdome-cli inspect`).
+#[derive(Debug, Clone, Default)]
+pub struct AttrInfo {
+    pub kind: u32,
+    pub non_resident: bool,
+    pub name: String,
+    pub flags: u16,
+    pub first_vcn: u64,
+    /// Resident: the value length. Non-resident: data size, allocated size, compressed size.
+    pub size: u64,
+    pub alloc: u64,
+    pub compressed: u64,
+}
+
+/// Every attribute of a record (fixup applied). Allocates: diagnostics only, never in the scan.
+pub fn describe(rec: &[u8]) -> Vec<AttrInfo> {
+    let mut out = Vec::new();
+    let (Some(used), Some(first)) = (u32_at(rec, 0x18), u16_at(rec, 0x14)) else {
+        return out;
+    };
+    let used = (used as usize).min(rec.len());
+    let mut pos = first as usize;
+    while pos + 16 <= used {
+        let (Some(kind), Some(len)) = (u32_at(rec, pos), u32_at(rec, pos + 4)) else {
+            break;
+        };
+        let len = len as usize;
+        if kind == AT_END || len < 16 || pos + len > used {
+            break;
+        }
+        let attr = &rec[pos..pos + len];
+        let name_len = attr[9] as usize;
+        let name_off = u16_at(attr, 0x0A).unwrap_or(0) as usize;
+        let name: String = attr
+            .get(name_off..name_off + name_len * 2)
+            .map(|b| {
+                let (pairs, _) = b.as_chunks::<2>();
+                char::decode_utf16(pairs.iter().map(|c| u16::from_le_bytes(*c)))
+                    .map(|c| c.unwrap_or(char::REPLACEMENT_CHARACTER))
+                    .collect()
+            })
+            .unwrap_or_default();
+        let non_resident = attr[8] != 0;
+        let mut info = AttrInfo {
+            kind,
+            non_resident,
+            name,
+            flags: u16_at(attr, 0x0C).unwrap_or(0),
+            ..AttrInfo::default()
+        };
+        if non_resident {
+            info.first_vcn = u64_at(attr, 0x10).unwrap_or(0);
+            info.alloc = u64_at(attr, 0x28).unwrap_or(0);
+            info.size = u64_at(attr, 0x30).unwrap_or(0);
+            info.compressed = u64_at(attr, 0x40).unwrap_or(0);
+        } else {
+            info.size = u64::from(u32_at(attr, 0x10).unwrap_or(0));
+        }
+        out.push(info);
+        pos += len;
+    }
+    out
+}
+
 /// The data runs of the unnamed `$DATA` attribute of a record (fixup applied), with a flag telling
 /// whether the record also has an `$ATTRIBUTE_LIST` (then the runs may continue in other records).
 pub fn data_runs(rec: &[u8]) -> Option<(Vec<Run>, bool)> {
