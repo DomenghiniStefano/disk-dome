@@ -35,6 +35,7 @@ Requirements: Rust (stable, installed through [rustup](https://rustup.rs/)); on 
 cargo run -p diskdome-ui          # the desktop app
 cargo run -p diskdome-cli         # the command line
 ./scripts/check.ps1               # every check the CI runs
+./scripts/proof.ps1               # measure a scan of C: and compare it with WizTree (asks for admin)
 ```
 
 ## Documentation
