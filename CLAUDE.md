@@ -72,7 +72,7 @@ Full description: `docs/architecture.md`.
 
 - Data flows one way: scanners write into `core`; `ui`, `treemap` and `cli` read without copying.
 - The data model is one array per field with `u32` indices (for NTFS the index is the MFT record number),
-  names in one UTF-8 buffer, children in CSR arrays, no full path stored (~62 bytes per entry measured).
+  names in UTF-8 pages, children in CSR arrays, no full path stored (~62 bytes per entry measured).
 - Every file action updates the model and the parents' totals at once; outside changes come from the USN
   journal.
 - Administrator rights: the user picks the scan mode at first launch (UAC prompt / installed service / no
