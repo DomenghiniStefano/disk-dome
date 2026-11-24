@@ -1,0 +1,46 @@
+# cargo-deny: every dependency must carry a licence compatible with GPL-3.0-or-later,
+# come from crates.io and have no known security advisory.
+# Run: cargo deny check
+
+[graph]
+all-features = true
+
+[licenses]
+# Licences compatible with GPL-3.0-or-later. A new one is a decision (docs/decisions.md), not a quick fix.
+allow = [
+    "0BSD",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "BSL-1.0",
+    "CC0-1.0",
+    "GPL-3.0-only",
+    "GPL-3.0-or-later",
+    "ISC",
+    "MIT",
+    "MIT-0",
+    "MPL-2.0",
+    "Unicode-3.0",
+    "Unlicense",
+    "Zlib",
+]
+confidence-threshold = 0.9
+# The list covers what future dependencies may bring, not only today's.
+unused-allowed-license = "allow"
+
+[licenses.private]
+# The workspace's own crates are not published.
+ignore = true
+
+[bans]
+multiple-versions = "allow"
+wildcards = "deny"
+allow-wildcard-paths = true
+
+[advisories]
+ignore = []
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
