@@ -3,6 +3,7 @@
 #   ./scripts/proof.ps1                 # drive C:, with the WizTree comparison
 #   ./scripts/proof.ps1 -Drive D        # another NTFS drive
 #   ./scripts/proof.ps1 -SkipWizTree    # DiskDome only
+#   ./scripts/proof.ps1 -Sweep          # also read the $MFT with other thread counts and chunk sizes
 #   ./scripts/proof.ps1 -Dump           # also save the $MFT to a file, so the parser can be debugged
 #                                       # later without administrator rights (it holds every file
 #                                       # name of the drive: it stays on this PC)
@@ -14,6 +15,7 @@ param(
     [string]$Drive = 'C',
     [switch]$SkipWizTree,
     [switch]$Dump,
+    [switch]$Sweep,
     [string]$OutDir,
     [switch]$Elevated
 )
@@ -35,6 +37,7 @@ if (-not $Elevated) {
         '-Drive', $Drive, '-OutDir', "`"$OutDir`"", '-Elevated')
     if ($SkipWizTree) { $psArgs += '-SkipWizTree' }
     if ($Dump) { $psArgs += '-Dump' }
+    if ($Sweep) { $psArgs += '-Sweep' }
     Write-Host '==> Asking for administrator rights to read the volume' -ForegroundColor Cyan
     Start-Process powershell -Verb RunAs -Wait -ArgumentList $psArgs
     $report = Join-Path $OutDir 'report.txt'
@@ -59,6 +62,16 @@ try {
 
     Write-Host "`n==> 1. Reading the `$MFT only (3a), three runs" -ForegroundColor Cyan
     foreach ($i in 1..3) { & $cli mft-read "$($Drive):" }
+
+    if ($Sweep) {
+        Write-Host "`n==> 1b. Reading the `$MFT with other thread counts and chunk sizes" -ForegroundColor Cyan
+        foreach ($threads in 4, 8, 32, 64) {
+            foreach ($chunk in 1, 4, 16) {
+                Write-Host "threads $threads, chunk $chunk MB:"
+                & $cli mft-read "$($Drive):" --threads $threads --chunk-mb $chunk | Select-String 'MB/s'
+            }
+        }
+    }
 
     Write-Host "`n==> 2. Full scan with folder totals (3b), three runs; the last one exports" -ForegroundColor Cyan
     $ours = Join-Path $OutDir 'diskdome-folders.csv'

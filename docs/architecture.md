@@ -63,9 +63,16 @@ Measured (`scan --synthetic 14300000`, Ryzen 7 9700X, 8 cores): parsing and buil
 (read+parse 0.46 s on 16 threads, merge 0.06 s, totals 0.55 s). On a real drive the read is the bound: a
 13.7 GB `$MFT` at 4–5 GB/s is 3–3.5 s, so ~4 s is expected; `scripts/proof.ps1` measures it.
 
-What is counted: a file's size is its unnamed `$DATA` stream (alternate streams not yet); its size on disk is
-the allocated size, or the compressed size for compressed and sparse files; resident files take no cluster.
-A hard-linked file is counted once: its other links are listed with size 0.
+What is counted, as WizTree does (checked folder by folder on a 3.4 million entry drive: 99.1% of folders
+identical, the rest changed between the two scans or are hard links whose clusters WizTree places on another
+link):
+
+- size: the unnamed `$DATA` stream;
+- size on disk: every `$DATA` stream, named ones included (files compressed by Windows keep their data in
+  `WofCompressedData`, the USN journal in `$J`), using the compressed size for compressed and sparse streams;
+  resident data takes no cluster; `$BadClus:$Bad` (a sparse map as large as the volume) is not counted;
+- hard links: every link is listed with the file's size; the clusters are counted once, on the record's first
+  name; DOS 8.3 aliases are not links.
 
 NTFS cases to handle: attribute lists, non-resident attributes and data runs, hard links (counted once),
 sparse and compressed files, alternate data streams, logical vs allocated size, reparse points. Check: folder

@@ -5,6 +5,7 @@ never an edit of an old one.
 
 | Date | Decision | Why |
 | --- | --- | --- |
+| 2026-11-24 | Sizes counted as WizTree does: every hard link shows the file's size, clusters counted once on the first name; size on disk includes named streams (`WofCompressedData`, `$J`) except `$BadClus:$Bad` | measured on the owner's C: (3.4 M entries): 99.1% of folders identical to WizTree, totals within 0.04%; replaces "other links shown with size 0" |
 | 2026-11-24 | `cargo deny` reports "unmaintained" crates only among our direct dependencies (`unmaintained = "workspace"`); vulnerabilities still checked on every crate | six such notices (ttf-parser, zvariant, zbus_names, zvariant_derive, pin-utils, chrono) all come through Slint, carry no known vulnerability, and only Slint can replace them |
 | 2026-11-24 | Data model indexed by the MFT record number, children in CSR arrays (`child_start` + `children`) instead of renumbering entries so children are adjacent | the parser writes each record straight into its slot from any thread and nothing is copied after; costs 4 bytes per entry plus the few percent of free records; measured 61.5 bytes per entry |
 | 2026-11-24 | Read and parse on the same threads (twice the cores, 4 MB chunks), one volume handle per thread | overlaps reading and parsing without a queue; Windows serialises synchronous reads on a shared handle |

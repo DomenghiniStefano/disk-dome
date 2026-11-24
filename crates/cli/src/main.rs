@@ -9,10 +9,12 @@
 //! diskdome-cli scan --synthetic RECORDS [options]            the same on a generated drive
 //! diskdome-cli mft-dump C: FILE                              save the $MFT to a file (admin)
 //! diskdome-cli compare OURS.csv WIZTREE.csv [--top N]        compare folder totals
+//! diskdome-cli inspect --dump FILE --path "C:\dir" [--top N]  a folder's children and their records
 //! ```
 
 mod compare;
 mod export;
+mod inspect;
 
 use std::path::PathBuf;
 use std::process::ExitCode;
@@ -29,6 +31,7 @@ usage:
                     [--export FILE.csv] [--drive X]
   diskdome-cli mft-dump C: FILE
   diskdome-cli compare OURS.csv WIZTREE.csv [--top N]
+  diskdome-cli inspect --dump FILE --path FOLDER [--top N]
 
 mft-read, scan C: and mft-dump read the volume directly: run them as administrator.";
 
@@ -40,6 +43,7 @@ struct Args {
     dump: Option<PathBuf>,
     synthetic: Option<u64>,
     drive: Option<char>,
+    path: Option<String>,
     top: usize,
 }
 
@@ -52,6 +56,7 @@ fn parse_args(raw: &[String]) -> Result<Args, String> {
         dump: None,
         synthetic: None,
         drive: None,
+        path: None,
         top: 20,
     };
     let mut it = raw.iter();
@@ -74,6 +79,7 @@ fn parse_args(raw: &[String]) -> Result<Args, String> {
             "--synthetic" => args.synthetic = Some(number(a, value(a)?)?),
             "--top" => args.top = number(a, value(a)?)? as usize,
             "--drive" => args.drive = drive_letter(&value(a)?),
+            "--path" => args.path = Some(value(a)?),
             other if other.starts_with("--") => return Err(format!("unknown option {other}")),
             other => args.positional.push(other.to_string()),
         }
@@ -234,6 +240,14 @@ fn cmd_scan(args: &Args) -> Result<(), String> {
     run_scan(&volume, args, letter)
 }
 
+fn cmd_inspect(args: &Args) -> Result<(), String> {
+    let dump = args.dump.as_ref().ok_or("inspect needs --dump FILE")?;
+    let path = args.path.as_deref().ok_or("inspect needs --path FOLDER")?;
+    let source = DumpSource::open(dump.clone()).map_err(|e| e.to_string())?;
+    let (tree, report) = scan(&source, &options(args)).map_err(|e| e.to_string())?;
+    inspect::run(&tree, &source, report.records, path, args.top)
+}
+
 fn cmd_mft_dump(args: &Args) -> Result<(), String> {
     let (volume, _) = open_volume(args)?;
     let path = args.positional.get(2).ok_or("where to? a file path")?;
@@ -262,6 +276,7 @@ fn main() -> ExitCode {
         Some("mft-read") => cmd_mft_read(&args),
         Some("scan") => cmd_scan(&args),
         Some("mft-dump") => cmd_mft_dump(&args),
+        Some("inspect") => cmd_inspect(&args),
         Some("compare") => compare::run(&args.positional[1..], args.top),
         Some(_) | None => {
             println!("diskdome-cli {}\n\n{USAGE}", env!("CARGO_PKG_VERSION"));

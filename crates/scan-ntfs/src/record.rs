@@ -26,7 +26,7 @@ pub const NS_DOS: u8 = 2;
 pub const NS_WIN32_AND_DOS: u8 = 3;
 
 /// Names kept per record; a record holding more hard links than this loses the extra ones.
-pub const MAX_NAMES: usize = 8;
+pub const MAX_NAMES: usize = 16;
 
 /// The stride of the update sequence array: always 512 bytes in NTFS, whatever the sector size.
 const USA_STRIDE: usize = 512;
@@ -60,6 +60,10 @@ pub struct Record {
     /// Unnamed `$DATA` stream: (logical size, size on disk). `None` when the record holds no first
     /// segment of it (folders, or an extension record carrying a later segment).
     pub data: Option<(u64, u64)>,
+    /// Size on disk of the named `$DATA` streams (alternate streams, `WofCompressedData` of files
+    /// compressed by Windows, the USN journal's `$J`). Counted in the size on disk, not in the size,
+    /// as WizTree does.
+    pub stream_alloc: u64,
     /// Names, at most one per parent folder: the best namespace wins (Win32 over DOS).
     pub names: [NameRef; MAX_NAMES],
     pub name_count: u8,
@@ -170,24 +174,28 @@ pub fn parse(rec: &[u8]) -> Option<Record> {
                     },
                 );
             }
-            AT_DATA if name_len == 0 => {
-                if non_resident {
-                    // Sizes are valid only in the segment that starts at VCN 0.
-                    if u64_at(attr, 0x10)? == 0 {
-                        let attr_flags = u16_at(attr, 0x0C)?;
-                        let alloc = u64_at(attr, 0x28)?;
-                        let size = u64_at(attr, 0x30)?;
-                        let on_disk = if attr_flags & (ATTR_COMPRESSED | ATTR_SPARSE) != 0 {
-                            u64_at(attr, 0x40).unwrap_or(alloc)
-                        } else {
-                            alloc
-                        };
+            AT_DATA if non_resident => {
+                // Sizes are valid only in the segment that starts at VCN 0.
+                if u64_at(attr, 0x10)? == 0 {
+                    let attr_flags = u16_at(attr, 0x0C)?;
+                    let alloc = u64_at(attr, 0x28)?;
+                    let size = u64_at(attr, 0x30)?;
+                    // Compressed and sparse streams: the clusters really in use.
+                    let on_disk = if attr_flags & (ATTR_COMPRESSED | ATTR_SPARSE) != 0 {
+                        u64_at(attr, 0x40).unwrap_or(alloc)
+                    } else {
+                        alloc
+                    };
+                    if name_len == 0 {
                         out.data = Some((size, on_disk));
+                    } else {
+                        out.stream_alloc += on_disk;
                     }
-                } else {
-                    // Resident: the content lives inside the record and takes no cluster.
-                    out.data = Some((u64::from(u32_at(attr, 0x10)?), 0));
                 }
+            }
+            AT_DATA if name_len == 0 => {
+                // Resident: the content lives inside the record and takes no cluster.
+                out.data = Some((u64::from(u32_at(attr, 0x10)?), 0));
             }
             _ => {}
         }
@@ -196,14 +204,15 @@ pub fn parse(rec: &[u8]) -> Option<Record> {
     Some(out)
 }
 
-/// Keeps one name per parent folder, the best namespace first: a DOS 8.3 alias never replaces a
-/// long name.
+/// Keeps every hard link (several may share a folder, under different names) but drops DOS 8.3
+/// aliases: a DOS name is kept only when its folder has no other name, and a long name arriving later
+/// replaces it.
 fn add_name(out: &mut Record, name: NameRef) {
     let count = out.name_count as usize;
-    if let Some(existing) = out.names[..count]
+    let same_folder = out.names[..count]
         .iter_mut()
-        .find(|n| n.parent == name.parent)
-    {
+        .find(|n| n.parent == name.parent && (n.namespace == NS_DOS || name.namespace == NS_DOS));
+    if let Some(existing) = same_folder {
         if existing.namespace == NS_DOS && name.namespace != NS_DOS {
             *existing = name;
         }
@@ -282,6 +291,87 @@ pub fn decode_runs(runs: &[u8], first_vcn: u64) -> Option<Vec<Run>> {
         vcn += length;
     }
     Some(out)
+}
+
+/// One attribute as stored, for diagnostics (`diskdome-cli inspect`).
+#[derive(Debug, Clone, Default)]
+pub struct AttrInfo {
+    pub kind: u32,
+    pub non_resident: bool,
+    pub name: String,
+    pub flags: u16,
+    pub first_vcn: u64,
+    /// Resident: the value length. Non-resident: data size, allocated size, compressed size.
+    pub size: u64,
+    pub alloc: u64,
+    pub compressed: u64,
+}
+
+/// Every attribute of a record (fixup applied). Allocates: diagnostics only, never in the scan.
+pub fn describe(rec: &[u8]) -> Vec<AttrInfo> {
+    let mut out = Vec::new();
+    let (Some(used), Some(first)) = (u32_at(rec, 0x18), u16_at(rec, 0x14)) else {
+        return out;
+    };
+    let used = (used as usize).min(rec.len());
+    let mut pos = first as usize;
+    while pos + 16 <= used {
+        let (Some(kind), Some(len)) = (u32_at(rec, pos), u32_at(rec, pos + 4)) else {
+            break;
+        };
+        let len = len as usize;
+        if kind == AT_END || len < 16 || pos + len > used {
+            break;
+        }
+        let attr = &rec[pos..pos + len];
+        let name_len = attr[9] as usize;
+        let name_off = u16_at(attr, 0x0A).unwrap_or(0) as usize;
+        let name: String = attr
+            .get(name_off..name_off + name_len * 2)
+            .map(|b| {
+                let (pairs, _) = b.as_chunks::<2>();
+                char::decode_utf16(pairs.iter().map(|c| u16::from_le_bytes(*c)))
+                    .map(|c| c.unwrap_or(char::REPLACEMENT_CHARACTER))
+                    .collect()
+            })
+            .unwrap_or_default();
+        let non_resident = attr[8] != 0;
+        let mut info = AttrInfo {
+            kind,
+            non_resident,
+            name,
+            flags: u16_at(attr, 0x0C).unwrap_or(0),
+            ..AttrInfo::default()
+        };
+        if kind == AT_FILE_NAME && !non_resident {
+            // Name, namespace and parent folder, for telling hard links apart.
+            let voff = u16_at(attr, 0x14).unwrap_or(0) as usize;
+            let units = attr.get(voff + 0x40).copied().unwrap_or(0) as usize;
+            let ns = attr.get(voff + 0x41).copied().unwrap_or(0);
+            let parent = record_number(u64_at(attr, voff).unwrap_or(0));
+            let text: String = attr
+                .get(voff + 0x42..voff + 0x42 + units * 2)
+                .map(|b| {
+                    let (pairs, _) = b.as_chunks::<2>();
+                    char::decode_utf16(pairs.iter().map(|c| u16::from_le_bytes(*c)))
+                        .map(|c| c.unwrap_or(char::REPLACEMENT_CHARACTER))
+                        .collect()
+                })
+                .unwrap_or_default();
+            info.name = format!("{text} [ns {ns}, parent {parent}]");
+        }
+        if non_resident {
+            info.first_vcn = u64_at(attr, 0x10).unwrap_or(0);
+            info.alloc = u64_at(attr, 0x28).unwrap_or(0);
+            info.size = u64_at(attr, 0x30).unwrap_or(0);
+            info.compressed = u64_at(attr, 0x40).unwrap_or(0);
+        } else {
+            info.size = u64::from(u32_at(attr, 0x10).unwrap_or(0));
+        }
+        out.push(info);
+        pos += len;
+    }
+    out
 }
 
 /// The data runs of the unnamed `$DATA` attribute of a record (fixup applied), with a flag telling
@@ -376,6 +466,28 @@ mod tests {
         let r = parse(&rec).expect("in use");
         assert_eq!(r.names().len(), 2);
         assert_eq!(r.names()[1].parent, 30);
+    }
+
+    #[test]
+    fn hard_links_in_the_same_folder_are_kept() {
+        let mut rec = vec![0u8; 1024];
+        write_record(
+            &mut rec,
+            9,
+            &RecordSpec {
+                names: &[
+                    (40, "cargo.exe", NS_WIN32),
+                    (40, "CARGO~1.EXE", NS_DOS),
+                    (40, "rustc.exe", NS_WIN32),
+                ],
+                size: Some((1, 0)),
+                ..RecordSpec::default()
+            },
+        );
+        assert!(apply_fixup(&mut rec));
+        let r = parse(&rec).expect("in use");
+        assert_eq!(r.names().len(), 2, "two links, the DOS alias dropped");
+        assert!(r.names().iter().all(|n| n.namespace == NS_WIN32));
     }
 
     #[test]

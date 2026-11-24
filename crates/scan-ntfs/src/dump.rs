@@ -39,6 +39,18 @@ impl DumpSource {
     }
 }
 
+impl DumpSource {
+    /// Record `number` with its fixup applied, or `None` if it is out of range or not a valid record.
+    pub fn record(&self, number: u64) -> Option<Vec<u8>> {
+        let mut file = File::open(&self.path).ok()?;
+        file.seek(SeekFrom::Start(HEADER + number * self.record_size as u64))
+            .ok()?;
+        let mut rec = vec![0u8; self.record_size];
+        file.read_exact(&mut rec).ok()?;
+        crate::record::apply_fixup(&mut rec).then_some(rec)
+    }
+}
+
 pub struct DumpReader(File);
 
 impl ChunkReader for DumpReader {
