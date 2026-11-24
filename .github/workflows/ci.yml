@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  check:
+    name: Build and test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        # Windows is the v1 platform; macOS is built from day one so nothing Windows-only leaks
+        # outside crates/scan-ntfs.
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+      # rustup reads rust-toolchain.toml on the first cargo call.
+      - uses: Swatinem/rust-cache@v2
+      - name: Format
+        run: cargo fmt --all -- --check
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+      - name: Test
+        run: cargo test --workspace
+
+  licenses:
+    name: Licences and advisories
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: EmbarkStudios/cargo-deny-action@v2
