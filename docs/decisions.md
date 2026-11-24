@@ -5,6 +5,7 @@ never an edit of an old one.
 
 | Date | Decision | Why |
 | --- | --- | --- |
+| 2026-11-24 | Map style: Vignette is the default; «Folders» (headers with name and size on large folders) is a setting like the others at every window size, with headers only on the folders that fit; «Open» asks for confirmation when more than 10 files are selected | chosen on the canvas with the folder gaps visible in every style; opening hundreds of windows by mistake is worse than one question |
 | 2026-11-24 | A «Start» tab before the drive tabs is the first page the first time; global terms («Start», «Home», «Timeline») stay in English in the Italian interface | the owner prefers global terms where Italian users already use them |
 | 2026-11-24 | No scan-mode dialog at first launch: the recommended mode (the drive's index, UAC at every scan) is said in one line under the call to action, with «Change»; replaces the earlier first-launch dialog | a technical question before the app is seen stops a new user |
 | 2026-11-24 | Navigation: six sections in a full-width bar, ordered by use (Overview, Explore, Clean-up, Timeline, Statistics, Activity); Explore's own bar with Tree · File list, the layout and the selection's actions; Back with history; Overview after scanning a drive, Explore (Both) after a folder | new-user walk-through of 2026-11-24 |

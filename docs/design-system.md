@@ -556,22 +556,22 @@ the code and the docs.
 - **Styles** (owner, 2026-11-24: «more options for the coloured squares, so I choose the best or we keep them
   all»): a setting «Map style», all drawn by the same renderer and compared on the canvas. Tiles, Outline and
   Folders were dropped by the owner the same day; Folders came back for large windows, at the owner's request.
-  All ship as a setting (T4: every style redraws in under 2 ms). ⟨open: the default, to choose again on the canvas
-  now that the folders show in every style⟩
+  All ship as a setting (T4: every style redraws in under 2 ms). **Default: Vignette** (owner, 2026-11-24, chosen
+  on the artboard «Treemap» with the folder gaps visible in every style).
 
 | Style | How each file rectangle is drawn | Character |
 | --- | --- | --- |
-| **Vignette** (Vignetta), proposed default | radial gradient: the full category colour up to 35 % of the radius (centre at 50 % / 42 %), then darker toward the corners, 32 % toward black | depth without lightening the colours |
+| **Vignette** (Vignetta), default | radial gradient: the full category colour up to 35 % of the radius (centre at 50 % / 42 %), then darker toward the corners, 32 % toward black | depth without lightening the colours |
 | **Diagonal light** (Luce diagonale) | linear gradient at 135°: 10 % toward white at the top left, the full colour at 45 %, 22 % toward black at the bottom right | soft relief, colours almost full |
 | **Mosaic** (Mosaico) | flat colour with a 1 px inner border of the same colour 35 % toward black; no `bg` lines | every file visible, like stained glass |
 | **Structure** (Struttura) | flat colour, a 1 px right / bottom edge 18 % toward black; gaps in `bg` between folders of 3, 2 and 1 px at the first three levels | folders readable without headers |
 | **Flat** (Piatto) | flat colour, a 1 px `bg` line on the right and bottom edges | the densest, no effect |
 | **Cushion** (Cuscino) | van Wijk & van de Wetering cushions: light from the top left, ambient 0.40, diffuse 0.60, height 0.75, 0.85 per level | the classic WinDirStat / WizTree depth; lightens colours toward the centre |
 | **Relief** (Rilievo) | flat colour, a 1 px top-left edge 38 % toward white and a 1 px bottom-right edge 38 % toward black | «key» look, retro |
-| **Folders** (Cartelle) ⟨open⟩, back on 2026-11-24 for large windows | every folder down to 4 levels that is at least 96 × 60 gets a frame: an 18 px header with its name (`caption-strong`) and size (`caption`, `ink-muted`) on `bg` mixed 6 % toward `ink` (+2.5 % per level), its children 2 px inside; smaller folders are drawn flat with 1 px gaps. Names of files never cover a header | SpaceSniffer-like: folders named everywhere. Dropped at 1280 × 800 (too many small frames); at 1920 × 1032 the Map view gets 34 headers and still 184 names (artboard «MappaCartelle») |
+| **Folders** (Cartelle), a setting like the others at every window size (owner, 2026-11-24) | every folder down to 4 levels that is at least 96 × 60 gets a frame: an 18 px header with its name (`caption-strong`) and size (`caption`, `ink-muted`) on `bg` mixed 6 % toward `ink` (+2.5 % per level), its children 2 px inside; smaller folders are drawn flat with 1 px gaps. Names of files never cover a header. In a small map only the folders that fit get a header; the rest are drawn as in Vignette | SpaceSniffer-like: folders named everywhere. Dropped at 1280 × 800 (too many small frames); at 1920 × 1032 the Map view gets 34 headers and still 184 names (artboard «MappaCartelle») |
 
 - **Names** (owner, 2026-11-24: «as many names as possible, even small ones»): option «Names» in the map
-  header's menu: **None**, **Few**, **Many** (proposed default), **All**. Placed greedily, never overlapping:
+  header's menu: **None**, **Few**, **Many** (default), **All**. Placed greedily, never overlapping:
   first the folders whose files are drawn as one piece, then every file, largest rectangle first. A name needs
   room for at least four characters (plus the folder icon for a folder), else the rectangle gets none. Three
   tiers, top left of the rectangle, elided at the end, in `on-data` of the colour as drawn (for Vignette the
@@ -1804,18 +1804,16 @@ units like File Explorer by default; the tree's default columns with Allocated; 
 nothing preselected in Clean-up; saved summaries (the last 30 and one per month) and a rescan at launch for NTFS
 drives; file actions in parallel with their own progress, never disabled; Activity's aggregation rule; drive names
 as in «This PC»; no «What is it?» for now; the table on `ListView` with our own virtual scrolling; global terms
-(«Start», «Home», «Timeline») kept in English in the Italian interface.
+(«Start», «Home», «Timeline») kept in English in the Italian interface; Vignette as the default map style, with
+Folders offered as a setting at every window size; «Open» asks for confirmation above 10 files.
 
 **Still open**
 
 | # | Decision | Proposal |
 | --- | --- | --- |
-| 3 | Default map style | to choose again on the canvas now that every style shows the folders; Vignette proposed |
 | 8 | Font | Segoe UI; Segoe UI Variable only if tabular and crisper in the Kit (test 7) |
 | 9 | Renderer | decided in the Kit at 12–13 px, femtovg vs Skia (test 7) |
 | 11 | Menus and tooltips: Slint's elements or ours | ours if Slint's cannot take the tokens (test 8) |
-| 20 | «Folders» map style | offered, not default; maybe only when the map is at least 1400 px wide |
-| 24 | Open with many files selected | asks above 10 files |
 
 ## 12. Tests before the code relies on them
 
