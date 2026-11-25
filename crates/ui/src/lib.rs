@@ -13,3 +13,4 @@ pub mod generated {
 }
 
 pub mod proof;
+pub mod spike;

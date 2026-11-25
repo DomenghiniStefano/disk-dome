@@ -23,6 +23,12 @@ export global Theme {
     out property <color> ink-muted: dark ? #abaeb3 : #494d54;
     out property <color> ink-faint: dark ? #7e8288 : #65696f;
 
+    // Pending design: the title bar's ground, «a step deeper than `bg`» (§ 2.1); the value is provisional.
+    out property <color> frame: dark ? #0a0b0d : #d3d5d8;
+    // Pending design: the close button's hover, Windows' own red until the design says otherwise.
+    out property <color> caption-close: #c42b1c;
+    out property <color> on-caption-close: #ffffff;
+
     // Accent: Laguna
     out property <color> accent: dark ? #37c2bb : #007c79;
     out property <color> accent-hover: dark ? #4dd2cb : #006f6d;
