@@ -9,8 +9,8 @@ use std::path::{Path, PathBuf};
 
 use regex::Regex;
 
-/// The step-3 proof table (card 3c) predates the design system and is removed with it; it is not checked.
-const EXEMPT: &[&str] = &["proof.slint"];
+/// Throwaway spikes, not checked: the step-3 proof table (card 3c) and the title bar test (card 4.T1).
+const EXEMPT: &[&str] = &["proof.slint", "spike/titlebar.slint"];
 
 struct Rule {
     name: &'static str,

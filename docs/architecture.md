@@ -14,7 +14,7 @@ fields, text).
 | `crates/treemap` | `diskdome-treemap` | squarified layout and its rendering into a pixel buffer |
 | `crates/ui` | `diskdome-ui` (binary `diskdome`) | the Slint app: design system, screens, a lazy `Model` that serves only the visible rows |
 | `crates/cli` | `diskdome-cli` | scan benchmarks and exports; every engine change is measured here |
-| `crates/platform` | `diskdome-platform` | OS services outside the scanners: process memory now, the shell actions later |
+| `crates/platform` | `diskdome-platform` | OS services outside the scanners: process memory, the window's own title bar (spike of card 4.T1), the shell actions later |
 
 Packages are prefixed `diskdome-` because `core` is the name of Rust's own core library.
 

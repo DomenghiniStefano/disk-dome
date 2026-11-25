@@ -962,6 +962,7 @@ version = "0.1.0"
 name = "diskdome-platform"
 version = "0.1.0"
 dependencies = [
+ "raw-window-handle",
  "windows-sys 0.61.2",
 ]
 
@@ -993,7 +994,9 @@ name = "diskdome-ui"
 version = "0.1.0"
 dependencies = [
  "diskdome-core",
+ "diskdome-platform",
  "diskdome-treemap",
+ "raw-window-handle",
  "rayon",
  "regex",
  "slint",
@@ -4006,6 +4009,7 @@ dependencies = [
  "i-slint-renderer-software",
  "once_cell",
  "pin-weak",
+ "raw-window-handle",
  "slint-macros",
  "vtable",
 ]
