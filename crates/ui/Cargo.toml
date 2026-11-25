@@ -30,7 +30,7 @@ slint-build.workspace = true
 
 [features]
 # The Kit window of the design system (`docs/design-system.md` § 9): development only, never in a release.
-kit = []
+kit = ["slint/renderer-skia"]
 
 [lints]
 workspace = true

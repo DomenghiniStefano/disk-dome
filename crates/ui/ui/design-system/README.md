@@ -7,6 +7,7 @@ The Slint side of `docs/design-system.md`, which holds every value and the reaso
   `Theme` (colours per theme), `Data` (file categories, age), `Size` (spacing, sizes, density, radii, borders,
   opacity, layers), `Type` (font and type steps), `Motion` (durations, easing).
 - Run-time switches set by Rust: `Theme.mode`, `Size.compact`, `Data.palette`, `Data.style`, `Motion.reduced`.
+  `Type.family` is switched only by the Kit (test 7).
 - `enums.slint` — the components' variants and sizes (`ButtonVariant`, `InkTone`…); `TypeStep` is in `tokens/type.slint`.
 - `tones.slint` — `InkTone` → colour, shared by `Label` and `Icon`.
 - `nav.slint` — `Nav.keyboard`: the focus ring shows only while the user moves with the keyboard (§ 3.7).
@@ -20,8 +21,9 @@ The Slint side of `docs/design-system.md`, which holds every value and the reaso
   and the component sections (every component shows each state through `kit-state: KitState`, Kit only; screens
   leave it `live`); `kit-tokens.slint` draws every token (a new token gets its line in `KitTokenData`, shown in
   units of `Size.unit` and `Motion.unit`); `kit-review.slint` is the review board (`KitReview.issues`, «Now» and
-  «Proposal» drawn with the real components, counted by `src/kit.rs` for the top bar); `kit-parts.slint` the
-  Kit's own layout pieces.
+  «Proposal» drawn with the real components, counted by `src/kit.rs` for the top bar); `kit-text.slint` is «Text and
+  digits» (test 7: the steps at 12–13 px, a live tabular-digits check, the renderer chosen with `--renderer`);
+  `kit-parts.slint` the Kit's own layout pieces.
 
 How a component is built: variants and sizes are enums; every look is a token or a pure function over tokens
 (`ButtonLook`); behaviour comes from `primitives/`; text goes through `Label`, icons through `Icon`; disabled fades

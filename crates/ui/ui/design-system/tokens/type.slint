@@ -3,8 +3,13 @@
 export enum TypeStep { display, title, body, body-strong, caption, caption-strong, map-name, map-name-xs, overline, mono }
 
 export global Type {
-    // Segoe UI: its default figures are tabular. Segoe UI Variable is tried in the Kit (§ 3.3, open).
-    out property <string> family: "Segoe UI";
+    // Segoe UI: its default figures are tabular. The Kit switches it among the candidates below for test 7; the app
+    // never changes it.
+    in-out property <string> family: family-segoe;
+    // Pending design (decision 8, § 3.3): the candidates the owner compares in the Kit at 12–13 px. Slint 1.19 does
+    // not apply the optical-size instances of Windows 11's variable font: «Text» and «Small» draw the same.
+    out property <string> family-segoe: "Segoe UI";
+    out property <string> family-variable: "Segoe UI Variable Text";
     out property <string> family-mono: "Cascadia Mono";
 
     public pure function family-of(step: TypeStep) -> string {
