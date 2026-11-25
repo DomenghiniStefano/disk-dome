@@ -310,8 +310,10 @@ without the legend and in grey-scale; the same colours in every theme, like the 
 **Font: Segoe UI** (Windows' system font; nothing bundled, nothing to license). Its default figures are
 tabular (all digits the same width), which matters because Slint's `Text` has no OpenType feature switch
 (no `tnum`): the font's default figures are what the columns get. Segoe UI has no 500 weight: the design uses
-400 and 600 only. ⟨open⟩ Segoe UI Variable (Windows 11) is tried in the Kit window first: it is kept only if
-its digits are tabular there too and it renders crisper at 12–13 px.
+400 and 600 only. ⟨open⟩ Measured in the Kit and in the font files (test 7, 2026-11-25): Segoe UI 400 and 700
+have tabular digits, **Semibold 600 does not** (its «1» is 28 % narrower), so a column of `-strong` figures does
+not line up; Segoe UI Variable has a narrow «1» at every weight, and Slint 1.19 does not apply its «Text» and
+«Small» optical sizes. Which weight the strong figures take is the owner's choice (decision 8).
 
 macOS (after v1): SF Pro's default figures are proportional, so numbers there will need a font with tabular
 defaults; decided when the macOS port starts.
@@ -2531,8 +2533,8 @@ errors as notices that stay); the Tree and the File list (§ 5.10: columns and t
 
 | # | Decision | Proposal |
 | --- | --- | --- |
-| 8 | Font | Segoe UI; Segoe UI Variable only if tabular and crisper in the Kit (test 7) |
-| 9 | Renderer | decided in the Kit at 12–13 px, femtovg vs Skia (test 7) |
+| 8 | Font | Segoe UI (Variable is out: proportional digits). Open: Semibold's digits are proportional; figures in columns at 400, or 700 for strong steps (test 7, § 3.3) |
+| 9 | Renderer | decided in the Kit at 12–13 px, femtovg vs Skia vs software (`--renderer`, test 7) |
 | 11 | Menus and tooltips: Slint's elements or ours | ours if Slint's cannot take the tokens (test 8) |
 
 ## 12. Tests before the code relies on them
@@ -2548,7 +2550,7 @@ the rest is checked in the Kit as the components are built.
 | 4 | **Map styles in the CPU renderer** (done 2026-11-24: redraw 0.4–1.9 ms, Cushion the slowest) | each style at 1920 × 1080 with 50 000 rectangles, release build | redraw ≤ 16 ms per style (gradients per rectangle are the costliest) |
 | 5 | **Free space values** | `GetDiskFreeSpaceExW` on NTFS, exFAT, a network share with quotas | used + free = capacity within 1 %, the quota case explained in the tooltip |
 | 6 | **People test** | the mockup's «Map» and «Both» views, then Overview, Rings and «Colours: Age», shown to 3 people who never used a disk analyzer: «what takes the most space? where is it? what haven't you touched in years?» | they answer in < 30 s without help; the view and style they find clearest becomes the default |
-| 7 | **Text and digits** | the Kit at 12–13 px with Segoe UI and Segoe UI Variable, femtovg and Skia | digits tabular, text crisp (owner's eye) |
+| 7 | **Text and digits** (digits measured 2026-11-25, § 3.3; the renderer waits on the owner's eye) | the Kit's «Text and digits» section at 12–13 px with Segoe UI and Segoe UI Variable, `--renderer femtovg`, `skia` and `software` | digits tabular, text crisp (owner's eye) |
 | 8 | **Slint menus and tooltips** | `ContextMenuArea`, `Menu`, `Tooltip` with our tokens in the Kit | they take our colours, radii and sizes; otherwise ours (§ 5.16, § 5.17) |
 | 9 | **Contrast of every theme and palette** | the automatic test of § 10, extended to the Soft / Vivid palettes and the age ramp | every pair of § 7 passes |
 | 10 | **Map names** (placement done 2026-11-24: ≤ 0.05 ms; Slint's drawing of 700 names still to check) | placement in Rust on 50 000 rectangles at 1920 × 1080 with «All»; Slint draws 700 names over the image while the window is resized | placement ≤ 2 ms (release); resizing stays smooth (≥ 60 fps); otherwise «All» is dropped and «Many» capped lower |
