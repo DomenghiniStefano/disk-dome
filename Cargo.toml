@@ -31,7 +31,15 @@ windows-sys = { version = "0.61", features = [
     "Win32_UI_Shell",
     "Win32_UI_WindowsAndMessaging",
 ] }
-slint = "1.19"
+# Only the software renderer (decision 9, 2026-11-25): the lightest, no GPU or driver involved. Without femtovg
+# or Skia compiled in, winit draws with it.
+slint = { version = "1.19", default-features = false, features = [
+    "std",
+    "backend-winit",
+    "renderer-software",
+    "accessibility",
+    "compat-1-2",
+] }
 # The window handle the platform crate needs for the title bar (MIT OR Apache-2.0 OR Zlib).
 raw-window-handle = "0.6"
 slint-build = "1.19"

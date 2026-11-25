@@ -35,7 +35,6 @@ Requirements: Rust (stable, installed through [rustup](https://rustup.rs/)); on 
 cargo run -p diskdome-ui          # the desktop app
 cargo run -p diskdome-cli         # the command line
 cargo run -p diskdome-ui --features kit -- --kit   # the design system's Kit window (development only)
-cargo run -p diskdome-ui --features kit -- --kit --renderer skia   # the Kit with femtovg, skia or software
 ./scripts/check.ps1               # every check the CI runs
 ./scripts/proof.ps1               # measure a scan of C: and compare it with WizTree (asks for admin)
 ```

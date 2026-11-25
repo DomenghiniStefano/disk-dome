@@ -135,9 +135,9 @@ Measured (cards 4.T4 and 4.T10, `cargo run -p diskdome-treemap --release --examp
 - Live preview while developing: the VS Code extension, and inside the running app with
   `SLINT_LIVE_PREVIEW=1` and the `slint/live-preview` feature.
 - Text through `@tr()`.
-- Renderer: femtovg (Slint's default without Skia) for now; Skia and the software renderer are compared in the Kit
-  (`--renderer`, `docs/design-system.md` § 12 test 7). The `kit` feature compiles Skia in, which would make it
-  Slint's default, so the Kit always names its renderer.
+- Renderer: Slint's software renderer, the only one compiled in (workspace `Cargo.toml`, decision of 2026-11-25):
+  no GPU or driver involved, the lightest in memory. femtovg and Skia were compared in the Kit
+  (`docs/design-system.md` § 12 test 7).
 
 ## CI and releases
 

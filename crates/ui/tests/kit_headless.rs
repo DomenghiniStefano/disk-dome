@@ -37,7 +37,7 @@ fn kit_switches_work_by_keyboard_and_pointer() {
     kit.show().expect("the Kit shows off screen");
     // The review board's count in the top bar comes from Rust.
     let review = kit.global::<KitReview>();
-    assert_eq!(review.get_open_count(), 2);
+    assert_eq!(review.get_open_count(), 1);
     assert_eq!(review.get_proposed_count(), 3);
     headless.frame();
     save_shot(&headless, "dark-normal");

@@ -22,7 +22,7 @@ The Slint side of `docs/design-system.md`, which holds every value and the reaso
   leave it `live`); `kit-tokens.slint` draws every token (a new token gets its line in `KitTokenData`, shown in
   units of `Size.unit` and `Motion.unit`); `kit-review.slint` is the review board (`KitReview.issues`, «Now» and
   «Proposal» drawn with the real components, counted by `src/kit.rs` for the top bar); `kit-text.slint` is «Text and
-  digits» (test 7: the steps at 12–13 px, a live tabular-digits check, the renderer chosen with `--renderer`);
+  digits» (test 7: the steps at 12–13 px in the font chosen in the top bar, a live tabular-digits check);
   `kit-parts.slint` the Kit's own layout pieces.
 
 How a component is built: variants and sizes are enums; every look is a token or a pure function over tokens

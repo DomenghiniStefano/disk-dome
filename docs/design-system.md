@@ -342,8 +342,10 @@ defaults; decided when the macOS port starts.
   dialogs, info bars, toasts and empty states.
 - **Italian is ~25 % longer than English**: no fixed widths for text; buttons hug their label with a minimum
   width (§ 5.2); columns are resizable.
-- Text rendering: grey-scale anti-aliasing (Slint does not do ClearType). The renderer (femtovg vs Skia, whose
-  subpixel positioning gives more even spacing) is chosen in the Kit window at 12–13 px ⟨open⟩.
+- Text rendering: grey-scale anti-aliasing (Slint does not do ClearType), drawn by Slint's **software renderer**
+  (decided 2026-11-25, test 7). Compared in the Kit with femtovg and Skia: Skia draws light text on dark fuller,
+  femtovg and software alike draw it thinner; software uses a fraction of the memory (15 MB private against
+  femtovg's 104 and Skia's 453, debug builds) and no GPU.
 
 ### 3.4 Spacing
 
@@ -2503,7 +2505,7 @@ buttons without a name, binary units where the setting says otherwise) pass on 2
 and 1920 × 1032, dark and light, normal and compact. What is left is decided in the Kit (8, 9, 11) and the logos'
 second phase.
 
-**Decided by the owner on 2026-11-25**: the «Pie» app mark; «Few» map names at 72 × 30; where every chart lives and
+**Decided by the owner on 2026-11-25**: the software renderer (decision 9, § 3.3); the «Pie» app mark; «Few» map names at 72 × 30; where every chart lives and
 when it appears (decision 32: § 4.4 options menu, § 4.7, § 5.27 Start from the second time, § 6.8 «To review»);
 multiple selection with Ctrl+click only in the map and nested items counted once (§ 6.1); file actions
 (§ 6.5: rename, Move to…, conflicts with «Keep both» first and «Replace» to the Recycle Bin, copy and paste, drag and
@@ -2534,7 +2536,6 @@ errors as notices that stay); the Tree and the File list (§ 5.10: columns and t
 | # | Decision | Proposal |
 | --- | --- | --- |
 | 8 | Font | Segoe UI (Variable is out: proportional digits). Open: Semibold's digits are proportional; figures in columns at 400, or 700 for strong steps (test 7, § 3.3) |
-| 9 | Renderer | decided in the Kit at 12–13 px, femtovg vs Skia vs software (`--renderer`, test 7) |
 | 11 | Menus and tooltips: Slint's elements or ours | ours if Slint's cannot take the tokens (test 8) |
 
 ## 12. Tests before the code relies on them
@@ -2550,7 +2551,7 @@ the rest is checked in the Kit as the components are built.
 | 4 | **Map styles in the CPU renderer** (done 2026-11-24: redraw 0.4–1.9 ms, Cushion the slowest) | each style at 1920 × 1080 with 50 000 rectangles, release build | redraw ≤ 16 ms per style (gradients per rectangle are the costliest) |
 | 5 | **Free space values** | `GetDiskFreeSpaceExW` on NTFS, exFAT, a network share with quotas | used + free = capacity within 1 %, the quota case explained in the tooltip |
 | 6 | **People test** | the mockup's «Map» and «Both» views, then Overview, Rings and «Colours: Age», shown to 3 people who never used a disk analyzer: «what takes the most space? where is it? what haven't you touched in years?» | they answer in < 30 s without help; the view and style they find clearest becomes the default |
-| 7 | **Text and digits** (digits measured 2026-11-25, § 3.3; the renderer waits on the owner's eye) | the Kit's «Text and digits» section at 12–13 px with Segoe UI and Segoe UI Variable, `--renderer femtovg`, `skia` and `software` | digits tabular, text crisp (owner's eye) |
+| 7 | **Text and digits** (2026-11-25: digits measured, § 3.3; renderer decided, software) | the Kit's «Text and digits» section at 12–13 px with Segoe UI and Segoe UI Variable, femtovg, Skia and software | digits tabular, text crisp (owner's eye) |
 | 8 | **Slint menus and tooltips** | `ContextMenuArea`, `Menu`, `Tooltip` with our tokens in the Kit | they take our colours, radii and sizes; otherwise ours (§ 5.16, § 5.17) |
 | 9 | **Contrast of every theme and palette** | the automatic test of § 10, extended to the Soft / Vivid palettes and the age ramp | every pair of § 7 passes |
 | 10 | **Map names** (placement done 2026-11-24: ≤ 0.05 ms; Slint's drawing of 700 names still to check) | placement in Rust on 50 000 rectangles at 1920 × 1080 with «All»; Slint draws 700 names over the image while the window is resized | placement ≤ 2 ms (release); resizing stays smooth (≥ 60 fps); otherwise «All» is dropped and «Many» capped lower |
