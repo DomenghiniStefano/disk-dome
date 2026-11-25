@@ -64,11 +64,11 @@ mod imp {
     use windows_sys::Win32::UI::Shell::{DefSubclassProc, RemoveWindowSubclass, SetWindowSubclass};
     use windows_sys::Win32::UI::WindowsAndMessaging::{
         GetClientRect, HTCAPTION, HTCLIENT, HTMAXBUTTON, HTTOP, HTTOPLEFT, HTTOPRIGHT, IsZoomed,
-        NCCALCSIZE_PARAMS, SIZE_MAXIMIZED, SM_CXPADDEDBORDER, SM_CYSIZEFRAME, SW_MAXIMIZE,
-        SW_RESTORE, SWP_FRAMECHANGED, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SWP_NOZORDER,
-        SetWindowPos, ShowWindow, WM_MOUSEMOVE, WM_NCCALCSIZE, WM_NCDESTROY, WM_NCHITTEST,
-        WM_NCLBUTTONDBLCLK, WM_NCLBUTTONDOWN, WM_NCLBUTTONUP, WM_NCMOUSELEAVE, WM_NCMOUSEMOVE,
-        WM_SIZE,
+        MINMAXINFO, NCCALCSIZE_PARAMS, SIZE_MAXIMIZED, SM_CXPADDEDBORDER, SM_CYCAPTION,
+        SM_CYSIZEFRAME, SW_MAXIMIZE, SW_RESTORE, SWP_FRAMECHANGED, SWP_NOACTIVATE, SWP_NOMOVE,
+        SWP_NOSIZE, SWP_NOZORDER, SetWindowPos, ShowWindow, WM_GETMINMAXINFO, WM_MOUSEMOVE,
+        WM_NCCALCSIZE, WM_NCDESTROY, WM_NCHITTEST, WM_NCLBUTTONDBLCLK, WM_NCLBUTTONDOWN,
+        WM_NCLBUTTONUP, WM_NCMOUSELEAVE, WM_NCMOUSEMOVE, WM_SIZE,
     };
 
     use super::{Event, RawWindowHandle, Regions};
@@ -247,6 +247,17 @@ mod imp {
                             0
                         };
                     0
+                }
+                WM_GETMINMAXINFO => {
+                    let result = DefSubclassProc(hwnd, msg, wparam, lparam);
+                    // winit sizes the minimum as if the caption were there; it is not, so the client
+                    // would be a caption taller than the minimum the interface asked for.
+                    let info = lparam as *mut MINMAXINFO;
+                    let caption = GetSystemMetricsForDpi(SM_CYCAPTION, GetDpiForWindow(hwnd));
+                    if (*info).ptMinTrackSize.y > caption {
+                        (*info).ptMinTrackSize.y -= caption;
+                    }
+                    result
                 }
                 WM_NCHITTEST => {
                     let native = DefSubclassProc(hwnd, msg, wparam, lparam);
