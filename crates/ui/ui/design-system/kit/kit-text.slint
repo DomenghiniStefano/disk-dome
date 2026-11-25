@@ -1,0 +1,84 @@
+// The Kit's «Text and digits» section (§ 12 test 7, decisions 8 and 9): the 12–13 px steps in the chosen font and
+// renderer, right-aligned figures that stay in columns only if the digits are tabular, and a live check of it.
+// Texts are the Kit's own, not translated (rule `untranslated` exempts `kit/`).
+
+import { Size, Type, TypeStep, Label, InkTone } from "../index.slint";
+import { KitSection, KitRow, KitCaption } from "kit-parts.slint";
+
+// What the Kit was started with, set by Rust (`src/kit.rs`): the renderer cannot change while the window is open.
+export global KitRun {
+    in property <string> renderer: "default";
+}
+
+global KitTextData {
+    out property <[string]> figures: ["1,111.1 GB", "8,888.8 GB", "310.4 GB", "46.4 %", "3,789,066", "0 bytes"];
+    out property <string> sentence-en: "Move 3 items to the Recycle Bin · Allocated 12.7 GB · node_modules";
+    out property <string> sentence-it: "Sposta 3 elementi nel Cestino · Allocato 12,7 GB · «Ultima modifica»";
+    // Two runs of the narrowest and the widest digit: equal widths mean tabular figures.
+    out property <string> narrow-digits: "1111111111";
+    out property <string> wide-digits: "0000000000";
+}
+
+// Sizes right-aligned in a column, as in the tree's Size column: they line up only with tabular digits.
+export component KitFigures inherits VerticalLayout {
+    in property <TypeStep> step;
+
+    alignment: start;
+    for figure in KitTextData.figures: Label {
+        text: figure;
+        step: root.step;
+        align: TextHorizontalAlignment.right;
+        width: Size.bar-w * 2;
+    }
+}
+
+// One type step: the two sentences, the figures in a right-aligned column, and whether its digits are tabular.
+component KitTextStep inherits HorizontalLayout {
+    in property <string> name;
+    in property <TypeStep> step;
+    out property <bool> tabular: narrow.preferred-width == wide.preferred-width;
+
+    spacing: Size.space-16;
+    alignment: start;
+    KitCaption { text: root.name; }
+
+    KitFigures { step: root.step; }
+
+    VerticalLayout {
+        alignment: start;
+        spacing: Size.space-4;
+        Label { text: KitTextData.sentence-en; step: root.step; }
+        Label { text: KitTextData.sentence-it; step: root.step; }
+        Label { text: KitTextData.wide-digits + " · " + KitTextData.narrow-digits; step: root.step; }
+        Label {
+            text: root.tabular ? "digits tabular" : "digits proportional: columns will not line up";
+            step: TypeStep.caption;
+            tone: root.tabular ? InkTone.success : InkTone.danger;
+        }
+    }
+
+    // Measured only, never drawn: a zero-width cell keeps the probes out of the row's size.
+    Rectangle {
+        width: 0;
+        visible: false;
+        narrow := Label { text: KitTextData.narrow-digits; step: root.step; }
+        wide := Label { text: KitTextData.wide-digits; step: root.step; }
+    }
+}
+
+export component KitText inherits KitSection {
+    // Whether the 12–13 px steps have tabular digits in the chosen font, by weight (400, 600): the headless test
+    // reads them.
+    out property <bool> regular-tabular: caption.tabular && body.tabular;
+    out property <bool> strong-tabular: caption-strong.tabular && body-strong.tabular;
+
+    title: "Text and digits · 12–13 px (test 7)";
+    KitRow {
+        name: "font · renderer";
+        Label { text: Type.family + " · " + KitRun.renderer; step: TypeStep.body-strong; }
+    }
+    caption := KitTextStep { name: "caption 12"; step: TypeStep.caption; }
+    caption-strong := KitTextStep { name: "caption-strong 12"; step: TypeStep.caption-strong; }
+    body := KitTextStep { name: "body 13"; step: TypeStep.body; }
+    body-strong := KitTextStep { name: "body-strong 13"; step: TypeStep.body-strong; }
+}

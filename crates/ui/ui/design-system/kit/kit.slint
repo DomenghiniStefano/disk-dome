@@ -5,11 +5,12 @@
 // Texts here are the Kit's own, in English and not translated (rule `untranslated` exempts `kit/`).
 
 import {
-    Theme, ThemeMode, Size, TypeStep, Icons, Label, Icon, Button, SegmentedControl,
+    Theme, ThemeMode, Size, Type, TypeStep, Icons, Label, Icon, Button, SegmentedControl,
     InkTone, IconSize, ButtonVariant, ButtonSize, SegmentedSize, KitState,
 } from "../index.slint";
 import { KitSection, KitRow, KitOnFill, KitPane } from "kit-parts.slint";
 import { KitTokens } from "kit-tokens.slint";
+import { KitText, KitFigures } from "kit-text.slint";
 import { KitReview, KitIssue, KitReviewCount } from "kit-review.slint";
 
 struct KitIcon { name: string, source: image }
@@ -129,6 +130,8 @@ global KitData {
             { name: "x", source: Icons.x },
     ];
     out property <[string]> two-options: ["Extensions", "Categories"];
+    // The font candidates of test 7, in the order of `Type.family-*`.
+    out property <[string]> families: ["Segoe UI", "Segoe UI Variable"];
     out property <[string]> three-options: ["Dark", "Light", "System"];
     // An Italian label, ~25 % longer than English (§ 3.3): buttons must grow with it.
     out property <string> long-label: "Sposta nel Cestino";
@@ -158,6 +161,10 @@ export component KitWindow inherits Window {
     min-width: Size.window-min-w;
     min-height: Size.window-min-h;
     background: Theme.bg;
+
+    // Read by the headless test (test 7).
+    out property <bool> regular-tabular: text.regular-tabular;
+    out property <bool> strong-tabular: text.strong-tabular;
 
     VerticalLayout {
         // The run-time switches of § 3.1.
@@ -202,6 +209,18 @@ export component KitWindow inherits Window {
 
                 VerticalLayout {
                     alignment: center;
+                    SegmentedControl {
+                        options: KitData.families;
+                        current: Type.family == Type.family-variable ? 1 : 0;
+                        changed(index) => {
+                            Type.family = index == 1 ? Type.family-variable : Type.family-segoe;
+                        }
+                        accessible-label: "Font";
+                    }
+                }
+
+                VerticalLayout {
+                    alignment: center;
                     KitReviewCount { }
                 }
             }
@@ -214,6 +233,24 @@ export component KitWindow inherits Window {
                 padding: Size.space-16;
                 spacing: Size.space-24;
                 alignment: start;
+
+                text := KitText { }
+
+                KitSection {
+                    title: "Review · font and renderer";
+                    KitIssue {
+                        issue: KitReview.issues[3];
+                        KitPane {
+                            title: "Now · 600";
+                            KitFigures { step: TypeStep.body-strong; }
+                        }
+                        KitPane {
+                            title: "400";
+                            KitFigures { step: TypeStep.body; }
+                        }
+                    }
+                    KitIssue { issue: KitReview.issues[4]; }
+                }
 
                 KitTokens { }
 
