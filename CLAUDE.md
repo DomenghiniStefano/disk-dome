@@ -153,7 +153,14 @@ Clean code, small components, one source of truth. They apply to Rust and Slint 
     `width: 100%; height: 100%`;
   - `&&` next to `||` needs parentheses;
   - an enum value whose name matches a property is written in full (`AccessibleRole.text`);
-  - `Flickable` takes `content-height`, not the deprecated `viewport-height`.
+  - `Flickable` takes `content-height` and `content-y`, not the deprecated `viewport-*`;
+  - `visible: false` keeps the element's place in a layout: to take no room, bind its min / preferred / max height
+    to 0 (as `KitSection`) or use `if`;
+  - a property named like a built-in one cannot be declared (`row` in a layout child): pick another name;
+  - strings have no `contains` or regex: answer it in Rust with a `pure callback`;
+  - off-screen shots do not advance time: animations and `Timer`s stay where they started, so a colour caught
+    mid-animation in a shot is not a bug;
+  - Segoe UI Semibold (600) has proportional digits; 400 and 700 are tabular (§ 3.3).
 
 ## Interface and design
 
