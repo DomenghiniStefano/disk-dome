@@ -1,0 +1,13 @@
+// as: screens/main/main.slint
+// Comments may say #16171a, 22px, 90ms, font-size: 13px, "Scan" and GiB: comments are not checked.
+import { Size, Theme, Motion, TypeStep } from "../../design-system/index.slint";
+
+export component Good inherits Rectangle {
+    height: Size.row;
+    width: 0px;
+    background: Theme.surface;
+    animate background { duration: Motion.fast; }
+    Label { text: @tr("Scan"); step: TypeStep.body; }
+    Label { text: ""; }
+    IconButton { icon: Icons.refresh; accessible-label: @tr("Rescan"); }
+}
