@@ -1,0 +1,44 @@
+// The one editable text of the design system: Slint's `TextInput` with a type step's font and the theme's ink and
+// selection (§ 3.3, § 5.4). Like `Label`, it is allowed to set font properties (rule `font-literal`, § 10).
+//
+// Not a component of the design system: screens never use it (it is not exported from `index.slint`).
+
+import { Type, TypeStep } from "../tokens/type.slint";
+import { Theme } from "../tokens/theme.slint";
+
+export component TextEntry {
+    in-out property <string> text <=> input.text;
+    in property <TypeStep> step: TypeStep.body;
+    in property <bool> enabled <=> input.enabled;
+    // What the field is for, for Narrator.
+    in property <string> label;
+    out property <bool> has-focus: input.has-focus;
+
+    // Every change of the text, and Enter.
+    callback edited();
+    callback accepted();
+
+    min-height: Type.line(root.step);
+    forward-focus: input;
+
+    input := TextInput {
+        width: root.width;
+        height: root.height;
+        vertical-alignment: center;
+        single-line: true;
+        accessible-label: root.label;
+        color: Theme.ink;
+        selection-background-color: Theme.accent-soft;
+        selection-foreground-color: Theme.ink;
+        font-family: Type.family-of(root.step);
+        font-size: Type.size(root.step);
+        font-weight: Type.weight(root.step);
+        letter-spacing: Type.tracking(root.step);
+        edited => {
+            root.edited();
+        }
+        accepted => {
+            root.accepted();
+        }
+    }
+}

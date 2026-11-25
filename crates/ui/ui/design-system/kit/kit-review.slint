@@ -39,7 +39,7 @@ export global KitReview {
             title: "Font: Segoe UI Semibold has proportional digits (decision 8)",
             spec: "§ 3.3, § 12 test 7",
             status: KitIssueStatus.open,
-            note: "Measured in the font files: Segoe UI 400 and 700 have tabular digits, Semibold 600 (every `-strong` step and `title`) does not, its «1» is 28 % narrower. Segoe UI Variable is out: its «1» is narrow at every weight. To choose: figures in columns always at 400 and 600 only for text; or 700 for strong steps; or 600 kept where figures never form a column.",
+            note: "Measured in the font files: Segoe UI 400 and 700 have tabular digits, Semibold 600 (every `-strong` step and `title`) does not, its «1» is 28 % narrower. Segoe UI Variable is out: its «1» is narrow at every weight. To choose: (a) figures in columns always at 400 and 600 only for text; (b) 700 for strong steps («Strong 700» in the top bar); (c) 600 kept where figures never form a column.",
         },
     ];
     // Set by Rust from `issues` (Slint cannot count over an array).

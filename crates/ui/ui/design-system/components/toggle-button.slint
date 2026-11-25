@@ -1,0 +1,80 @@
+// ToggleButton (§ 5.3): a ghost icon button that stays on. Checked: `accent-soft` fill and the icon in
+// `accent-text`. Icon only, so its `accessible-label` is mandatory (rule `icon-label`).
+
+import { Size } from "../tokens/size.slint";
+import { Theme } from "../tokens/theme.slint";
+import { Motion } from "../tokens/motion.slint";
+import { ToggleSize, IconSize, InkTone, KitState } from "../enums.slint";
+import { Pressable } from "../primitives/pressable.slint";
+import { FocusRing } from "../primitives/focus-ring.slint";
+import { Icon } from "icon.slint";
+
+global ToggleLook {
+    public pure function fill(checked: bool, hovered: bool, pressed: bool) -> color {
+        return checked ? Theme.accent-soft : pressed ? Theme.control-pressed : hovered ? Theme.control-hover
+            : transparent;
+    }
+
+    public pure function side(size: ToggleSize) -> length {
+        return size == ToggleSize.small ? Size.control-sm : Size.control;
+    }
+}
+
+export component ToggleButton {
+    in property <image> icon;
+    in-out property <bool> checked;
+    in property <ToggleSize> size: ToggleSize.normal;
+    in property <bool> enabled: true;
+    // The Kit window only (§ 9).
+    in property <KitState> kit-state: KitState.live;
+
+    callback toggled(checked: bool);
+
+    width: ToggleLook.side(root.size);
+    height: ToggleLook.side(root.size);
+    opacity: root.enabled ? 1 : Size.disabled;
+
+    forward-focus: pressable;
+    accessible-role: button;
+    accessible-checkable: true;
+    accessible-checked: root.checked;
+    accessible-enabled: root.enabled;
+    accessible-action-default => {
+        root.flip();
+    }
+
+    function flip() {
+        root.checked = !root.checked;
+        root.toggled(root.checked);
+    }
+
+    Rectangle {
+        border-radius: Size.radius-button;
+        background: ToggleLook.fill(root.checked, pressable.hovered, pressable.pressed);
+        animate background { duration: Motion.fast; }
+    }
+
+    HorizontalLayout {
+        alignment: center;
+        VerticalLayout {
+            alignment: center;
+            Icon {
+                source: root.icon;
+                size: IconSize.normal;
+                tone: root.checked ? InkTone.accent : InkTone.muted;
+            }
+        }
+    }
+
+    if pressable.show-focus: FocusRing {
+        radius: Size.radius-button;
+    }
+
+    pressable := Pressable {
+        enabled: root.enabled;
+        kit-state: root.kit-state;
+        activated => {
+            root.flip();
+        }
+    }
+}

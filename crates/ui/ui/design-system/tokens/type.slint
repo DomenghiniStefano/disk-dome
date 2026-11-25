@@ -28,9 +28,16 @@ export global Type {
             ? 11px : step == TypeStep.overline ? 14px : 16px;
     }
 
-    // Segoe UI has no 500: 400 and 600 only.
+    // Segoe UI has no 500. Pending design (decision 8): Semibold 600's digits are proportional, Bold 700's are
+    // tabular; the Kit switches the strong weight to compare. The app never changes it.
+    in-out property <int> strong-weight: weight-semibold;
+    out property <int> weight-regular: 400;
+    out property <int> weight-semibold: 600;
+    out property <int> weight-bold: 700;
+
     public pure function weight(step: TypeStep) -> int {
-        return step == TypeStep.body || step == TypeStep.caption || step == TypeStep.mono ? 400 : 600;
+        return step == TypeStep.body || step == TypeStep.caption || step == TypeStep.mono ? weight-regular
+            : strong-weight;
     }
 
     public pure function tracking(step: TypeStep) -> length {

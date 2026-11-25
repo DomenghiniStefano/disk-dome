@@ -22,6 +22,8 @@ diskdome-treemap.workspace = true
 slint = { workspace = true, features = ["raw-window-handle-06"] }
 diskdome-platform.workspace = true
 raw-window-handle.workspace = true
+# The Kit's search with regular expressions (MIT OR Apache-2.0); the app's own search will use it too.
+regex = { version = "1", optional = true }
 # Parallel sort and generation for the table proof (MIT OR Apache-2.0).
 rayon = "1.12"
 
@@ -30,7 +32,7 @@ slint-build.workspace = true
 
 [features]
 # The Kit window of the design system (`docs/design-system.md` § 9): development only, never in a release.
-kit = []
+kit = ["dep:regex"]
 
 [lints]
 workspace = true

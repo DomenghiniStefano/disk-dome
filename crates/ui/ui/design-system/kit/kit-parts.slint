@@ -3,11 +3,39 @@
 
 import { Theme, Size, TypeStep, Label, InkTone } from "../index.slint";
 
+// The Kit's search (top bar): sections whose title does not match collapse. Slint has no substring or regular
+// expression test, so Rust answers both (`src/kit.rs`).
+export global KitSearch {
+    in-out property <string> query;
+    in-out property <bool> match-case;
+    in-out property <bool> regex;
+    pure callback matches(title: string, query: string, match-case: bool, regex: bool) -> bool;
+    pure callback valid(query: string, regex: bool) -> bool;
+
+    public pure function shows(title: string) -> bool {
+        return query == "" || matches(title, query, match-case, regex);
+    }
+}
+
+// A section: its title and its samples. A section the search hides takes no room at all (an invisible element
+// would keep its place in the layout), and the gap after it goes with it.
 export component KitSection {
     in property <string> title;
 
-    VerticalLayout {
+    property <bool> shown: KitSearch.shows(root.title);
+
+    min-width: box.min-width;
+    preferred-width: box.preferred-width;
+    min-height: root.shown ? box.min-height : 0;
+    preferred-height: root.shown ? box.preferred-height : 0;
+    max-height: root.shown ? box.max-height : 0;
+
+    box := VerticalLayout {
+        width: root.width;
+        height: root.height;
+        visible: root.shown;
         spacing: Size.space-8;
+        padding-bottom: Size.space-24;
         Label {
             text: root.title;
             step: TypeStep.overline;

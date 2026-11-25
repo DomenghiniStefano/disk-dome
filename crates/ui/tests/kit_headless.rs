@@ -8,7 +8,7 @@
 
 use std::path::PathBuf;
 
-use diskdome_ui::generated::{KitReview, Nav, Size, Theme, ThemeMode, Type};
+use diskdome_ui::generated::{KitReview, KitSearch, Nav, Size, Theme, ThemeMode, Type};
 use diskdome_ui::kit;
 use diskdome_ui::proof::headless::Headless;
 use slint::ComponentHandle;
@@ -90,4 +90,18 @@ fn kit_switches_work_by_keyboard_and_pointer() {
         kit.get_regular_tabular(),
         kit.get_strong_tabular()
     );
+
+    // The search keeps only the sections whose title matches; Rust answers the match.
+    let search = kit.global::<KitSearch>();
+    search.set_query("scroll|toggle".into());
+    search.set_regex(true);
+    headless.frame();
+    save_shot(&headless, "search");
+    assert!(search.invoke_matches(
+        "ScrollBar · states".into(),
+        "scroll|toggle".into(),
+        false,
+        true
+    ));
+    assert!(!search.invoke_valid("([a-z".into(), true));
 }

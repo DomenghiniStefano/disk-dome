@@ -6,11 +6,12 @@
 
 import {
     Theme, ThemeMode, Size, Type, TypeStep, Icons, Label, Icon, Button, SegmentedControl,
-    InkTone, IconSize, ButtonVariant, ButtonSize, SegmentedSize, KitState,
+    InkTone, IconSize, ButtonVariant, ButtonSize, SegmentedSize, KitState, ToggleButton, ToggleSize,
+    SearchField, ScrollBar,
 } from "../index.slint";
-import { KitSection, KitRow, KitOnFill, KitPane } from "kit-parts.slint";
+import { KitSection, KitRow, KitOnFill, KitPane, KitSearch } from "kit-parts.slint";
 import { KitTokens } from "kit-tokens.slint";
-import { KitText, KitFigures } from "kit-text.slint";
+import { KitText, KitSizeTable } from "kit-text.slint";
 import { KitReview, KitIssue, KitReviewCount } from "kit-review.slint";
 
 struct KitIcon { name: string, source: image }
@@ -130,8 +131,13 @@ global KitData {
             { name: "x", source: Icons.x },
     ];
     out property <[string]> two-options: ["Extensions", "Categories"];
+    out property <[ToggleSize]> toggle-sizes: [ToggleSize.small, ToggleSize.normal];
+    // The scroll bar at rest is hidden: `live` shows nothing until the content moves.
+    out property <[KitState]> scroll-states: [KitState.live, KitState.focus, KitState.hover, KitState.pressed];
     // The font candidates of test 7, in the order of `Type.family-*`.
     out property <[string]> families: ["Segoe UI", "Segoe UI Variable"];
+    // The strong weights of decision 8, in the order of `Type.weight-semibold`, `Type.weight-bold`.
+    out property <[string]> strong-weights: ["Strong 600", "Strong 700"];
     out property <[string]> three-options: ["Dark", "Light", "System"];
     // An Italian label, ~25 % longer than English (§ 3.3): buttons must grow with it.
     out property <string> long-label: "Sposta nel Cestino";
@@ -209,6 +215,24 @@ export component KitWindow inherits Window {
 
                 VerticalLayout {
                     alignment: center;
+                    KitReviewCount { }
+                }
+            }
+        }
+
+        // Test 7's font and weight, and the Kit's search over the sections' titles.
+        Rectangle {
+            height: Size.toolbar;
+            background: Theme.surface;
+
+            HorizontalLayout {
+                padding-left: Size.panel-pad;
+                padding-right: Size.panel-pad;
+                spacing: Size.group-gap;
+                alignment: start;
+
+                VerticalLayout {
+                    alignment: center;
                     SegmentedControl {
                         options: KitData.families;
                         current: Type.family == Type.family-variable ? 1 : 0;
@@ -221,17 +245,41 @@ export component KitWindow inherits Window {
 
                 VerticalLayout {
                     alignment: center;
-                    KitReviewCount { }
+                    SegmentedControl {
+                        options: KitData.strong-weights;
+                        current: Type.strong-weight == Type.weight-bold ? 1 : 0;
+                        changed(index) => {
+                            Type.strong-weight = index == 1 ? Type.weight-bold : Type.weight-semibold;
+                        }
+                        accessible-label: "Strong weight";
+                    }
+                }
+
+                VerticalLayout {
+                    alignment: center;
+                    horizontal-stretch: 1;
+                    SearchField {
+                        placeholder: "Search sections";
+                        text <=> KitSearch.query;
+                        match-case <=> KitSearch.match-case;
+                        regex <=> KitSearch.regex;
+                        invalid: !KitSearch.valid(KitSearch.query, KitSearch.regex);
+                        search => {
+                            flick.content-y = 0;
+                        }
+                    }
                 }
             }
         }
 
-        Flickable {
+        Rectangle {
+        flick := Flickable {
+            width: parent.width;
+            height: parent.height;
             content-height: sections.preferred-height;
 
             sections := VerticalLayout {
                 padding: Size.space-16;
-                spacing: Size.space-24;
                 alignment: start;
 
                 text := KitText { }
@@ -241,12 +289,12 @@ export component KitWindow inherits Window {
                     KitIssue {
                         issue: KitReview.issues[3];
                         KitPane {
-                            title: "Now · 600";
-                            KitFigures { step: TypeStep.body-strong; }
+                            title: "a · total figures at 400";
+                            KitSizeTable { total-figure-step: TypeStep.body; }
                         }
                         KitPane {
-                            title: "400";
-                            KitFigures { step: TypeStep.body; }
+                            title: "b / c · total all strong at " + Type.strong-weight;
+                            KitSizeTable { total-figure-step: TypeStep.body-strong; }
                         }
                     }
                 }
@@ -392,7 +440,88 @@ export component KitWindow inherits Window {
                         }
                     }
                 }
+
+                KitSection {
+                    title: "ToggleButton · sizes × states";
+                    for state in KitData.states: KitRow {
+                        name: state.name;
+                        for size in KitData.toggle-sizes: ToggleButton {
+                            icon: Icons.panel-right;
+                            size: size;
+                            kit-state: state.state;
+                            enabled: state.enabled;
+                            accessible-label: "Side panel";
+                        }
+                        for size in KitData.toggle-sizes: ToggleButton {
+                            icon: Icons.panel-right;
+                            size: size;
+                            checked: true;
+                            kit-state: state.state;
+                            enabled: state.enabled;
+                            accessible-label: "Side panel";
+                        }
+                    }
+                }
+
+                KitSection {
+                    title: "SearchField · states";
+                    KitRow {
+                        name: "empty";
+                        SearchField { placeholder: "Search names"; }
+                    }
+                    KitRow {
+                        name: "text";
+                        SearchField { placeholder: "Search names"; text: "node_modules"; }
+                    }
+                    KitRow {
+                        name: "case and regex";
+                        SearchField { placeholder: "Search names"; text: "^Cache.*\\.tmp$"; match-case: true; regex: true; }
+                    }
+                    KitRow {
+                        name: "invalid";
+                        SearchField { placeholder: "Search names"; text: "([a-z"; regex: true; invalid: true; }
+                    }
+                    KitRow {
+                        name: "focus";
+                        SearchField { placeholder: "Search names"; kit-state: KitState.focus; }
+                    }
+                    KitRow {
+                        name: "disabled";
+                        SearchField { placeholder: "Search names"; enabled: false; }
+                    }
+                }
+
+                KitSection {
+                    title: "ScrollBar · states";
+                    KitRow {
+                        name: "rest, shown, hover, drag";
+                        for state in KitData.scroll-states: Rectangle {
+                            width: Size.bar-w * 2;
+                            height: Size.control-lg * 3;
+                            background: Theme.surface;
+                            border-radius: Size.radius-panel;
+
+                            ScrollBar {
+                                x: parent.width - self.width;
+                                height: parent.height;
+                                value: -Size.control-lg * 3;
+                                content-length: Size.control-lg * 12;
+                                visible-length: Size.control-lg * 3;
+                                kit-state: state;
+                            }
+                        }
+                    }
+                }
             }
+        }
+
+        ScrollBar {
+            x: parent.width - self.width;
+            height: parent.height;
+            value <=> flick.content-y;
+            content-length: flick.content-height;
+            visible-length: flick.height;
+        }
         }
     }
 }

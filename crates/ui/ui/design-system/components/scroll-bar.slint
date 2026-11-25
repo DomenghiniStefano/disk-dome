@@ -1,0 +1,82 @@
+// ScrollBar (§ 5.24): a vertical bar laid over the right edge of a scrolled area, `scrollbar` wide. Only the thumb
+// is drawn, `scroll-thumb` thick (`scroll-thumb-hover` while hovered or dragged), no arrows and no track. It shows
+// while the content scrolls and while the pointer is over its area. Horizontal bars come with the table.
+
+import { Size } from "../tokens/size.slint";
+import { Theme } from "../tokens/theme.slint";
+import { Motion } from "../tokens/motion.slint";
+import { KitState } from "../enums.slint";
+
+export component ScrollBar {
+    // The content's offset, as Flickable's `content-y`: 0 at the top, negative further down.
+    in-out property <length> value;
+    in property <length> content-length;
+    in property <length> visible-length;
+    // The Kit window only (§ 9): `hover` shows the bar hovered, `pressed` dragged, `focus` simply shown.
+    in property <KitState> kit-state: KitState.live;
+
+    property <length> range: max(0, root.content-length - root.visible-length);
+    property <bool> needed: root.range > 0;
+    property <bool> hovered: root.kit-state == KitState.hover || (root.kit-state == KitState.live && area.has-hover);
+    property <bool> dragged: root.kit-state == KitState.pressed || (root.kit-state == KitState.live && area.pressed);
+    property <bool> recent;
+    property <bool> shown: root.needed
+        && (root.hovered || root.dragged || root.recent || root.kit-state != KitState.live);
+    property <length> thumb-length: min(root.height,
+        max(Size.scroll-thumb-min, root.height * root.visible-length / max(root.content-length, Size.unit)));
+    property <length> travel: root.height - root.thumb-length;
+    property <length> grab-offset;
+
+    width: Size.scrollbar;
+    accessible-role: none;
+
+    // The content moved: the bar shows, then fades `scrollbar-linger` after the last move.
+    changed value => {
+        root.recent = true;
+        linger.running = false;
+        linger.running = true;
+    }
+
+    function move-to(pointer: length) {
+        root.value = -root.range * clamp((pointer - root.grab-offset) / max(root.travel, Size.unit), 0, 1);
+    }
+
+    linger := Timer {
+        interval: Motion.scrollbar-linger;
+        running: false;
+        triggered => {
+            self.running = false;
+            root.recent = false;
+        }
+    }
+
+    thumb := Rectangle {
+        property <length> thickness: root.hovered || root.dragged ? Size.scroll-thumb-hover : Size.scroll-thumb;
+
+        x: (root.width - self.width) / 2;
+        y: root.needed ? root.travel * (-root.value / root.range) : 0;
+        width: self.thickness;
+        height: root.thumb-length;
+        border-radius: self.thickness / 2;
+        background: root.hovered || root.dragged ? Theme.scroll-thumb-hover : Theme.scroll-thumb;
+        opacity: root.shown ? 1 : 0;
+        animate opacity, width { duration: Motion.base; easing: Motion.ease-out; }
+    }
+
+    // Dragging moves the content; a press outside the thumb jumps it there, centred under the pointer.
+    area := TouchArea {
+        enabled: root.needed;
+        pointer-event(event) => {
+            if (event.kind == PointerEventKind.down) {
+                root.grab-offset = self.mouse-y >= thumb.y && self.mouse-y <= thumb.y + thumb.height
+                    ? self.mouse-y - thumb.y : root.thumb-length / 2;
+                root.move-to(self.mouse-y);
+            }
+        }
+        moved => {
+            if (self.pressed) {
+                root.move-to(self.mouse-y);
+            }
+        }
+    }
+}
