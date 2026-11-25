@@ -10,7 +10,7 @@ import {
 } from "../index.slint";
 import { KitSection, KitRow, KitOnFill, KitPane } from "kit-parts.slint";
 import { KitTokens } from "kit-tokens.slint";
-import { KitText, KitFigures } from "kit-text.slint";
+import { KitText, KitSizeTable } from "kit-text.slint";
 import { KitReview, KitIssue, KitReviewCount } from "kit-review.slint";
 
 struct KitIcon { name: string, source: image }
@@ -132,6 +132,8 @@ global KitData {
     out property <[string]> two-options: ["Extensions", "Categories"];
     // The font candidates of test 7, in the order of `Type.family-*`.
     out property <[string]> families: ["Segoe UI", "Segoe UI Variable"];
+    // The strong weights of decision 8, in the order of `Type.weight-semibold`, `Type.weight-bold`.
+    out property <[string]> strong-weights: ["Strong 600", "Strong 700"];
     out property <[string]> three-options: ["Dark", "Light", "System"];
     // An Italian label, ~25 % longer than English (§ 3.3): buttons must grow with it.
     out property <string> long-label: "Sposta nel Cestino";
@@ -221,6 +223,18 @@ export component KitWindow inherits Window {
 
                 VerticalLayout {
                     alignment: center;
+                    SegmentedControl {
+                        options: KitData.strong-weights;
+                        current: Type.strong-weight == Type.weight-bold ? 1 : 0;
+                        changed(index) => {
+                            Type.strong-weight = index == 1 ? Type.weight-bold : Type.weight-semibold;
+                        }
+                        accessible-label: "Strong weight";
+                    }
+                }
+
+                VerticalLayout {
+                    alignment: center;
                     KitReviewCount { }
                 }
             }
@@ -241,12 +255,12 @@ export component KitWindow inherits Window {
                     KitIssue {
                         issue: KitReview.issues[3];
                         KitPane {
-                            title: "Now · 600";
-                            KitFigures { step: TypeStep.body-strong; }
+                            title: "a · total figures at 400";
+                            KitSizeTable { total-figure-step: TypeStep.body; }
                         }
                         KitPane {
-                            title: "400";
-                            KitFigures { step: TypeStep.body; }
+                            title: "b / c · total all strong at " + Type.strong-weight;
+                            KitSizeTable { total-figure-step: TypeStep.body-strong; }
                         }
                     }
                 }

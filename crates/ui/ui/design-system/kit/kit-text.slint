@@ -2,10 +2,20 @@
 // right-aligned figures that stay in columns only if the digits are tabular, and a live check of it.
 // Texts are the Kit's own, not translated (rule `untranslated` exempts `kit/`).
 
-import { Size, Type, TypeStep, Label, InkTone } from "../index.slint";
+import { Theme, Size, Type, TypeStep, Label, InkTone } from "../index.slint";
 import { KitSection, KitRow, KitCaption } from "kit-parts.slint";
 
+struct KitSizeRow { name: string, size: string, share: string, files: string }
+
 global KitTextData {
+    // A drive as the tree shows it; the figures add up. Many «1»s, so proportional digits show at once.
+    out property <[KitSizeRow]> rows: [
+        { name: "Users", size: "310.4 GB", share: "53.4 %", files: "3,789,066" },
+        { name: "Games", size: "211.7 GB", share: "36.4 %", files: "88,114" },
+        { name: "Windows", size: "41.1 GB", share: "7.1 %", files: "411,507" },
+        { name: "Program Files", size: "18.1 GB", share: "3.1 %", files: "121,880" },
+    ];
+    out property <KitSizeRow> total: { name: "C:", size: "581.3 GB", share: "100.0 %", files: "4,410,567" };
     out property <[string]> figures: ["1,111.1 GB", "8,888.8 GB", "310.4 GB", "46.4 %", "3,789,066", "0 bytes"];
     out property <string> sentence-en: "Move 3 items to the Recycle Bin · Allocated 12.7 GB · node_modules";
     out property <string> sentence-it: "Sposta 3 elementi nel Cestino · Allocato 12,7 GB · «Ultima modifica»";
@@ -24,6 +34,32 @@ export component KitFigures inherits VerticalLayout {
         step: root.step;
         align: TextHorizontalAlignment.right;
         width: Size.bar-w * 2;
+    }
+}
+
+// One row of the size table: the name on the left, the figures right-aligned in fixed columns.
+component KitSizeLine inherits HorizontalLayout {
+    in property <KitSizeRow> entry;
+    in property <TypeStep> name-step;
+    in property <TypeStep> figure-step;
+
+    spacing: Size.space-12;
+    Label { text: root.entry.name; step: root.name-step; width: Size.bar-w * 2; }
+    Label { text: root.entry.size; step: root.figure-step; align: TextHorizontalAlignment.right; width: Size.bar-w * 1.5; }
+    Label { text: root.entry.share; step: root.figure-step; align: TextHorizontalAlignment.right; width: Size.bar-w; }
+    Label { text: root.entry.files; step: root.figure-step; align: TextHorizontalAlignment.right; width: Size.bar-w * 1.5; }
+}
+
+// A small tree table whose total row is strong: its figures take `total-figure-step` (decision 8).
+export component KitSizeTable inherits VerticalLayout {
+    in property <TypeStep> total-figure-step;
+
+    for row in KitTextData.rows: KitSizeLine { entry: row; name-step: TypeStep.body; figure-step: TypeStep.body; }
+    Rectangle { height: Size.border-hairline; background: Theme.line; }
+    KitSizeLine {
+        entry: KitTextData.total;
+        name-step: TypeStep.body-strong;
+        figure-step: root.total-figure-step;
     }
 }
 
