@@ -5,6 +5,7 @@ never an edit of an old one.
 
 | Date | Decision | Why |
 | --- | --- | --- |
+| 2026-11-25 | «Few» map names use the same 72 × 30 threshold as the name + size tier of «Many» (was 96 × 32); limit still 64 | test T10: at 96 × 32 a dense map (51,000 rectangles) showed 4 names |
 | 2026-11-25 | App mark: the «Pie» — the Dome family dome kept whole, with a pie chart cut out of its centre and a quarter slice detached at the top left; one app icon for both Windows themes (gradient), redrawn on the pixel grid from 40 to 16 px; reference https://claude.ai/artifact/BYR3xRsEvR2pzAu13AHQrM | it tells used space and space you can free; reads at 16 px; follows the family rule (whole dome, a sign of the app cut out); other directions dropped for looking like a CD, a speed test, a credit card or a generic chart |
 | 2026-11-24 | Map style: Vignette is the default; «Folders» (headers with name and size on large folders) is a setting like the others at every window size, with headers only on the folders that fit; «Open» asks for confirmation when more than 10 files are selected | chosen on the canvas with the folder gaps visible in every style; opening hundreds of windows by mistake is worse than one question |
 | 2026-11-24 | A «Start» tab before the drive tabs is the first page the first time; global terms («Start», «Home», «Timeline») stay in English in the Italian interface | the owner prefers global terms where Italian users already use them |

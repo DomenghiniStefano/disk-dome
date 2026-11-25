@@ -70,17 +70,12 @@ impl Tier {
         }
     }
 
-    /// Smallest rectangle for the tier (`Few` asks more of name + size).
-    const fn min_size(self, mode: NamesMode) -> (i32, i32) {
-        match (self, mode) {
-            (Tier::NameSize, NamesMode::Few) => (96, 32),
-            (Tier::NameSize, NamesMode::None | NamesMode::Many | NamesMode::All) => (72, 30),
-            (Tier::Name, NamesMode::None | NamesMode::Few | NamesMode::Many | NamesMode::All) => {
-                (36, 15)
-            }
-            (Tier::Small, NamesMode::None | NamesMode::Few | NamesMode::Many | NamesMode::All) => {
-                (22, 11)
-            }
+    /// Smallest rectangle for the tier, the same in every mode.
+    const fn min_size(self) -> (i32, i32) {
+        match self {
+            Tier::NameSize => (72, 30),
+            Tier::Name => (36, 15),
+            Tier::Small => (22, 11),
         }
     }
 
@@ -196,7 +191,7 @@ impl NamePlacer {
         else {
             return &self.labels;
         };
-        let (min_w, min_h) = smallest.min_size(mode);
+        let (min_w, min_h) = smallest.min_size();
         for (i, r) in layout.rects().iter().enumerate() {
             let first = match r.kind {
                 RectKind::Piece => PIECE_FIRST,
@@ -250,7 +245,7 @@ fn fit<S: MapSource>(
         if !tier.in_mode(mode) {
             continue;
         }
-        let (min_w, min_h) = tier.min_size(mode);
+        let (min_w, min_h) = tier.min_size();
         if w < min_w || h < min_h {
             continue;
         }
@@ -357,8 +352,18 @@ mod tests {
         assert!(few.iter().all(|l| l.tier == Tier::NameSize));
         for l in &few {
             let r = layout.rects()[l.item as usize].rect;
-            assert!(r.width() >= 96 && r.height() >= 32);
+            assert!(r.width() >= 72 && r.height() >= 30);
         }
+        // Few names exactly the rectangles Many names with name + size (same threshold).
+        let many_name_size: Vec<u32> = placer
+            .place(&layout, &t, NamesMode::Many, &LabelMetrics::DEFAULT)
+            .iter()
+            .filter(|l| l.tier == Tier::NameSize)
+            .map(|l| l.item)
+            .take(NamesMode::Few.cap())
+            .collect();
+        let few_items: Vec<u32> = few.iter().map(|l| l.item).collect();
+        assert_eq!(few_items, many_name_size);
         let all = placer.place(&layout, &t, NamesMode::All, &LabelMetrics::DEFAULT);
         assert_eq!(all.len(), NamesMode::All.cap());
         assert!(all.iter().any(|l| l.tier == Tier::Small));
