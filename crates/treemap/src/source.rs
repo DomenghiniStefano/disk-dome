@@ -238,7 +238,17 @@ impl MapSource for CoreSource<'_> {
 #[cfg(test)]
 mod tests {
     use super::{CoreSource, MapSource, SimpleTree};
-    use diskdome_core::{Tree, flag};
+    use diskdome_core::{Entry, Tree, flag};
+
+    /// An unnamed entry under `parent`.
+    fn entry(parent: u32, size: u64, flags: u8) -> Entry {
+        Entry {
+            parent,
+            size,
+            flags,
+            ..Entry::default()
+        }
+    }
 
     #[test]
     fn simple_tree_sums_sizes_and_largest_category() {
@@ -258,12 +268,12 @@ mod tests {
 
     #[test]
     fn core_source_reads_the_scanned_tree() {
-        let mut tree = Tree::with_slots(0, 0);
+        let mut tree = Tree::with_slots(0);
         let present = flag::PRESENT;
-        let root = tree.push(0, 0, 0, 0, 0, 0, present | flag::DIR);
-        let dir = tree.push(0, 0, root, 0, 0, 0, present | flag::DIR);
-        tree.push(0, 0, dir, 100, 100, 0, present);
-        tree.push(0, 0, root, 40, 40, 0, present);
+        let root = tree.push(entry(0, 0, present | flag::DIR));
+        let dir = tree.push(entry(root, 0, present | flag::DIR));
+        tree.push(entry(dir, 100, present));
+        tree.push(entry(root, 40, present));
         tree.finish(root);
         let source = CoreSource::new(&tree, |t, i| if t.size[i as usize] > 50 { 7 } else { 2 });
         assert_eq!(source.size(root), 140);
