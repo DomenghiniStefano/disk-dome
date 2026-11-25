@@ -164,14 +164,17 @@ const RULES: &[Rule] = &[
     Rule {
         name: "icon-label",
         check: |s| {
-            // Blind spot: an icon-only `Button` is not recognised; only `IconButton` is checked.
+            // An `IconButton`, or a `Button` with an `icon` and no `text`. Blind spot: a `Button` whose text is
+            // bound to an empty string is not recognised.
             let mut found = vec![];
-            for m in Regex::new(r"\bIconButton\s*\{")
+            for m in Regex::new(r"\b(?:IconButton|Button)\s*\{")
                 .expect("test data is valid")
                 .find_iter(&s.bare)
             {
                 let body = block_after(&s.bare, m.end());
-                if !body.contains("accessible-label") {
+                let icon_only = m.as_str().starts_with("Icon")
+                    || (has_property(body, "icon") && !has_property(body, "text"));
+                if icon_only && !body.contains("accessible-label") {
                     found.push(m.as_str().to_owned());
                 }
             }
@@ -188,6 +191,13 @@ const RULES: &[Rule] = &[
         },
     },
 ];
+
+/// Whether a component body sets `name` (`name: …`), not a longer property ending in it (`accessible-name:`).
+fn has_property(body: &str, name: &str) -> bool {
+    Regex::new(&format!(r"(?:^|[^\w-]){name}\s*:"))
+        .expect("test data is valid")
+        .is_match(body)
+}
 
 /// The text of the `{ … }` block that opens just before `start`.
 fn block_after(text: &str, start: usize) -> &str {
@@ -331,4 +341,23 @@ fn kit_coverage_catches_a_missing_component() {
         "export component KitWindow { Rectangle {} }",
     );
     assert_eq!(kit_coverage(&[component, kit]).len(), 1);
+}
+
+#[test]
+fn icon_label_catches_an_icon_only_button() {
+    let rule = RULES
+        .iter()
+        .find(|r| r.name == "icon-label")
+        .expect("test data is valid");
+    let count = |code: &str| (rule.check)(&Source::new("screens/main/main.slint", code)).len();
+    assert_eq!(count("Button { icon: Icons.x; }"), 1);
+    assert_eq!(
+        count(r#"Button { icon: Icons.x; accessible-label: @tr("Close"); }"#),
+        0
+    );
+    assert_eq!(
+        count(r#"Button { icon: Icons.play; text: @tr("Scan"); }"#),
+        0
+    );
+    assert_eq!(count(r#"Button { text: @tr("Scan"); }"#), 0);
 }
