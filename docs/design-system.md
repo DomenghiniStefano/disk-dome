@@ -579,7 +579,7 @@ the code and the docs.
 
   | Tier | Rectangle at least | Text | Padding | Names |
   | --- | --- | --- | --- | --- |
-  | name + size | 72 × 30 (Few: 96 × 32) | name `caption-strong`, size `caption` under it | 4 px | Few, Many, All |
+  | name + size | 72 × 30 | name `caption-strong`, size `caption` under it | 4 px | Few, Many, All |
   | name | 36 × 15 | `map-name` (11 / 13, 600) | 3 px | Many, All |
   | small name | 22 × 11 | `map-name-xs` (10 / 11, 600) | 2 px | All |
 
