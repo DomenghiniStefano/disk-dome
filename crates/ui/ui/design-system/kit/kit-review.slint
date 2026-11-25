@@ -1,0 +1,97 @@
+// The Kit's review board (§ 9): a design question about a component, with «Now» and «Proposal» drawn with the
+// real components and a status. Rust counts the open and proposed issues for the top bar (`src/kit.rs`); a
+// decided issue is deleted once the component carries it. Texts are the Kit's own, not translated.
+
+import { Theme, Size, TypeStep, Label, InkTone } from "../index.slint";
+
+export enum KitIssueStatus { open, proposed, decided }
+
+export struct KitIssueData {
+    title: string,
+    // Where the spec speaks of it, «§ 5.2».
+    spec: string,
+    status: KitIssueStatus,
+    note: string,
+}
+
+// One list for the whole board: the sections show an issue by its index, Rust counts them.
+export global KitReview {
+    out property <[KitIssueData]> issues: [
+        {
+            title: "Danger button: hover and pressed fills",
+            spec: "§ 5.2",
+            status: KitIssueStatus.proposed,
+            note: "The spec gives no hover or pressed fill for `danger`. Proposal: a step lighter and darker, as the accent (tokens `danger-hover`, `danger-pressed`).",
+        },
+        {
+            title: "SegmentedControl: the inset of the chosen segment",
+            spec: "§ 5.6",
+            status: KitIssueStatus.proposed,
+            note: "The spec gives no gap between the frame and the chosen segment. Proposal: 2 px (token `segment-inset`).",
+        },
+        {
+            title: "Title bar: its ground and the close button's hover",
+            spec: "§ 2.1",
+            status: KitIssueStatus.proposed,
+            note: "«A step deeper than bg» has no value yet. Proposal: `frame` as drawn; the close button's hover in Windows' own red (`caption-close`).",
+        },
+    ];
+    // Set by Rust from `issues` (Slint cannot count over an array).
+    in property <int> open-count;
+    in property <int> proposed-count;
+}
+
+global KitStatusLook {
+    public pure function name(status: KitIssueStatus) -> string {
+        return status == KitIssueStatus.open ? "open" : status == KitIssueStatus.proposed ? "proposed" : "decided";
+    }
+
+    public pure function tone(status: KitIssueStatus) -> InkTone {
+        return status == KitIssueStatus.open ? InkTone.warning
+            : status == KitIssueStatus.proposed ? InkTone.accent
+            : InkTone.success;
+    }
+}
+
+// One issue: its status, title, spec section and note, then the panes («Now», «Proposal») as children.
+export component KitIssue inherits Rectangle {
+    in property <KitIssueData> issue;
+
+    background: Theme.surface;
+    border-width: Size.border-hairline;
+    border-color: Theme.edge;
+    border-radius: Size.radius-panel;
+
+    VerticalLayout {
+        padding: Size.card-pad;
+        spacing: Size.space-8;
+
+        HorizontalLayout {
+            spacing: Size.space-8;
+            alignment: start;
+            Label {
+                text: KitStatusLook.name(root.issue.status);
+                step: TypeStep.overline;
+                tone: KitStatusLook.tone(root.issue.status);
+            }
+            Label { text: root.issue.title; step: TypeStep.body-strong; }
+            Label { text: root.issue.spec; step: TypeStep.caption; tone: InkTone.faint; }
+        }
+
+        Label { text: root.issue.note; tone: InkTone.muted; wrap: true; }
+
+        HorizontalLayout {
+            spacing: Size.space-16;
+            alignment: start;
+
+            @children
+        }
+    }
+}
+
+// The top bar's count: how many issues wait for the owner.
+export component KitReviewCount inherits Label {
+    text: KitReview.open-count + " open · " + KitReview.proposed-count + " proposed";
+    step: TypeStep.caption;
+    tone: KitReview.open-count > 0 ? InkTone.warning : InkTone.muted;
+}

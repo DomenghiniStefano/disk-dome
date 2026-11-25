@@ -16,8 +16,12 @@ The Slint side of `docs/design-system.md`, which holds every value and the reaso
   `SegmentedControl`.
 - `primitives/` — the behaviour components share, never used by screens: `FocusTarget` (one keyboard stop),
   `Pressable` (pointer + keyboard, the states of § 5), `FocusRing`.
-- `kit/kit.slint` — the Kit window (§ 9): `cargo run -p diskdome-ui --features kit -- --kit`. Every component
-  shows each state through `kit-state: KitState` (Kit only; screens leave it `live`).
+- `kit/` — the Kit window (§ 9): `cargo run -p diskdome-ui --features kit -- --kit`. `kit.slint` holds the window
+  and the component sections (every component shows each state through `kit-state: KitState`, Kit only; screens
+  leave it `live`); `kit-tokens.slint` draws every token (a new token gets its line in `KitTokenData`, shown in
+  units of `Size.unit` and `Motion.unit`); `kit-review.slint` is the review board (`KitReview.issues`, «Now» and
+  «Proposal» drawn with the real components, counted by `src/kit.rs` for the top bar); `kit-parts.slint` the
+  Kit's own layout pieces.
 
 How a component is built: variants and sizes are enums; every look is a token or a pure function over tokens
 (`ButtonLook`); behaviour comes from `primitives/`; text goes through `Label`, icons through `Icon`; disabled fades

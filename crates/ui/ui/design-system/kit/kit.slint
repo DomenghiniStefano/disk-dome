@@ -1,5 +1,5 @@
 // The Kit window (§ 9): every token and every component in every variant, size and state, side by side, with the
-// real components. Opened with
+// real components, and the review board under the sections it concerns. Opened with
 // `cargo run -p diskdome-ui --features kit -- --kit`.
 //
 // Texts here are the Kit's own, in English and not translated (rule `untranslated` exempts `kit/`).
@@ -8,8 +8,9 @@ import {
     Theme, ThemeMode, Size, TypeStep, Icons, Label, Icon, Button, SegmentedControl,
     InkTone, IconSize, ButtonVariant, ButtonSize, SegmentedSize, KitState,
 } from "../index.slint";
-import { KitSection, KitRow, KitOnFill } from "kit-parts.slint";
+import { KitSection, KitRow, KitOnFill, KitPane } from "kit-parts.slint";
 import { KitTokens } from "kit-tokens.slint";
+import { KitReview, KitIssue, KitReviewCount } from "kit-review.slint";
 
 struct KitIcon { name: string, source: image }
 struct KitStep { name: string, step: TypeStep }
@@ -198,6 +199,11 @@ export component KitWindow inherits Window {
                         accessible-label: "Density";
                     }
                 }
+
+                VerticalLayout {
+                    alignment: center;
+                    KitReviewCount { }
+                }
             }
         }
 
@@ -210,6 +216,28 @@ export component KitWindow inherits Window {
                 alignment: start;
 
                 KitTokens { }
+
+                KitSection {
+                    title: "Review · title bar";
+                    KitIssue {
+                        issue: KitReview.issues[2];
+                        KitPane {
+                            title: "Proposal";
+                            HorizontalLayout {
+                                Rectangle {
+                                    width: Size.caption-button-w * 3;
+                                    height: Size.titlebar;
+                                    background: Theme.frame;
+                                }
+                                Rectangle {
+                                    width: Size.caption-button-w;
+                                    height: Size.titlebar;
+                                    background: Theme.caption-close;
+                                }
+                            }
+                        }
+                    }
+                }
 
                 KitSection {
                     title: "Label · steps";
@@ -282,6 +310,21 @@ export component KitWindow inherits Window {
                             size: ButtonSize.hero;
                         }
                     }
+                    KitIssue {
+                        issue: KitReview.issues[0];
+                        KitPane {
+                            title: "Proposal";
+                            HorizontalLayout {
+                                spacing: Size.space-8;
+                                for state in KitData.states: Button {
+                                    text: state.name;
+                                    variant: ButtonVariant.danger;
+                                    kit-state: state.state;
+                                    enabled: state.enabled;
+                                }
+                            }
+                        }
+                    }
                 }
 
                 KitSection {
@@ -300,6 +343,16 @@ export component KitWindow inherits Window {
                             kit-state: state.state;
                             enabled: state.enabled;
                             accessible-label: "Theme";
+                        }
+                    }
+                    KitIssue {
+                        issue: KitReview.issues[1];
+                        KitPane {
+                            title: "Proposal";
+                            SegmentedControl {
+                                options: KitData.three-options;
+                                accessible-label: "Theme";
+                            }
                         }
                     }
                 }
