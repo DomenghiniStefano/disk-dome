@@ -23,7 +23,7 @@ macOS after v1. The owner widened v1 on 2026-11-24 to the views and features of 
 | Search | By name, wildcards and regular expressions | v1 |
 | Search | Filters by size, date, extension and attributes, applied to every view | v1 |
 | Search | Written filters (`ext:mp4 size:>1GB modified:<2024 owner:… path:…`) and saved filters | v1 |
-| Search | Command palette (Ctrl+K) and the list of shortcuts (Ctrl+/) | v1 |
+| Search | Command palette (Ctrl+K) and the list of shortcuts (Ctrl+\) | v1 |
 | Actions | Open, show in Explorer, open a terminal here, Windows Properties | v1 |
 | Actions | Copy full path, name, parent folder; copy the selection as a list | v1 |
 | Actions | Delete to the Recycle Bin or permanently, with confirmation and protection of system files | v1 |
@@ -37,7 +37,7 @@ macOS after v1. The owner widened v1 on 2026-11-24 to the views and features of 
 | Integration | CSV / JSON export, an HTML report, the map as an image, and the CLI | v1 |
 | Integration | "Analyse with DiskDome" in Explorer's context menu, and a command line to open a folder | v1 |
 | Settings | Scan mode (preselected, «Change» on the Start tab), dark / light theme, density, language (English / Italian), units (like File Explorer, GiB, decimal GB), visible columns | v1 |
-| Actions | File actions run in parallel, each with its own progress | v1 |
+| Actions | File actions run in parallel, each with its own progress in the status bar | v1 |
 | Platforms | macOS | after v1 |
 
 On the reference drive more than 6.5 million of the 12 million files are `.js` / `.ts`, mostly `node_modules`:

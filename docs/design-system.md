@@ -55,21 +55,21 @@ transparency, the hex is the result over its usual background, and the alpha for
 +------------------------------------------------------------------------------------------+
 | [<] [Analizza di nuovo] | [Cerca un file o una cartella  Aa .*] [Filtri]                   [S] [...] | toolbar
 +------------------------------------------------------------------------------------------+
-| Panoramica  Esplora  Pulizia  Timeline  Statistiche  Attivita  670 GiB usati . 284 liberi | section bar
+| Panoramica  Esplora  Pulizia  Timeline  Statistiche  Attivita  670 GB  usati . 284 liberi | section bar
 +----------------------------------------------------------+-------------------------------+
-| [Albero|Elenco file] [Tabella|Entrambi|Mappa] [P]     # Data 115 GiB [Mostra] [Cestino] [...] | Explore bar
+| [Albero|Elenco file] [Tabella|Entrambi|Mappa] [P]     # Data 115 GB  [Mostra] [Cestino] [...] | Explore bar
 +----------------------------------------------------------+-------------------------------+
-| Nome                 Dimensione   %          File  Modif. | # .pak    119 GiB 17,8% 1.503 |
-| v C:\                   670 GiB ===== 100%      ...       | # .vhdx  53,3 GiB  8,0% 2.498 |
-|   > Users               310 GiB ===   46,4%     ...       | # .dll   44,1 GiB  6,6%  275 k |
-|   > Program Files (x86) 123 GiB =     18,3%     ...       | ...                           |
+| Nome                 Dimensione   %          File  Modif. | # .pak    119 GB  17,8% 1.503 |
+| v C:\                   670 GB  ===== 100%      ...       | # .vhdx  53,3 GB   8,0% 2.498 |
+|   > Users               310 GB  ===   46,4%     ...       | # .dll   44,1 GB   6,6%  275 k |
+|   > Program Files (x86) 123 GB  =     18,3%     ...       | ...                           |
 +-------------------------------- splitter ----------------+-------------------------------+
-| [home][up] C: > Users > stefa    docker_data.vhdx . 48,5 GiB   [x] Spazio libero  [...] | map header
+| [home][up] C: > Users > stefa    docker_data.vhdx . 48,5 GB    [x] Spazio libero  [...] | map header
 | +-------------+-----------+------+                                                       |
 | |             |           |      |   map (treemap), full width                           |
 | +-------------+-----------+------+                                                       |
 +------------------------------------------------------------------------------------------+
-| 3.789.066 file . analizzato oggi alle 21:14 | 1 selezionato . 48,5 GiB | o in tempo reale | GiB | status bar
+| 3.789.066 file . analizzato oggi alle 21:14 | 1 selezionato . 48,5 GB  | o in tempo reale | GB  | status bar
 +------------------------------------------------------------------------------------------+
 ```
 
@@ -78,7 +78,7 @@ Window: default 1280 × 800, minimum 960 × 600, size and splitter positions rem
 | Region | Height normal / compact | Ground | Content |
 | --- | --- | --- | --- |
 | Title bar | 32 | `frame` (a step deeper than `bg`) | app mark, **drive tabs** (§ 5.27) and «+», drag area, caption buttons; the active tab takes `bg` and joins the toolbar. the tabs sit in the title bar (owner, 2026-11-24), if the custom title bar spike passes (§ 12, test 1); otherwise in the toolbar |
-| Toolbar | 36 / 32 | `bg` | only what works everywhere: Back; «Scan again» (secondary; before the first scan the call to action is in the middle, § 2.2) or «Stop»; search («Search for a file or folder», case and regex toggles) and Filters once the drive is scanned; Settings; «⋯» (Export, Commands, Shortcuts, About) |
+| Toolbar | 36 / 32 | `bg` | only what works everywhere: Back; «Scan again» (secondary; before the first scan the call to action is in the middle, § 2.2) or «Stop»; search («Search for a file or folder», case and regex toggles) and Filters once the drive is scanned; Settings; «⋯», the app menu (Export…, Command palette, Keyboard shortcuts, Settings, Help, Report a problem, About DiskDome; § 6.19) |
 | Filter bar | 28 / 24, only when a filter is active | `bg` | filter chips, «Clear filters» |
 | Info bar | 32 / 28, only when there is a message | state soft fill | one message with its action (scan mode, errors) |
 | Section bar | 28 / 24, once the drive is scanned | `bg` | the six sections (§ 6.11) left; the drive's summary right, a link to Statistics |
@@ -132,7 +132,9 @@ changes with the size: the same regions, more rows and a larger map.
 | **Scanning** | a drive never scanned: the content becomes the **progress view** (artboard «Analisi»): «Analysis of Windows (C:)» and the percentage, an 8 px bar, what it is doing now («Reading the drive's index: 8.2 of 13.7 GB») with the time left on the right, three counters growing (files found, folders, space counted), the phases each with its state and its own bar, «You can keep using the PC. At the end C:'s Overview opens.», «Stop». A drive already scanned: its last scan stays on screen, a 2 px progress line under the toolbar and the same words in the status bar. With a folder walk Explore fills while it reads |
 | **Ready** | everything shown; the status bar says when the drive was scanned («scanned today at 21:14») |
 | **Live** | the status bar's dot is `success` with «Live»; an outside change updates rows in place, no animation |
-| **Paused live updates** | dot `ink-faint`, «Live updates paused» (the USN journal is unavailable or the drive is not NTFS) |
+| **Live updates off or paused** | dot `ink-faint` with what applies: «Live updates paused» (by the user, or the journal overflowed), «Live updates off» (Settings), «No live updates» (not NTFS, network path, folder walk, a folder scanned apart); a click opens a popover with the reason and its one action (§ 6.17) |
+| **Scanning another drive** | the current tab stays usable; the scanning tab shows a progress ring instead of its icon and the status bar lists «Analysis of E:» among the running operations, with «Stop» (§ 5.29, § 6.17) |
+| **Scan stopped** | folder walk: what was read stays, with a `warning` info bar «Analysis of E: stopped at 42%: you see what was read, totals are lower than real.» and «Resume»; drive's index: the previous scan stays (§ 6.17) |
 | **Error** | an info bar (danger) under the toolbar with what happened and what to do; the previous scan stays visible if there is one |
 
 ## 3. Tokens
@@ -212,7 +214,8 @@ Lightness (owner, 2026-11-24): the first Laguna (L 0.80, `#3dd7cf`) was too brig
 Compared on the mockup and not chosen: Volt (yellow-green, 118°: the tightest gap, 31° from SoundDome) and Fucsia
 (pink, 350°: next to `danger`, which matters in an app that deletes files).
 
-The app icon takes the accent. The two data categories nearest to it moved away (§ 3.2 «Data»): Dati to 176° and
+The app icon takes the accent: the «Pie» mark (owner, 2026-11-25, `docs/decisions.md`), drawn in the title bar at
+16 px on every artboard. The two data categories nearest to it moved away (§ 3.2 «Data»): Dati to 176° and
 darker, Programmi to 222°.
 Accent roles: `accent` (fill of the primary button, switch on, progress), `accent-hover`, `accent-pressed`,
 `on-accent` (text and icons on the fill), `accent-text` (accent as text or icon on a surface: links, active tab
@@ -480,11 +483,42 @@ does most of the work. No glass: Slint has no backdrop blur, and the dense inter
 - **Reduced motion**: when Windows' «Animation effects» is off (`SPI_GETCLIENTAREAANIMATION`), Rust sets
   `Motion.reduced` and every duration is 0.
 
-### 3.11 Layers
+### 3.11 Layers and collisions
 
-Popups (menus, select lists, tooltips) are Slint `PopupWindow`s, above everything by construction. Inside the
-window, `z` is used only for: the sticky table header (1), the splitters' hit areas (2), the drag ghost (3),
-the dialog scrim and dialog (10), toasts (20). They are `Size.z-*` tokens.
+Nothing covers something else by accident (owner, 2026-11-25: «a popup that covers other popups or loading»). Five
+layers, from the bottom. When two would meet, the higher one wins, and something the app shows on its own (a
+notice, the end of an operation) never covers what you opened or are doing:
+
+| Layer | What | How | Rule |
+| --- | --- | --- | --- |
+| Content | tables, map, panels, cards; inside it the sticky table header (1), the splitters' hit areas (2), the drag ghost (3) | `Size.z-*` tokens | — |
+| Bars | title bar, toolbar, filter bar, info bars, section bar, Clean-up's action bar, status bar | in the layout | the notice never covers them; a popup covers the bars only around its own anchor while it is open (a menu opened from the toolbar, the command palette at the top); the title bar and the status bar are never covered except by a dialog's scrim (the status bar) |
+| Notice | the toast (§ 5.20) | `Size.z-notice` (5) | one at a time, over content only; waits, hidden, while a popup or a dialog is open |
+| Popup | menus, select lists, popovers (Filters, the status bar's popovers, «compared with…», hidden selection), search suggestions, tooltips | Slint `PopupWindow` | one at a time: opening one closes the other; it closes on a click outside, Esc, a dialog opening, typing in search, focus moving elsewhere |
+| Dialog | the scrim and the dialog; Settings is a dialog | `Size.z-dialog` (10) | modal; a notice about what happens in Settings appears inside it, in its footer |
+
+Windows' own windows (UAC, credentials, file pickers, its notifications) are outside the app: DiskDome waits and
+says so (§ 6.17).
+
+- **Long operations do not float.** Moving, deleting, comparing and scanning another drive sit in the status bar
+  (§ 5.29), so the only thing that appears over content without being asked is the notice, which is short-lived,
+  closable and never on a bar.
+- **Placement.** Every popup and the notice stay inside the window, 8 px from every edge, never over the title bar
+  or the status bar.
+  A menu opens down from its anchor (the pointer or the button), aligned on the anchor's left edge, or on its right
+  edge for buttons at the right of the window; if it does not fit above the status bar it opens upward; if neither
+  fits it keeps 8 px at the top and at the bottom and scrolls. Popovers of the status bar open upward, 4 px above
+  it, aligned on their item's right edge. The notice sits in the bottom-right corner, 16 px from the right edge
+  and 16 px above the bar under it (the status bar, or Clean-up's action bar).
+- **Esc** closes the top layer only: the dialog, then the popup, then the notice.
+- **Narrow windows.** The bars give way before anything overlaps. In the status bar the texts on the left shorten
+  first (ellipsis, the whole text in the tooltip), then the operation's label; its bar and percentage, «Live», the
+  mode and the unit stay. In cards the values never wrap: labels and notes shorten (the whole text in the tooltip),
+  charts scale down to the card's width, columns that are not the name hide before the name shortens below 140 px.
+  The map header keeps the zoom's totals whole: the hint goes first, then the breadcrumb from its start (the folder
+  you are in stays; the whole path is in the tooltip).
+
+Checked on the screens by a test (§ 10, overlap check) in every state where two layers can meet.
 
 ### 3.12 Icons
 
@@ -503,7 +537,9 @@ the dialog scrim and dialog (10), toasts (20). They are `Size.z-*` tokens.
   `chevron-down`, `arrow-up`, `arrow-down`, `corner-left-up`, `house`, `ellipsis`, `panel-right`,
   `layout-dashboard`, `settings`, `external-link`, `folder-search`, `terminal`, `copy`, `clipboard-list`,
   `pencil`, `folder-input`, `trash-2`, `info`, `triangle-alert`, `circle-alert`, `shield-alert`, `recycle`
-  (rebuildable), `link` (reparse point), `check`, `sun`, `moon`, `monitor`.
+  (rebuildable), `link` (reparse point), `check`, `sun`, `moon`, `monitor`; for exporting (§ 6.18) `share`,
+  `sheet` (CSV), `braces` (JSON), `file-text` (HTML report), `image` (the map as an image); for the app menu and the
+  palette (§ 6.19) `command`, `keyboard`, `circle-help`, `bug`, `history`, `layers`, `bookmark`.
 
 ## 4. Showing the data
 
@@ -513,7 +549,7 @@ the dialog scrim and dialog (10), toasts (20). They are `Size.z-*` tokens.
   `12,3 MB`, `123 GB`, `1,02 TB` (Italian) / `1.23 KB` (English). Zero is `0 B`.
 - **Units** (owner, 2026-11-24): a setting with three choices: **like File Explorer** (binary values labelled `KB MB
   GB TB`, the default: the same numbers the user sees in Windows, 931 GB for a «1 TB» drive), binary with honest
-  labels (`KiB MiB GiB TiB`), decimal (`KB MB GB TB`, ×1000). The mockup still shows GiB in places.
+  labels (`KiB MiB GiB TiB`), decimal (`KB MB GB TB`, ×1000).
 - **Size cell**: the number right-aligned and the unit in its own 24 px slot, left-aligned, `ink-muted`; so
   numbers align on their last digit whatever the unit.
 - **Counts**: grouped by the interface language (`13.817.523` / `13,817,523`); in the narrow side panel and the
@@ -526,7 +562,15 @@ the dialog scrim and dialog (10), toasts (20). They are `Size.z-*` tokens.
 - **Missing values**: `—` in `ink-faint` (a folder's allocated size before the scan finishes, a date the file
   system does not have).
 - **Attributes**: Explorer's letters in `caption`, `ink-muted`: R (read-only), H (hidden), S (system), A
-  (archive), C (compressed), E (encrypted), L (reparse point), P (sparse).
+  (archive), C (compressed), E (encrypted), L (reparse point: links, junctions, OneDrive placeholders), P (sparse);
+  each letter spelled out in the tooltip («H: hidden · S: system»). No attribute: an empty cell.
+- **Shown, not counted** (owner, 2026-11-25, card «Albero ed Elenco file»): folder totals, the map, the
+  percentages and sorting by size count only the space on this drive, once. A size that is shown but not counted
+  is in `ink-faint`: an OneDrive online-only file (its declared size; Allocated 0), the second and later names of a
+  hard link (the clusters count once, on the first name, as WizTree). A link or junction shows `—`: its target is
+  counted where it is. A folder whose content is all online shows its online size in `ink-faint`; a folder that
+  also holds local files shows the local size, with the rest in the tooltip («Another 12.6 GB online only, not
+  counted»).
 - Formatting lives in the interface crate (Rust), from the structured values the engine sends; the engine
   never builds a sentence.
 
@@ -538,8 +582,17 @@ In the `%` column: a 56 px bar (`bar-h` tall: 6 / 4) with the number on its righ
 ### 4.3 Sorting
 
 Default: size, largest first. A click on a header sorts by that column (numbers and dates descending first,
-names ascending first), a second click reverses. The sorted header is `ink` with an arrow (`accent-text`), the
-others `ink-muted`. Sorting is instant and keeps the selection and the cursor in view.
+text ascending first), a second click reverses; Ctrl+Shift+1…9 does the same for the n-th visible column. The
+sorted header is `ink` with a 12 px arrow (`accent-text`): before the label in right-aligned (number) columns,
+after it in left-aligned ones, so the label stays aligned with the values; the others `ink-muted`.
+
+- **Ties** sort by name. **Missing values** (a link has no size, a file no file count) go last in both directions.
+- **Name**: folders first, then natural order like File Explorer («file2» before «file10»), case ignored.
+- **Size** and **%** sort by the counted size (§ 4.1): online-only files and second hard-link names go to the
+  bottom of a size sort, which is what someone freeing space wants.
+- **Folder** (File list) sorts by the whole path; **Modified** and **Created** newest first.
+- Sorting is instant and keeps the selection and the cursor in view; the tree sorts every level the same way.
+- Each table (Tree, File list) keeps its own sort, saved with its columns (§ 5.10).
 
 ### 4.4 The map (treemap)
 
@@ -570,6 +623,13 @@ the code and the docs.
 | **Relief** (Rilievo) | flat colour, a 1 px top-left edge 38 % toward white and a 1 px bottom-right edge 38 % toward black | «key» look, retro |
 | **Folders** (Cartelle), a setting like the others at every window size (owner, 2026-11-24) | every folder down to 4 levels that is at least 96 × 60 gets a frame: an 18 px header with its name (`caption-strong`) and size (`caption`, `ink-muted`) on `bg` mixed 6 % toward `ink` (+2.5 % per level), its children 2 px inside; smaller folders are drawn flat with 1 px gaps. Names of files never cover a header. In a small map only the folders that fit get a header; the rest are drawn as in Vignette | SpaceSniffer-like: folders named everywhere. Dropped at 1280 × 800 (too many small frames); at 1920 × 1032 the Map view gets 34 headers and still 184 names (artboard «MappaCartelle») |
 
+- **Options menu** (owner, 2026-11-25, decision 32): the `ellipsis` button at the right of the map header opens a `Menu`
+  (§ 5.16) holding three `SegmentedControl` rows (§ 5.6), labelled with an overline: **Shape** Rectangles · Rings · Layers
+  (§ 4.5, § 4.7), **Colours** File type · Age (§ 4.5), **Names** None · Few · Many · All; then one line «Style:
+  Vignette» with «Change in Settings». Rings and Layers have no style and no free space: the line says so and the
+  «Free space» checkbox is disabled with that reason. Under a separator: «Save as image…» (the export dialog on
+  «Map image», § 6.18) and «Copy as image» (to the clipboard at the size on screen, with a notice). The choices are
+  kept per window, like the layout.
 - **Names** (owner, 2026-11-24: «as many names as possible, even small ones»): option «Names» in the map
   header's menu: **None**, **Few**, **Many** (default), **All**. Placed greedily, never overlapping:
   first the folders whose files are drawn as one piece, then every file, largest rectangle first. A name needs
@@ -600,10 +660,10 @@ the code and the docs.
   root the map is split into two blocks, squarified by size: all the used data in one, the free space in the
   other, so the data keeps its shape and the free space reads as one area. The free block is hatched (`surface`
   with a 1 px `line` stripe every 7 px at 135°, a 1 px `line` edge),
-  labelled «Free space · 284 GiB · 29.8 % of the drive» in `ink-muted`, hoverable, not selectable, not zoomable.
+  labelled «Free space · 284 GB · 29.8 % of the drive» in `ink-muted`, hoverable, not selectable, not zoomable.
   Zoomed into a folder, free space is not shown. The value is the drive's free space (`GetDiskFreeSpaceExW`,
   total free bytes); with disk quotas the user's own free space goes in the tooltip. The tab bar's summary always
-  says «670 GiB used · 284 GiB free».
+  says «670 GB used · 284 GB free».
 
 ### 4.5 More views from the same scan
 
@@ -620,11 +680,11 @@ written. A view whose data is missing in a scan mode (no-admin walk, a drive tha
 | View | Where in the app | Data | Answers |
 | --- | --- | --- | --- |
 | **Overview** (Panoramica) | first section | totals, categories, folders, dates, system files | «what is going on with this drive», in one screen |
-| **Rings** (Anelli) | map header menu › Shape: Rectangles / Rings / Layers (§ 4.7) | the folder tree | the same as the map, for people who do not read rectangles |
-| **Colours: Age** (Colori: Età) | map header menu › Colours: Type / Age | last-modified date | «what big things have I not touched in years?» |
+| **Rings** (Anelli) | map options menu › Shape: Rectangles / Rings / Layers (§ 4.4, § 4.7) | the folder tree | the same as the map, for people who do not read rectangles |
+| **Colours: Age** (Colori: Età) | map options menu › Colours: File type / Age, with every shape | last-modified date | «what big things have I not touched in years?» |
 | **Timeline** | section | last-modified date, saved scan summaries | «when did the space arrive?», «what changed since Tuesday?» |
 | **Activity** (Attività) | section | USN journal | «what is growing right now?» |
-| **Windows' space** (Spazio di Windows) | a card in Overview | system files and folders | «what does Windows keep for itself, and where do I manage it?» |
+| **Windows' space** (Spazio di Windows) | a card in Overview, system drive only | system files and folders | «what does Windows keep for itself, and where do I manage it?» |
 
 WizTree has none of them; WinDirStat has none; DaisyDisk and Filelight have rings only.
 
@@ -636,13 +696,15 @@ The first section (Ctrl+1; open decision 16: the first view after scanning a dri
 
 | Card | Shows | Acts |
 | --- | --- | --- |
-| **Headline** (no card) | one sentence: «C: is 70 % full: 670 GiB used, 284 free. The biggest things are games (129 GiB) and archives (104 GiB). You can free up to 182 GiB without touching personal files.», and the usage bar | — |
+| **Headline** (no card) | one sentence: «C: is 70 % full: 670 GB used, 284 free. The biggest things are games (129 GB) and archives (104 GB). You can free up to 182 GB without touching personal files.», and the usage bar | — |
 | **The map** (first card, 484 px wide) | a small map of the drive in the chosen style, names on the largest rectangles, one caption line on how to read it | a click, or «Open the map», opens Explore › Map |
 | **File types** | one stacked bar of the twelve categories (category colours, 1 px `bg` gaps), the legend with size and % | a click on a category highlights it in the map (§ 4.4) and switches to the map view |
 | **Where the space goes** | the six folders where the space really is: a folder is listed only when none of its sub-folders holds more than 35 % of it, and never together with its ancestor or descendant (so «Registrazioni OBS», not «C:\Users») | a click selects the folder in the tree |
-| **You can free** (Puoi liberare), beside the map, with the screen's primary button «Free up space…» → Clean-up | rebuildable folders (the Clean-up view's total), temporary files (`%TEMP%`), Downloads older than a year, the Recycle Bin, the hibernation file; total «up to 182 GiB» («up to»: they are suggestions) | buttons only navigate («Open Clean-up», «Show») or open Windows' own tool (external-link icon). **Nothing is deleted from this card**: deleting stays in the views and goes through § 6.4 |
+| **You can free** (Puoi liberare), beside the map, with the screen's primary button «Free up space…» → Clean-up | the same groups as the Clean-up view (§ 6.8): rebuildable folders, temporary files (`%TEMP%`), Downloads not modified for over a year, then the Recycle Bin, the hibernation file and Windows Update (Windows' tools); total «up to 186 GB», the same as Clean-up's header («up to»: they are suggestions) | buttons only navigate («Open Clean-up», «Show») or open Windows' own tool (external-link icon). **Nothing is deleted from this card**: deleting stays in the views and goes through § 6.4 |
 | **Modified in the last 7 days** (moved to Timeline by the new-user walk-through) | bytes of the files whose last modification falls on each of the last seven days, one bar per day | a click filters the tree by that day |
-| **Largest files** | the five largest files, name, folder (elided in the middle), size | «All» opens the Largest files view |
+| **Largest files** | the five largest files, name, folder (elided in the middle), size | «All» opens Explore › File list |
+| **Since the last scan** (no card: one line under the headline, from the second scan of the drive) | «Since yesterday: +3.2 GB. Mostly docker_data.vhdx (+2.4 GB) and Temp (+0.6 GB).» | «See what changed» opens Timeline › What changed |
+| **Windows' space** (last row, system drive only) | the rows of § 4.5 «Windows' space», total and share of the drive | each button opens Windows' own tool |
 
 «Modified in the last 7 days» is not growth: a single scan has no earlier state. Real growth is the Activity
 view's, when live updates are on.
@@ -666,9 +728,13 @@ selection as usual. Works with every map style and with Rings.
 
 #### Timeline
 
-A section (Ctrl+3) with these blocks (the calendar, history and compare charts are in § 4.7):
+A section (Ctrl+4). Order (owner, 2026-11-25, decision 32): first what changes between scans, then what the file dates say —
+What changed and History and forecast (§ 4.7; from the second scan), Modified in the last 7 days, When the space
+arrived, Calendar. Before the second scan the first two are replaced by one card at the bottom, «From the next
+scan», saying what they will show and that DiskDome keeps a summary of every scan (a few MB, no file contents).
+The blocks from the file dates:
 
-- **When the space arrived**: a bar chart of GiB by month of last modification, the last 24 months plus one bar
+- **When the space arrived**: a bar chart of GB by month of last modification, the last 24 months plus one bar
   «earlier», coloured with the age ramp. Values in the tooltip; a click on a bar filters the tree and the map to
   that month (a filter chip, § 6.6).
 - **Sizes and lost space** (moved to Statistics, § 4.6): the files in six size buckets (under 4 KB, 4–64 KB, 64 KB–1 MB, 1–100 MB, 100 MB–1 GB,
@@ -680,10 +746,10 @@ A section (Ctrl+3) with these blocks (the calendar, history and compare charts a
 
 #### Activity
 
-A section (Ctrl+5), live: what changed on the open drives while DiskDome is open, from the USN journal. One row per
+A section (Ctrl+6), live: what changed on the open drives while DiskDome is open, from the USN journal. One row per
 folder (open decision 17: the level at which changes are added up): folder, a sparkline of the last 10 minutes,
 added (`+`) and removed (`−`) bytes, the time of the last change. The header repeats the live dot and the
-totals («+530 MiB and −1.20 GiB in the last 10 minutes»). No animation: rows update in place at most once a
+totals («+530 MB and −1.20 GB in the last 10 minutes»). No animation: rows update in place at most once a
 second. With live updates paused (status bar, § 2.2) the view is an `EmptyState` saying why and what to do.
 
 #### Windows' space
@@ -711,7 +777,7 @@ library:
 
 ### 4.6 Statistics
 
-A section (Ctrl+4) of cards in three columns, every row `label · detail · value` at row height, the value
+A section (Ctrl+5) of cards in three columns, every row `label · detail · value` at row height, the value
 right-aligned in tabular figures, the detail in `caption` `ink-faint`. **Every row is a link**: a click opens
 Explore › File list with that row as a filter chip (hidden files, empty folders, owner, path over 260
 characters…); a size band filters by size. «Copy the numbers» puts them all on the clipboard as text. Mockup:
@@ -720,7 +786,7 @@ artboard «Statistiche».
 | Card | Rows | From |
 | --- | --- | --- |
 | Content | files, folders, mean and median file size, empty files, empty folders, the folder with most files, distinct extensions, files without extension | the model |
-| Sizes | six size bands, each with a bar of bytes (`chart-space`) and the file count; header «4 % of the files hold 78 % of the space» | size |
+| Sizes | the Concentration curve (§ 4.7) above six size bands, each with a bar of bytes (`chart-space`) and the file count; header «4 % of the files hold 78 % of the space» | size |
 | Space on disk | size of the files, space really allocated, lost to rounding, saved by NTFS compression, sparse files (allocated of declared), hard links (clusters counted once), OneDrive online-only (no space here) | allocated size, attributes, reparse tag |
 | Attributes | hidden, system (`shield-alert`, `warning`), compressed, encrypted (EFS), read-only, temporary: size and count | attributes |
 | Links | symbolic links, junctions, app aliases, OneDrive placeholders, alternate data streams. «DiskDome does not follow them: nothing counted twice» | reparse points, named `$DATA` |
@@ -733,15 +799,39 @@ artboard «Statistiche».
 
 Seven charts on the same data (artboard «Grafici»), each placed where it answers a question:
 
-| Chart | Form | Where | Reads |
-| --- | --- | --- | --- |
-| **Concentration** | cumulative curve, log x (share of files, largest first) vs share of space; two direct labels | Statistics › Sizes | how few files hold the space |
-| **Calendar** | 53 × 7 heatmap of GiB modified per day, five steps of `chart-space` from `bar-track` | Timeline | the days the space arrived |
-| **Big and old** | scatter of the largest folders, log x (days since the newest file) × log y (size); the quadrant «over a year, over 10 GiB» on `hover`, its dots in `ink` and labelled, the rest `bar-fill` | Explore › Map › Colours: Age, as dots | space you probably no longer need |
-| **Layers** | icicle: one row per folder level, width = size, the Rings colours | Explore › Map › Shape: Layers | the hierarchy with readable names |
-| **History and forecast** | line of the used space at every scan, the capacity as a hairline, the trend of the last 10 weeks as a lighter line | Timeline › History | «when will the drive be full?» (a projection, said so) |
-| **What changed** | diverging bars per folder against a scan the user picks: grown right (`delta-up`), shrunk left (`delta-down`), net total in the header | Timeline › Compare | what grew since Tuesday |
-| **All drives** | stacked bars on one shared axis, the five largest categories plus Other, free space hatched; a drive not scanned shows used and free only | Home, «+» menu | every drive at once |
+| Chart | Form | Reads |
+| --- | --- | --- |
+| **Concentration** | cumulative curve, log x (share of files, largest first) vs share of space; the key point as a dot with its value on hover, the sentence in the card header | how few files hold the space |
+| **Calendar** | 53 × 7 heatmap of GB modified per day, five steps of `chart-space` from `bar-track` | the days the space arrived |
+| **Big and old** | scatter of the largest folders, log x (days since the newest file) × log y (size); the quadrant «over a year, over 10 GB» on `hover`, its dots in `ink`, the rest `bar-fill` | space you probably no longer need |
+| **Layers** | icicle: the zoom root as a 22 px bar, then one row per folder level, width = size, the Rings colours | the hierarchy with readable names |
+| **History and forecast** | line of the used space at every scan, the capacity as a hairline, the trend of the last 10 weeks as a lighter line | «when will the drive be full?» (a projection, said so) |
+| **What changed** | diverging bars per folder against a scan the user picks (by default the previous one): grown right (`delta-up`), shrunk left (`delta-down`), net total in the header | what grew since Tuesday |
+| **All drives** | one row per drive on one shared axis: the five largest categories plus Other, free space hatched; a drive not scanned shows used (`bar-fill`) and free only, from Windows | every drive at once |
+
+**Where every chart lives, when it appears, what stands in for it** (owner, 2026-11-25, decision 32; artboard
+«GraficiSchermate»; in the «Main» artboard the map options menu and the Tweak «storico» show both states):
+
+| Chart | Where | Appears | Before, or without the data | Click |
+| --- | --- | --- | --- | --- |
+| All drives | Start, in place of the drive cards (artboard «StartDopo») | once at least one drive has been scanned | the first time, the drive cards with used and free from Windows (§ 6.16) | opens the drive's Overview |
+| Since the last scan (line) | Overview, under the headline | from the second scan of the drive | not shown | Timeline › What changed |
+| Small map | Overview, first card | after every scan | — | Explore › Map |
+| File types | Overview; Explore's side panel | after every scan | — | highlights the category in the map |
+| Windows' space | Overview, last row | system drive only | not shown on other drives | opens Windows' own tool |
+| Map: Rectangles | Explore › Map, the default shape | always | — | selects; double-click enters |
+| Rings, Layers | Explore › Map › options › Shape | by choice | — | Rings: enters the folder; Layers: selects, double-click enters |
+| Colours: Age | Explore › Map › options › Colours, with every shape; the side panel becomes «File ages» with the six buckets | by choice | without dates (rare), the option is disabled with the reason | highlights that age |
+| Big and old | Clean-up, right column «To review» (§ 6.8) | at least one folder of 10 GB untouched for over a year | the column says «Nothing big untouched for over a year» | «Show» in Explore; nothing is selected or deleted here |
+| What changed | Timeline, first card, with «compared with…» (§ 4.8, comparing with a saved scan) | from the second scan of the same drive or folder | the card «From the next scan» at the bottom | the folder in Explore |
+| History and forecast | Timeline, beside it | history from the second scan; forecast with at least 4 weeks of scans and a steady trend | the same card; then «Not enough scans for a forecast yet» | a point: compare with that scan |
+| Modified in the last 7 days, When the space arrived, Calendar | Timeline | always (file dates) | — | that day or month in Explore |
+| Concentration | Statistics › Sizes, above the bands | at least 1,000 files | the six bands only | the largest files in Explore |
+| Owners | Statistics › Owners | scans from the drive's index (NTFS) | «Not available folder by folder» | filter by owner |
+| Live (sparklines) | Activity | NTFS drive, live updates on | «Here you see what changes while DiskDome is open. Nothing yet.»; paused: why and how to resume | the folder in Explore |
+
+A chart without its data is never drawn empty: its place says what it will show and from when. No chart deletes
+anything; every bar, point or cell opens Explore with the filter set.
 
 Rules for every chart (the `dataviz` method, with DiskDome's tokens): one y-axis, never two; marks thin, a 1–2 px
 `surface` gap between touching marks, 2 px lines, dots ≥ 8 px with a 2 px `surface` ring; hairline solid grid in
@@ -773,24 +863,47 @@ changes only then.
 | Discover | Links and junctions: where they point, never counted twice | MFT | v1 |
 | | Space per owner | MFT (`$Secure`) | v1 |
 | | Downloaded from the internet, and from where | MFT (`Zone.Identifier`) | v1 |
-| | Duplicates: candidates by size from the MFT; content compared only on request, in the background, with the user's rights; never offers to delete the last copy | MFT + reading files | v1 |
+| | Duplicates: a group of Clean-up (§ 6.8); candidates by size from the MFT; content compared only on request, in the background, with the user's rights; the last copy can never be ticked | MFT + reading files | v1 |
 | Act | Guided clean-up: rebuildable folders, Temp, old Downloads in one list, always to the Recycle Bin | MFT | v1 |
 | | Move to another drive, with progress; across drives it is a copy plus a delete, and says so | file actions | v1 |
 | | Compress with NTFS (LZX) for games and programs, reversible | file actions | after v1 |
 | | Free up OneDrive space (make files online-only) | OneDrive | after v1 |
-| Watch | Live activity | USN journal | after v1 |
-| | Alerts: a drive under 10 % free, a folder growing over 5 GiB a day (Windows notification) | USN journal | after v1 |
+| Watch | Live activity (the Activity section) | USN journal | v1 (owner, 2026-11-24) |
+| | Alerts: a drive under 10 % free, a folder growing over 5 GB a day (Windows notification) | USN journal | after v1 |
 | | Scheduled scan through the service, summary only | service | after v1 |
 | Convenience | Export: CSV, JSON, a self-contained HTML report, the map as PNG | the model | v1 |
 | | Command palette (Ctrl+K) | — | v1 |
-| | Shortcuts list (Ctrl+/) | — | v1 |
+| | Shortcuts list (Ctrl+\) | — | v1 |
 | | Bookmarks: favourite folders as fixed tabs | — | after v1 |
 | | Compare two folders side by side | MFT | after v1 |
 
 **Saved scan summaries** (what Compare, History and the instant view at the next launch use): after every scan
-DiskDome writes the folders down to 6 levels or above 0.01 % of the drive, the totals per extension and category,
+DiskDome writes the folders down to 6 levels or above 0.01 % of the drive, each with its MFT file reference (record
+and sequence, so a moved or renamed folder is still the same folder), the totals per extension and category,
 and the drive's used and free space; 1–3 MB per scan, in `%LOCALAPPDATA%\DiskDome\scans\<volume serial>\`, never a
 file's content. Kept: the last 30 and one per month (owner, 2026-11-24).
+
+**Comparing with a saved scan** (owner, 2026-11-25, card «Analisi salvate e confronto»; working in «Main» › Timeline):
+
+- **«compared with…»** in What changed's header: the net change («+3.5 GB»), «compared with» and a ghost button with
+  the scan's date («17 Nov, 21:14» with `chevron-down`). Its menu lists the saved scans of the same drive or folder,
+  newest first, in two groups, «LAST SCANS» and «ONE A MONTH»: date and time, then «the scan before · 7 days ago · 666
+  GB used»; the chosen one has `check`. The default is the scan before. At the bottom «Manage saved scans…» opens
+  Settings › Saved summaries with this drive open.
+- Under the header one line: «From 17 Nov, 21:14 (7 days ago) to today: 666 → 670 GB used. Folders are recognised by
+  their number in the MFT, even if you moved or renamed them.»
+- **Rows**: the folders that changed most, grown right and shrunk left of the axis, each with its parent path in
+  `ink-faint` and the value; «Other folders» takes the rest so the rows add up to the net change. A click on a row
+  opens it in Explore. A **moved** folder is one line, not a minus and a plus: «ISO moved: Downloads → Documents ·
+  5.40 GB, counts neither more nor less» (`folder-input`); renamed folders keep their new name. Folder walks have no
+  MFT numbers: they match by path, and the line says «matched by path: a moved folder shows as shrunk here and grown
+  there».
+- **History**: every point of History and forecast is a target («17 Nov: 666 GB · click: compare with this scan»);
+  the compared one has an `accent` ring, and the caption says which.
+- **Saved summaries** in Settings (§ 6.10): each drive's row opens to its scans, one per row (date, «the scan of
+  now», «among the last 30» or «one a month», used space) with «Delete» on each but the current one; the notice has
+  «Undo». Deleting the compared scan moves the comparison to the scan before it; with no scan left the Timeline shows
+  «From the next scan».
 
 **Memory.** Performance is the product, so every per-entry field is paid for 13.8 million entries. Done on
 2026-11-24 (card 4.T13, `docs/architecture.md`): size on disk as `u32` clusters (`alloc`), last modified as `u32`
@@ -894,21 +1007,64 @@ A card-sized radio (scan mode, first launch): `surface` fill, 1 px `line`, radiu
 
 The heart of the app: Tree, File list and Clean-up are the same component with different columns. Built on Slint's
 `ListView` (dense rows, full keyboard), with our own virtual scrolling: the scrollbar maps to the row index, so
-14 million rows scroll precisely to the last one (owner, 2026-11-24, from test 3c). Default columns of the tree:
-Name, Size, %, Files, Modified, Allocated (owner, 2026-11-24); Folders and Attributes from the header's menu.
+14 million rows scroll precisely to the last one (owner, 2026-11-24, from test 3c). Columns, sorting, resizing,
+reordering and the special entries: owner, 2026-11-25 (card «Albero ed Elenco file»; artboard «Tabella», and working
+in «Main»).
 
 - **Rows** come from a Rust `Model` that serves only the visible rows (`docs/architecture.md`): 14 million
   rows scroll as smoothly as 10. Row height `row`; no zebra stripes; no lines between rows.
-- **Header** (`header-row`, `bg`, sticky): `caption`, `ink-muted`; the sorted column `ink` with its arrow; a 1 px
-  `line` under it. Columns are resized by dragging the 6 px handle at a header's right edge (a 1 px `line` shows on
-  hover), reordered by dragging, hidden from the header's context menu («Columns…»).
-- **Columns of the Tree view** (default widths, normal density): Name (flex, ≥ 240), Size (88), % of parent
-  (104: bar + number), Allocated (88), Files (76), Folders (68), Modified (120), Attributes (56). Folders and
-  Attributes are hidden by default (owner, 2026-11-24).
-- **Cells**: `NameCell` (indent `indent` × depth, `chevron-right` / `chevron-down` 16 px for folders, icon,
-  name `body`, then badges), `SizeCell` (§ 4.1), `PercentCell` (§ 4.2), `CountCell`, `DateCell`, `AttrCell`,
-  `PathCell` (middle-elided, `ink-muted`). Numbers right-aligned, text left. Side padding `cell-pad-x`.
-- **Row states**:
+
+#### Columns
+
+| Column | Tree | File list | Width (normal density) | Shows |
+| --- | --- | --- | --- | --- |
+| Name | always, first | always, first | Tree: the rest, ≥ 200 · File list: 300 | `NameCell` |
+| Size | yes | yes | 100 | `SizeCell` (§ 4.1); `ink-faint` when not counted |
+| % of the folder | yes | — | 120 | `PercentCell` (§ 4.2) |
+| Allocated («Spazio occupato») | yes | yes | 112 | the clusters really used: less when compressed or sparse, 0 when online only |
+| Files | yes | — | 80 | files inside, at every level |
+| Modified | yes | yes | 128 | `DateCell` |
+| Folder | — | yes | the rest, ≥ 160 | `PathCell`, the containing folder, middle-elided, whole in the tooltip |
+| Folders | hidden | — | 72 | folders inside |
+| Type | — | hidden | 72 | the extension |
+| Created | hidden | hidden | 128 | `DateCell`; needs the created time in the model (`u32`, 4 bytes per entry, measured with `./scripts/proof.ps1`) |
+| Attributes | hidden | hidden | 76 | `AttrCell` (§ 4.1) |
+| Owner | hidden | hidden | 120 | the account name («stefa»); the full one («DELLDOMENGHINI\stefa») in the tooltip |
+
+The defaults are the owner's of 2026-11-24 (Tree: Name, Size, %, Allocated, Files, Modified). Widths include the
+cell padding; a column's header label fits its default width with the sort arrow. The File list holds every file
+of the tab, largest first, narrowed by search and filters; its menu adds «Show in the tree».
+
+#### Header
+
+- `header-row` tall, `bg`, sticky, a 1 px `line` under it. Labels `caption`: `ink-muted`, the sorted one `ink`
+  with its arrow (§ 4.3). Right-aligned columns have right-aligned labels. Hover: `hover` fill.
+- **Sort**: click (§ 4.3).
+- **Resize**: drag the 6 px handle on a header's right edge; a 1 px `line` shows when the header is hovered,
+  `line-strong` when the handle is, and the cursor becomes ↔. Double-click the handle: fit the content. Each column
+  has a minimum (numbers 72, counts 48, dates 88, Name 200 in the Tree, 160 in the File list); the widest text column
+  (Name in the Tree, Folder in the File list, Name if Folder is hidden) takes the space left.
+- **Reorder**: drag a header; it follows the pointer on `control` with `shadow`, its slot dims to `ink-faint`, and
+  a 2 px `accent` line shows where it lands. Esc cancels. Name stays first (it carries the tree's indent).
+- **Columns…**: right-click on the header, or the 22 px ghost button `columns-3` at its right end (above the
+  scrollbar). A menu titled «Tree columns» / «File list columns»: one checkable item per column (Name checked and
+  disabled, «always shown»), then «Fit the column widths» and «Restore the default columns». It stays open while
+  columns are ticked; Esc or a click outside closes it. A shown column is added at the right end.
+- **Narrow window**: the table scrolls sideways, header and rows together; Name stays pinned on the left.
+- **Saved** per table (Tree, File list), for every tab: visible columns, order, widths, sort.
+- **Keyboard**: Ctrl+Shift+1…9 sorts (§ 4.3); Tab from the rows reaches the header (one stop) with a 1 px `focus`
+  frame on a header cell: ← → move between columns, Enter or Space sorts, Ctrl+← → moves the column, Shift+← →
+  narrows or widens it by 8 px, Shift+F10 or the Menu key opens «Columns…». Narrator reads «Size, column header,
+  sorted largest first».
+
+#### Cells
+
+`NameCell` (indent `indent` × depth, `chevron-right` / `chevron-down` 16 px for folders, icon, name `body`, then
+what follows the name), `SizeCell` (§ 4.1), `PercentCell` (§ 4.2), `CountCell`, `DateCell`, `AttrCell`,
+`PathCell` (middle-elided, `ink-muted`). Numbers right-aligned, text left. Side padding `cell-pad-x`; a 12 px
+space after the last column.
+
+#### Row states
 
 | State | Look |
 | --- | --- |
@@ -917,13 +1073,24 @@ Name, Size, %, Files, Modified, Allocated (owner, 2026-11-24); Folders and Attri
 | selected (table focused) | `accent-soft` fill, text stays `ink` |
 | selected (focus elsewhere) | `selected-inactive` fill |
 | cursor (keyboard) | 1 px `focus` frame inside the row, over the fill |
-| pending (delete / move running) | `pending` opacity, a 2 px progress arc instead of the icon |
-| protected (system item) | `shield-alert` badge in `warning` after the name; nothing else changes until an action touches it |
+| pending (delete / move running) | `pending` opacity; a 16 px progress ring (2 px, `accent` on `line-strong`) instead of the icon; not selectable until the file system confirms; the tooltip says the action and its percentage |
+| protected (system item) | `shield-alert` badge «system» in `warning` after the name; nothing else changes until an action touches it |
 | rebuildable (`node_modules`, `target`, caches) | `recycle` badge «rebuildable» in `ink-muted` |
 | filtered-out ancestor (search) | name in `ink-faint`, kept to show the path to a match |
 
-- **Badges after the name**: protected (shield), rebuildable, reparse point (`link`, «link»), hard link
-  («hard link»), compressed and sparse (letters in the Attributes column only).
+#### Special entries
+
+| Entry | Icon | After the name | Size · Allocated | Behaviour |
+| --- | --- | --- | --- | --- |
+| Junction, folder symbolic link | `folder-symlink`, `ink-muted` | «→ C:\Users» in `ink-faint`, shrinks first | `—` · `—` | no chevron; never followed (nothing counted twice); Enter, double-click or «Go to the target» (§ 6.3) selects the target, opening its drive's tab if needed |
+| File symbolic link | `file-symlink` | «→ target» | `—` · `—` | as above |
+| OneDrive online-only file | `cloud`, `ink-muted` | — | declared size and 0, both `ink-faint` | not counted (§ 4.1); tooltip «Online only: 7.82 GB on OneDrive, nothing on this drive» |
+| Folder with online-only content | `folder` | a 12 px `cloud` in `ink-faint` | the local size | tooltip «Another 12.6 GB online only, not counted»; only on the folder that holds them |
+| Hard link, second name | the file's icon | `link-2` badge «hard link» | size in `ink-faint` | counted once, on the first name; tooltip names the first |
+| Compressed (NTFS) | normal | — | Allocated smaller | letter C; Allocated tooltip «Compressed by NTFS: saves 1.70 GB» |
+| Sparse | normal | — | Allocated smaller | letter P; tooltip «Sparse file: declares 48.5 GB, uses 29.2» |
+| Unreadable folder (no-admin mode, network) | `folder-lock` | `warning` badge «unreadable» | `—` · `—` | no chevron; tooltip «Access denied: we don't know how much it holds. Scan as administrator to read it»; the status bar: «2 folders unreadable: the totals leave them out · Scan as administrator» |
+
 - **Empty table** (no match): an `EmptyState` in the table area.
 
 ### 5.11 Treemap
@@ -937,7 +1104,8 @@ nothing is hovered), the «Free space» `Checkbox` (§ 4.4) and an `ellipsis` me
 
 ### 5.12 Side panel: extensions and categories
 
-Header at the tab bar's height: overline «FILE TYPES» and the `SegmentedControl` «Extensions | Categories».
+Header at the tab bar's height: overline «FILE TYPES» and the `SegmentedControl` «Extensions | Categories». With the map
+coloured by age (§ 4.5) the overline is «FILE AGES», the control is hidden and the rows are the six age buckets.
 While a highlight is active, a small ghost button «× Highlight» clears it. A table with:
 swatch (10 × 10, radius `swatch`, the exact shade), extension (`.js`, `body`) or category name, size, %, files.
 Category mode groups rows under the category with its total; a category row expands to its extensions. A
@@ -958,8 +1126,10 @@ Height 16: `caption` (12 / 16), 4 px side padding, radius `badge`.
 
 ### 5.15 Chip (filters)
 
-`control-sm` tall, `control` fill, radius `control`, text `caption` «Extension: .mp4», an `x` to remove (its own
-hit area, `label` «Remove filter»). Lives in the filter bar; Backspace on a focused chip removes it.
+`control-sm` tall, `control` fill (`control-hover` on hover), radius `control`, text `caption` «Extension: .mp4»,
+an `x` to remove (16 px, its own hit area, `label` «Remove filter»). Lives in the filter bar; a click opens the
+Filters panel at its group, Del or Backspace on a focused chip removes it. In the panel, toggle chips share the
+shape: off `control` / `ink-muted`, on `accent-soft` / `accent-text`, with an optional 8 px swatch (§ 6.6).
 
 ### 5.16 Menu and ContextMenu
 
@@ -995,9 +1165,19 @@ be dismissed. Kinds: `info` (accent-soft and `info`), `warning`, `danger`, `succ
 
 ### 5.20 Toast
 
-Bottom right, 16 px from the edges, 360 wide, level 1: icon, one or two lines `body`, an optional action
-(`ghost`). Disappears after 6 s, stays while hovered; at most 3 stacked. For results of actions («3 items moved
-to the Recycle Bin · 4.2 GB freed»).
+The result of something you did or that ended by itself («3 items moved to the Recycle Bin · 4.2 GB freed»). In the
+bottom-right corner, 16 px from the right edge and 16 px above the bar under it (§ 3.11), 360 wide, level 1: icon,
+up to three lines of `body` (the whole text in the tooltip), an optional action (`ghost`, «Undo», «Show details»)
+and a 20 px `x` to close it. «Undo» sits right of the text; other actions, at most two («Show in File Explorer»,
+«Open», «Choose where to save…», «Retry»), sit in a row under it in `accent-text`.
+
+- **One at a time.** A new one replaces the one shown; results that arrive together become one notice («2 actions
+  done · …»). Ctrl+Z still undoes an action whose notice has gone (§ 6.5).
+- **Time.** As long as it takes to read: 2.5 s plus 60 ms per character, at least 4 s (8 s with «Undo»), at most
+  10 s; it stays while hovered or focused. A failure («Show details») stays until closed.
+- **Waits.** While a popup or a dialog is open it is not shown and its time does not run; it appears with its full
+  time when they close. In Settings it appears inside the dialog, above the buttons.
+- **Covers.** Only content, and only for those seconds: never a bar, a popup or a dialog. Esc or `x` closes it.
 
 ### 5.21 ProgressBar and UsageBar
 
@@ -1028,7 +1208,9 @@ the action button.
 
 Structure components that only lay out others with the right height, ground and padding; `ToolbarSeparator` is
 1 × 16 px `line` with `group-gap` / 2 on each side. Status bar items: `caption` `ink-muted`, separated by 1 × 12
-`line`; the live dot is 6 px round.
+`line`; the live dot is 6 px round. From the left: the drive's counts and when it was scanned (or the scan's
+progress), the selection; then, at the right, the running operations (§ 5.29), «Live», the scan mode, the unit.
+Nothing in it wraps: at narrow widths the left texts shorten first, then the operations' label (§ 3.11).
 
 ### 5.26 Kbd
 
@@ -1042,14 +1224,14 @@ One tab per **local drive, always present** (they are few and fixed; a USB drive
 leaves when removed, its scan kept until then), plus one **closable** tab per folder or network path the user
 opened. Switching tab is instant: each scanned tab keeps its model, selection, expanded folders and zoom.
 
-- **Content**: icon 14 (`hard-drive`, `folder` for a folder tab), the letter (`body-strong`, or the folder's name),
+- **Content**: icon 14 (`hard-drive`, `folder` for a folder tab, `network` for a network path), the letter (`body-strong`, or the folder's name),
   the label (`caption`, `ink-faint`; `ink-muted` when active), a 24 × 4 usage bar (`bar-fill`, `warning` above 90 %
   full; none for folders and for drives not scanned yet), and for a closable tab an `x` (16 × 16).
 - **States**: active (joins the toolbar: `bg` fill), rest (`ink-muted` on the frame), hover (`control-pressed`
   fill), not scanned (letter and icon `ink-faint`; selecting it shows the «not scanned yet» state of § 2.2),
   scanning (a 2 px progress arc instead of the icon), live updates paused (the bar in `ink-faint`). The tooltip
   says letter, label, file system, used of total.
-- **Start** (owner, 2026-11-24; called «Start» in Italian too): a tab (`house` and the word) before the drive tabs, never closed: every drive and recent folder at a glance and the ways to choose what to analyze (§ 6.16). The app opens there the first time; afterwards it opens where the user left it.
+- **Start** (owner, 2026-11-24; called «Start» in Italian too): a tab (`house` and the word) before the drive tabs, never closed: every drive and recent folder at a glance and the ways to choose what to analyze (§ 6.16). The app opens there the first time; afterwards it opens where the user left it. Once a drive has been scanned, the drive cards become the All drives chart (§ 4.7; artboard «StartDopo»): one row per drive on a shared scale, with «Open» or «Scan», then the recent folders.
 - **«+»**: a small ghost icon button after the tabs; opens the `DrivePicker` menu (§ 5.5). Ctrl+T opens it.
 - **Keyboard**: Ctrl+Tab / Ctrl+Shift+Tab next / previous tab, Ctrl+W closes a folder tab (drive tabs do not
   close), Ctrl+Shift+T reopens the last closed one.
@@ -1072,25 +1254,60 @@ anyone. Ctrl+Alt+1 / 2 / 3.
 
 ### 5.29 ActionProgress
 
-A card per running file action (owner, 2026-11-24: actions are never disabled; each shows its progress), stacked
-at the bottom right above the status bar, 360 px wide, `raised`, level 2: icon, what it does («Moving 3 items to
-the Recycle Bin», «Copying 12 files to D:»), a 4 px bar with the percentage, the numbers («1.2 of 4.2 GB · 40 of
-112 files») and the time left, «Stop». Several run in parallel, newest on top; above three they collapse into one
-card «4 actions running» that expands. When one ends it becomes a notice («3 items moved to the Recycle Bin ·
-4.2 GB freed», with «Show in the Recycle Bin»), which leaves after 5 s; a failure stays until closed, with «Show
-details». The model and the parents' totals update when each item is done.
+Every running operation (owner, 2026-11-24: actions are never disabled; each shows its progress): moving, deleting,
+copying, comparing identical copies, scanning another drive. It lives **in the status bar**, never floating over
+the window (owner, 2026-11-25, § 3.11):
+
+- **The item**, at the right of the status bar before «Live»: an icon (`trash-2` deleting, `folder-input` moving or
+  copying, `hard-drive` scanning or comparing, `share` exporting, `layers` for several), what it does («Moving 3 items to the Recycle
+  Bin») or «3 operations», a 48 × 4 px bar and the percentage (several together: weighted by size). Its tooltip
+  lists each one with its percentage.
+- **A click** opens a popover upward (level 2, 360 px, 4 px above the status bar, aligned on the item's right
+  edge): «RUNNING», then one row per operation with its icon, what it does, «Stop», a 4 px bar, the numbers
+  («1.2 of 4.2 GB · 40%») and the time left; at the bottom «When they end a notice appears in the bottom right.
+  You can keep working.» Esc or a click outside closes it.
+- **When one ends** its row leaves and a notice reports the result (§ 5.20: «3 items moved to the Recycle Bin ·
+  4.2 GB freed», with «Undo»; a failure stays until closed, with «Show details»). The item leaves with the last one.
+  The model and the parents' totals update when each item is done; the rows being moved or deleted are
+  `pending` in the table (§ 5.10).
 
 ## 6. Patterns
 
 ### 6.1 Selection
 
-- One selection shared by every view: selecting in the tree selects in the treemap and in the largest-files list
-  (when the item is there), and the reverse.
-- Click selects one; Ctrl+click adds or removes; Shift+click a range (table only); Ctrl+A selects the siblings
-  of the cursor's level in the table.
-- The status bar shows «3 selected · 4.2 GB» (sizes added up without double-counting nested items).
-- The cursor (keyboard focus row) is not the selection: Ctrl+arrows move the cursor without selecting,
-  Ctrl+Space toggles the cursor's row (Windows' rule).
+Owner, 2026-11-25 (card «Selezione multipla»; artboard «Selezione», and working in «Main»).
+
+- **One selection shared by every view**: selecting in the tree selects in the map and in the file list (when the
+  item is there), and the reverse. Each tab (drive or folder) keeps its own; Back restores it.
+- **Table** (Tree, File list): click selects one; Ctrl+click adds or removes; Shift+click selects from the anchor
+  (the last plain or Ctrl click) to here; Shift+arrows extend; Ctrl+arrows move the cursor without selecting and
+  Ctrl+Space toggles the cursor's row (Windows' rule; the cursor is not the selection); Ctrl+A selects the items of
+  the cursor's level; Esc clears.
+- **Map**: click selects one; Ctrl+click adds or removes; **no area selection** (owner: dragging stays free to drag
+  files to File Explorer). Every selected rectangle has its own outline (§ 4.4).
+- **Right-click** on a selected item opens the menu for the whole selection; on another item it selects that one.
+- **Nested items are counted once** (owner): with a folder and something inside it both selected, the inner item
+  keeps a lighter highlight (`accent-soft` at 45 %, name in `ink-muted`) and the tooltip «Already included in
+  «Users»: counted once»; totals and actions take the folder only.
+- **Explore bar with several items** (§ 2.1): no swatch, «2 items · 349 GB», then a `Badge` «1 already included»
+  when nested items exist, a `warning` badge with `shield-alert` «1 system item» when some are system items, and
+  a ghost `x` «Clear selection (Esc)»; the actions stay the same and apply to all.
+- **Menu with several items** (§ 6.3): a header line «2 items · 349 GB»; the verbs that need one item (Open
+  terminal here, Zoom here in the map, Rename) are disabled with the reason «one item at a time» on the right;
+  «Copy full path» copies one path per line; «Show in File Explorer» opens one window per folder.
+- **System items** stay in the selection but every deletion leaves them out until included (§ 6.4).
+- **After an action**: what succeeded leaves the selection; what failed stays selected and the report says why.
+- **Filters and search that hide selected items** (owner, 2026-11-25: «nothing hidden, nothing the user does not
+  understand»): the items **stay selected** and are shown apart, never silently dropped. The Explore bar adds a
+  `neutral` badge with a `filter` icon after the name, «+1 hidden by the filters» (or «by the search»); its tooltip
+  names them with their sizes and says «Actions leave it out; when deleting you can include it». The badge opens a
+  menu: «Remove from the selection», «Clear the filters» (or «Clear the search»). A notice says it once, when it
+  happens: «"docker_data.vhdx" is selected but hidden by the filters: it stays selected and actions leave it out».
+  The status bar adds «1 hidden, left out of actions»; the map keeps its outline on the (dimmed) rectangle. Every
+  action takes only what is visible; deleting asks (§ 6.4). With only hidden items selected, the bar says «Nothing
+  visible» with the badge. Clearing the filters brings them back into view, still selected.
+- **Status bar and Narrator**: «2 selected · 349 GB · 1 already included, counted once»; Narrator reads «2 items
+  selected, 349 GB, plus 1 already included».
 
 ### 6.2 Keyboard
 
@@ -1106,18 +1323,26 @@ details». The model and the parents' totals update when each item is done.
 | Ctrl+C | copy the files (as Explorer) |
 | Ctrl+Maiusc+C / Ctrl+Shift+C | copy full path (Windows 11's «Copy as path») |
 | Ctrl+X, Ctrl+V | move (cut, then paste into the selected folder) |
+| Ctrl+Maiusc+M / Ctrl+Shift+M | Move to… (§ 6.5) |
+| Ctrl+Z | undo the last file action (§ 6.5), up to 10 in the session |
+| Ctrl+A | select the items of the cursor's level (§ 6.1) |
+| Ctrl+Maiusc+1 … 9 / Ctrl+Shift+1 … 9 | sort the table by its n-th visible column; again reverses (§ 4.3) |
+| Tab (from the rows) | the table's header: ← → columns, Enter sorts, Ctrl+← → moves, Shift+← → resizes, Shift+F10 «Columns…» (§ 5.10) |
+| Esc | clear the selection; cancel a cut; close a menu or a dialog |
 | Alt+Invio / Alt+Enter | Windows Properties |
 | Ctrl+E | show in Explorer |
+| Ctrl+Maiusc+E / Ctrl+Shift+E | Export… (§ 6.18) |
 | Ctrl+F | search |
 | F5 / Ctrl+F5 | rescan the folder / the drive |
 | Ctrl+1 … 6 | sections: Overview, Explore, Clean-up, Timeline, Statistics, Activity (§ 6.11) |
 | Ctrl+Alt+1 / 2 / 3 | Explore's layout: Tree / Both / Map |
 | Ctrl+Alt+T / L | Explore's table: Tree / File list |
 | Alt+← / Alt+→ | back / forward (section, filter, selection, zoom) |
-| Ctrl+K | command palette |
-| Ctrl+/ | shortcuts |
+| Ctrl+K | command palette (§ 6.19) |
+| Ctrl+\ | keyboard shortcuts (§ 6.19) |
+| F1 | Help, in the browser (§ 6.19) |
 | Ctrl+O | scan a folder |
-| Ctrl+Shift+F | filters |
+| Ctrl+Shift+F | the Filters panel (§ 6.6) |
 | Ctrl+Tab, Ctrl+Shift+Tab | next / previous drive tab |
 | Ctrl+T, Ctrl+W, Ctrl+Shift+T | «+» menu, close a folder tab, reopen the last closed one |
 | Backspace, Alt+↑ | treemap: up one level |
@@ -1126,19 +1351,30 @@ details». The model and the parents' totals update when each item is done.
 | Menu key, Maiusc+F10 | context menu |
 | F6 | move the focus between toolbar, table, side panel, treemap |
 
-Shortcuts are declared with Slint's `KeyBinding` (1.16) and shown in menus with the menu item's `shortcut`.
+Shortcuts are declared with Slint's `KeyBinding` (1.16) and shown in menus with the menu item's `shortcut`. They use
+keys that need no Shift on the Italian keyboard (owner, 2026-11-25): «/», «?» and «=» are Shift+7, Shift+' and
+Shift+0 there, so the shortcuts list is Ctrl+\ (the key left of 1), not Ctrl+/. A binding matches the character,
+not the key's position, so Ctrl+\ works on other layouts too (above Enter on a US keyboard).
 
 ### 6.3 Context menu (tree, file list, map, lists)
 
 In Explorer's order, the verbs Windows uses (Italian on an Italian Windows):
 
-1. **Open** (Enter) · Show in Explorer (Ctrl+E) · Open terminal here · Windows Properties (Alt+Enter)
-2. Copy full path (Ctrl+Shift+C) · Copy name · Copy parent folder · Copy the selection as a list
+1. **Open** (Enter) · Show in Explorer (Ctrl+E) · Open terminal here · Windows Properties (Alt+Enter); for a link or
+   a junction, **Go to the target** (Enter) comes first (§ 5.10)
+2. Copy (Ctrl+C) · Copy full path (Ctrl+Shift+C) · Copy name · Copy parent folder · Copy the selection as a list ·
+   Export the selection… (§ 6.18)
 3. Rescan this folder (F5) · Zoom here in the map · Show in the tree · Filter: this extension, this folder
-4. Rename (F2) · Move to… · (Cut, Paste)
+4. Rename (F2) · Move to… (Ctrl+Shift+M) · Cut · Paste
 5. Move to the Recycle Bin (Del) · **Delete permanently** (Shift+Del, `danger`)
 
 For several items, the verbs that need one item (Rename, Open terminal) are disabled with their reason.
+
+The copy verbs with several items (owner, 2026-11-25): «Copy full path», «Copy name» and «Copy parent folder» put
+one line per item (each parent once). «Copy the selection as a list» puts a tab-separated table with a header row —
+Name, Folder, Size (as shown, in the units setting), Bytes (exact), Allocated, Modified (ISO 8601 date and time) —
+one row per item in the order on screen, nested items counted once, so it pastes into Excel or a document; the
+notice says «12 rows copied». Paths over 260 characters are copied whole.
 
 ### 6.4 Deleting (rule 3)
 
@@ -1146,35 +1382,166 @@ Nothing is deleted without a confirmation; the Recycle Bin is the default; syste
 
 1. **Move to the Recycle Bin** (Del): dialog `medium`. Title «Move 3 items to the Recycle Bin?». Body: up to 5
    rows (icon, name, size; «and 12 more»), the total «4.2 GB». If some items are too large for the Recycle Bin,
-   Windows would delete them permanently: a `warning` InfoBar inside the dialog says so and lists them.
+   Windows would delete them permanently: a `warning` InfoBar inside the dialog says so and lists them. They are
+   left out (owner, 2026-11-25): the primary button acts on the others and says so («Move the other 2 to the
+   Recycle Bin»), and the InfoBar's ghost button «Delete these permanently…» opens the permanent-delete
+   confirmation (point 2) for them alone, with «Cancel» as the default.
    Buttons: «Move to Recycle Bin» (`primary`, default), «Cancel».
 2. **Delete permanently** (Shift+Del): title «Delete 3 items permanently?», body as above plus «You won't be able
    to recover them.» Buttons: «Delete permanently» (`danger`), «Cancel» (default: Enter does not delete).
 3. **System items in the selection** (`Windows`, `Program Files`, `pagefile.sys`, `hiberfil.sys`, `System Volume
    Information`, the NTFS metafiles…): the first dialog shows a `warning` InfoBar «2 items are system files:
-   Windows may stop working.», and they are **left out** unless the user ticks «Include system items». Ticked,
+   Windows may stop working.», and they are **left out** unless the user ticks «Include system items»; unticked,
+   the button acts on the others and says so («Move the other 11 to the Recycle Bin»), and with only system items it
+   is disabled. Ticked,
    the button reads «Continue» and a second dialog follows: title «Delete system files?», only the system items
    listed, «Delete system files» (`danger`), «Cancel» (default). For `pagefile.sys` and `hiberfil.sys` the
    dialog says they are usually locked while Windows runs and points to Windows' own settings (virtual memory,
    hibernation) to shrink them.
-4. While the file system works: the rows are `pending`; then the model and every parent's totals update at once
-   (`docs/architecture.md`), and a toast reports the result («3 items moved to the Recycle Bin · 4.2 GB freed»).
+4. **Selected items hidden by filters or the search** (§ 6.1, owner, 2026-11-25): as system items, they are
+   **left out** unless included. A neutral InfoBar (`filter` icon) under the list: «"docker_data.vhdx" (48.5 GB) is
+   selected but hidden by the filters: it is left out, unless you include it.», and a checkbox «Include the hidden
+   one too» («Include the 2 hidden ones too»). Ticked, they join the list with a «hidden» badge and the title and
+   total count them; if one is a system item, point 3 applies. With only hidden items and the box unticked, the
+   title says «Nothing visible to move to the Recycle Bin» and the primary button is disabled.
+5. **Special entries in the selection** (owner, 2026-11-25): a neutral InfoBar (`info`, on `control`) between the
+   list and the body, one line, the first that applies:
+   - a link or junction: «"Progetti DaVinci" is a link: the action touches only it, not "D:\Video\Progetti DaVinci",
+     which it points to.»;
+   - an online-only file: «"Backup telefono 2023.zip" is online only: you also remove it from OneDrive, and you free
+     no space on this drive.»;
+   - a second hard-link name: «"Montaggio vacanze 2025.mp4" is another name of "Videos\Montaggio vacanze 2025.mp4":
+     the space is freed only by deleting that one too.»
+   The buttons and the Recycle Bin rule do not change; the notice reports what was really freed («0 bytes freed»).
+6. While the file system works: the rows are `pending` (§ 5.10); then the model and every parent's totals update at once
+   (`docs/architecture.md`), and a toast reports the result («3 items moved to the Recycle Bin · 4.2 GB freed»)
+   with «Undo» (§ 6.5).
    A failure for some items: a toast `danger` with «Show details», listing each item and the reason.
 
-### 6.5 Rename and move
+### 6.5 Rename, move, copy, drag, undo
 
-- Rename (F2): the name cell becomes a `TextField` in place, the name selected without its extension. Enter
-  confirms, Esc cancels; an invalid name or a clash shows the field's error under it, the field stays open.
-- Move («Move to…»): dialog `medium`: a destination path field with «Browse…» (the system folder picker) and the
-  last 5 destinations; «Move» (`primary`), «Cancel». A move across drives says it is a copy plus a delete.
+Owner, 2026-11-25 (card «Azioni sui file»; artboard «AzioniFile»; Rename, Move to…, Open above 10 and Undo work in
+«Main»). Rule 3 everywhere: nothing is lost without the user knowing; rule 4: every action runs with the user's
+rights.
+
+- **Rename (F2)**: in the table the name cell becomes a `TextField` in place, the name selected without its
+  extension; in the Map layout a small `Popover` with the same field opens over the rectangle. Enter confirms,
+  Esc cancels, a click elsewhere confirms. Errors in the field, which stays open: the characters `\ / : * ? " < > |`,
+  Windows' reserved names (CON, PRN, AUX, NUL, COM1–9, LPT1–9), a trailing dot or space, a name already used in the
+  folder (case ignored). Errors after Enter (file in use, permissions): an `InfoBar` under the row with the reason,
+  the old name back. The model, the tree's order and the map update at once.
+- **Move to… (Ctrl+Shift+M)**: dialog `medium` with the items (up to five, «and 7 more», the total), «Move to» with
+  a path field and «Browse…» (Windows' folder picker), the last 5 destinations with their free space, and one line
+  on what will happen: on the same drive the move is immediate; on another drive or a network folder DiskDome
+  copies each file and then deletes the original, and if interrupted what is not yet copied stays where it is.
+  When the destination has not enough space, a `danger` InfoBar says how much is free and how much is needed, and
+  «Move» is disabled. Progress in `ActionProgress` (§ 5.29) with «Stop».
+- **Conflicts**: «A file with the same name», with both files (size, modified, «newer»), and the choices «Keep
+  both» (`primary`: adds « (2)»), «Replace» (the existing one goes to the Recycle Bin, and the dialog says so),
+  «Skip», «Cancel all»; «Do the same for the other 6 conflicts». For folders «Merge» replaces «Replace» and the
+  files inside go through the same choices.
+- **Copy, Cut, Paste**: Ctrl+C puts the files on the clipboard as File Explorer does (paste them in Explorer, on the
+  desktop or in another DiskDome tab); Ctrl+X cuts: the rows stay at 55 % opacity until pasted, Esc cancels;
+  Ctrl+V pastes into the selected folder, or the selected file's folder, from DiskDome or from Explorer. A copy in
+  the same folder takes Windows' name («Photos - Copy»). Ctrl+Shift+C copies the path, not the files.
+- **Drag and drop**: dragging the selection shows a ghost «2 items · 73.5 GB». Windows' rules: same drive moves,
+  another drive copies, Shift always moves, Ctrl always copies. Over a folder row, or a drive tab, the row is
+  highlighted with the verb in `accent-text` («Move into "Archive"», «Copy to "D:"») before the drop. A folder
+  dropped from Explorer outside the rows shows a dashed `accent` frame «Analyze "Projects 2021"» (§ 6.16). Dragging
+  works between DiskDome and Explorer because the interface is never elevated (Windows blocks it across integrity
+  levels).
+- **Open above 10 items** (decision 24): dialog `small` «Open 12 items?», «Each one opens with its program: there
+  may be 12 windows.», «Open 12 items» (`primary`), «Cancel». Up to 10, no question.
+- **Partly done**: a `warning` toast «8 of 10 moved to Z:\Archive · 2 not», with «Show details»: a dialog listing
+  each item with its reason in plain words and what to do («In use: OBS Studio is writing it. Close OBS and try
+  again.»), «Retry» or «Show in File Explorer» per row, «Retry all». What failed stays selected and in place.
+- **Undo**: every file action's notice has «Undo» for at least 8 seconds (§ 5.20); Ctrl+Z undoes the last action, then the previous,
+  up to 10 in the session. Recycle Bin: restores to the original folder; Move, Cut and Paste: brings back; Rename:
+  the old name; Copy and Paste: the copy goes to the Recycle Bin. Delete permanently cannot be undone (that is why
+  its default button is «Cancel»). When the files changed in the meantime, Undo does nothing and says why.
 
 ### 6.6 Search and filters
 
-- Search filters every view to the matching items; the tree keeps their ancestors (in `ink-faint`), expanded.
-  The tab bar's summary says «1.204 matches · 96 GB».
-- Filters («Filters» button: size, modified date, extension or category, attributes) become chips in the filter
-  bar and apply to every view, the treemap included (dimmed). «Clear filters» removes them all; the Filters
-  button shows their count as a `neutral` badge.
+Owner, 2026-11-25 (card «Filtri»; artboard «Filtri», and working in «Main»).
+
+**Search** filters every view to the items whose name matches; the tree keeps their ancestors (in `ink-faint`),
+expanded. The tab bar's summary says «1.204 matches · 96 GB». Wildcards, regex and case as in § 5.4.
+
+**Filters** narrow what every view shows, by the files' properties.
+
+- **The Filters panel** (toolbar «Filters», Ctrl+Shift+F): a 640 px panel under the button, not a dialog (`raised`,
+  `edge`, level-2 shadow). Changes apply at once: there is no «Apply», and the table, the map and the numbers change
+  behind it. Esc or a click outside closes it; the filters stay. Groups, two columns:
+  - **Saved filters** (when there are any), on top: one `Chip`-like button each (`bookmark` icon), the active one
+    `accent-soft`; on hover a `pencil` to rename (in place) and an `x` to delete (the notice has «Undo»).
+  - **Type**: the twelve categories as toggle chips with their swatch (`control`, on: `accent-soft` /
+    `accent-text`); «Extensions» field (`.mp4, .mkv`, Enter adds).
+  - **File size**: Any · ≥ 100 MB · ≥ 1 GB · ≥ 10 GB · < 1 MB, and «From … to» fields («500 MB», «2 GB»).
+  - **Path**: «Inside» (a folder name or a piece of path) and «Exclude» (Enter adds; each excluded folder a chip).
+  - **Modified**: the six age buckets of the map (§ 4.5) as toggle chips with the age swatches, and «From … to»
+    dates.
+  - **Attributes**: Hidden, System, Online only (OneDrive), Links, Compressed by NTFS, each a
+    `SegmentedControl` «All · Only · Without».
+  - **Owner**: All and the owners found on the drive; «Not available folder by folder» in that scan mode.
+  - Footer: «4 files · 27.9 GB of 668 GB» (live), «Clear filters» (ghost), «Save these filters…» (secondary,
+    disabled with no filter), which turns into a name field with «Save» and «Cancel».
+- **Rules**: within a group one choice is enough (Video *or* Images); across groups all must hold (Video *and*
+  ≥ 1 GB). Size, dates, type and owner are the file's: a folder stays when at least one file inside passes.
+  Hidden, System, Compressed and Path also apply to folders and everything they hold.
+- **What changes**: folders show the total of what passes, and % is of the filtered folder; the map keeps its
+  shape and dims what does not pass (nothing moves, § 1); the File types panel, the status bar («With filters:
+  1,739 of 3,803,268 files · 55.1 GB») and every section of the tab count only what passes (Overview, Explore,
+  Clean-up, Timeline, Statistics, Activity). The free space stays Windows'. While a scan reads, filters apply to
+  what was read.
+- **Filter bar** (§ 2.1, under the toolbar, only when a filter is active): a `filter` icon, one `Chip` per
+  filter («Type: Video», «Size: ≥ 1 GB», «Modified: more than 1 year ago», «Without system items», «Owner: stefa»,
+  «Path: Downloads», «Without: Windows»); a click opens the panel at that group, `x` removes it. On the right
+  «1,739 files · 55.1 GB of 668 GB» (`ink-muted`), «Save…» and «Clear filters» (ghost). The Filters button shows
+  the count as a `neutral` badge.
+- **Selection**: selected items that a filter hides stay selected, shown apart in the Explore bar («+1 hidden by the
+  filters»), and actions leave them out unless included when deleting (§ 6.1, § 6.4).
+- **Per tab**: each tab keeps its filters; Back restores them.
+- **Nothing passes**: an `EmptyState` «Nothing with these filters» · «No file on this drive passes every filter.»
+  with «Change the filters» and «Clear filters».
+
+**Written filters** in the search field, with the name: `ext:mp4 size:>1GB vacanze`. A space means «and», a comma
+«or» inside a value, a minus excludes (`-attr:system`, `-path:Windows`).
+
+| Key | Examples | Filters |
+| --- | --- | --- |
+| `ext:` | `ext:mp4,mkv` | extension |
+| `type:` | `type:video` | category (the twelve, in the interface language or English) |
+| `size:` | `size:>1GB`, `size:<4KB`, `size:100MB..1GB` | file size; B, KB, MB, GB, TB |
+| `modified:` | `modified:<2024`, `modified:>2026-11-01`, `modified:2025` | modification date: before, after, during; also 01/11/2026 |
+| `age:` | `age:>1y`, `age:<7d` | how long ago: d, w, m, y |
+| `attr:` | `attr:hidden`, `-attr:system` | hidden, system, online, link, compressed |
+| `owner:` | `owner:stefa` | owner (MFT scans only) |
+| `path:` | `path:Downloads`, `path:Users\stefa`, `-path:Windows` | a folder with that name, or a piece of path |
+
+- Keys are English in both languages (as in Everything and WizTree); Italian aliases work too (`est:`, `tipo:`,
+  `dim:`, `modificato:`, `età:`, `proprietario:`, `percorso:`).
+- A complete filter becomes a chip when Space or Enter follows it; the name stays in the field. Backspace in an
+  empty field removes the last chip.
+- **Suggestions** while typing, in a list under the field (`raised`, level-1 shadow): the keys with an example,
+  then the values really on the drive (extensions with their size and count, categories, owners, attributes,
+  common sizes and ages); click or Enter picks one.
+- **Errors** block nothing: the field's edge turns `danger` and a bubble under it says what is wrong and what to
+  write («"sise:" is not a filter. Did you mean "size:"?», «size: a number with its unit, e.g. size:>1GB»); the
+  rest of the search works.
+
+**Saved filters**: «Save these filters…» in the panel or «Save…» in the bar, with a name proposed from the chips.
+They are listed on top of the panel and in the command palette (Ctrl+K), for every drive and folder; a click
+replaces the active filters. Three come ready at first launch, to keep or delete: «Large files» (≥ 1 GB), «Large and
+old» (≥ 100 MB, more than a year ago), «Videos and photos».
+
+**Where filters come from** (§ 6.11, drill-down): every bar, row, dot or cell outside Explore opens Explore with the
+matching chip: Statistics' «Hidden files» → «Only hidden»; a size band → «Size: 100 MB–1 GB»; a Timeline month →
+«Modified: November 2026»; a double-click on `.mp4` in File types → «Extension: .mp4»; an owner → «Owner: SYSTEM»;
+«Show» on «Large and old» in Clean-up › To review → its two chips. Back returns with the filters of before.
+
+**Keyboard**: Ctrl+Shift+F opens and closes the panel; inside, Tab between groups, arrows between chips, Space
+chooses, Esc closes. In the bar, Tab moves between chips, Del or Backspace removes one, Enter opens the panel at its
+group. Narrator: «Filters, 3 active: type video, size at least 1 GB, without system items. 4 files, 27.9 GB».
 
 ### 6.7 First launch: the scan mode
 
@@ -1192,12 +1559,69 @@ ask for permission» · «Change»); «Change» opens three `OptionCard`s below 
 
 ### 6.8 The Clean-up view
 
-The Clean-up section (Ctrl+3) lists the rebuildable developer folders (`node_modules`, `target`, the npm, pnpm, cargo and gradle
-caches, Android `build`): a header line with the recycle icon and «You can free 147 GiB with rebuildable folders»
-plus one caption line on why it is safe; a table (checkbox, folder, project path middle-elided, size, last used);
-a 44 px footer bar on `bg` with «6 selected · 87.9 GiB» and «Move to Recycle Bin» (`primary`: it is the view's main
-action and reversible). The deletion follows § 6.4. **Nothing is preselected** (owner, 2026-11-24): the user ticks
-what to remove. The guided clean-up of § 4.8 (rebuildable folders, Temp, old Downloads in one list) is in v1.
+Owner, 2026-11-25 (card «Pulizia guidata completa»; working in «Main», section Clean-up). The Clean-up section (Ctrl+3)
+is the guided clean-up of § 4.8: one list in groups, the drive of the tab, nothing preselected (owner, 2026-11-24).
+
+- **Header** (recycle icon, `accent-text`): «You can free up to 186 GB: 167 GB here, 19.1 GB with Windows' tools» and
+  one caption: «Nothing is chosen for you: tick what to remove. Everything goes to the Recycle Bin.» The total is the
+  same as Overview's «You can free» card, which lists the same groups.
+- **Table** columns: checkbox (34), Name (240, icon), Where (the folder, middle-elided, whole in the tooltip), Size,
+  Modified, and a ghost «Show» on hover (opens Explore with the item selected). Rows `row`, sorted by size.
+- **Groups**, each a 34 px sticky header on `bg` with a chevron (collapse), a tri-state checkbox for the whole group
+  (`minus` when some are ticked), the group's icon in `accent-text`, its name in 600, «why it is safe» in `caption`
+  `ink-muted` (whole in the tooltip), the ticked sum in `accent-text` and «24 items · 147 GB» on the right:
+  1. **Rebuildable folders** (`recycle`): «They are rebuilt by the next build or install: node_modules, target, the
+     npm, pnpm, cargo and gradle caches.»
+  2. **Temporary files** (`clock`): the user's `%TEMP%`. «Programs create them and forget them. Files in use and files
+     modified in the last 24 hours are skipped.»
+  3. **Downloads not modified for over a year** (`arrow-down`): one row per file or folder in Downloads.
+     «Downloaded and never touched again: look at the list before removing them, they do not come back by
+     themselves.»
+  4. **Identical copies** (`copy`, owner 2026-11-25: a group of Clean-up, card «Duplicati»), below.
+  A group shows its first 8 rows and «Show the other 16 · 44.8 GB». An empty group keeps its header with «Nothing on
+  D:» on the right, so the user sees what was looked for.
+- **Identical copies**: files of the same size (at least 1 MB) found at once from the MFT; hard links (the same
+  file) and online-only files (comparing them would download them) never count.
+  - **Before comparing**: the header says «File with the same size: maybe copies. Compare the content first, then
+    choose which to remove», «4 sets · up to 28.6 GB» and a secondary button «Compare the content». Each set is a
+    row (`copy` icon, the name in 600, «2 files of 17.0 GB», a `neutral` badge «to compare», the space it would free
+    and «to free»), followed by its copies indented by 20 px with their folder and date, the oldest marked «the
+    oldest». The checkboxes are disabled («Compare the content first»): nothing that might differ can be ticked.
+  - **Comparing**: a background job with its `ActionProgress` («Comparing the content of 4 sets · 26.2 GB»,
+    «Stop»), reading the files with the user's rights: first a sample of the start and the end, then the whole
+    content; the app stays usable. The notice at the end: «Comparison done: 3 identical sets, 1 different, removed
+    from the list».
+  - **After**: the badge turns `success` «identical, verified»; sets that differ leave the list, and the group's
+    caption says so («1 set had the same size but different content: it is not in the list»). The checkboxes work;
+    **the last copy of a set can never be ticked**, in this group or in any other (`cbx` at 35 %, tooltip «It is
+    the last identical copy: you keep it»), so a copy that is also an old Download cannot be lost twice. On hover
+    each copy offers «Keep this one» (ticks the others) and «Show». The group's checkbox ticks every copy but the
+    oldest of each set. The confirmation adds «One identical copy always stays: "C:\Users\stefa\Videos\…"».
+  - **Errors**: a file that cannot be read leaves its set with «unreadable»; a file that changes during the
+    comparison marks the set «changed during the comparison: compare again».
+  - The header's total counts only verified copies, once even when a copy is also in another group; before
+    comparing it says «plus the copies to compare». Overview's «You can free» counts them the same way.
+- **With Windows' tools** (no checkboxes, `external-link` header): the Recycle Bin («Open the Recycle Bin»), hibernation
+  (`shield-alert` in `warning`, «Power options»: «if you don't use hibernation, Windows can remove it»), Windows Update
+  and Windows' Temp («Disk Cleanup»: «needs administrator rights, which DiskDome does not use to touch files», rule 4).
+  Each row has a secondary button with `external-link`; DiskDome only opens the tool.
+- **Footer** (44 px, `bg`): «3 chosen · 43.7 GB» (or «Nothing chosen: tick what you want to remove»), «Clear the ticks»
+  (ghost) and «Move to the Recycle Bin…» (`primary`, disabled with nothing ticked). It opens the usual confirmation
+  (§ 6.4) with the ticked items; for Temp the dialog adds «Temporary files in use and modified in the last 24 hours
+  are skipped: they stay where they are.» Cancel keeps the ticks.
+- **While and after**: the rows are `pending` (§ 5.10); the notice says what was really freed and what was skipped:
+  «4 items moved to the Recycle Bin · 48.7 GB freed · 214 files in use skipped (420 MB): they stay in Temp». Temp
+  then shows what is left, with «in use: they stay while a program keeps them open». Items too large for the Recycle
+  Bin follow § 6.4.
+- **Nothing at all**: the header says «Nothing to clean on D:» and the caption «No rebuildable folder, no temporary
+  file, no old download. For the largest files look at "To review" or the File list.», with «Open the File list».
+- Filters (§ 6.6) apply here too.
+
+**To review** (owner, 2026-11-25, decision 32): a 380 px column on the right, on `surface` with a left `line`: overline «TO
+REVIEW» and the total, the Big and old chart (§ 4.7) and the five largest folders of its quadrant, each with its
+age, size and «Show» (to Explore). One caption: they do not rebuild themselves, look at what they hold, delete them
+from Explore with the usual confirmation. Nothing here has a checkbox. Without such folders the column says
+«Nothing big untouched for over a year»; under 960 px it moves under the table.
 
 ### 6.9 Messages and tone
 
@@ -1219,10 +1643,32 @@ artboard «Scopo».
 
 ### 6.10 Settings
 
-Dialog `large` (680 × 520) with a list of sections on the left (160 px): General (language, units), Appearance
-(theme System / Dark / Light, density Normal / Compact with a live preview of three table rows, map style
-with a small live map, map colours Standard / Soft / Vivid, map names None / Few / Many / All), Scan (scan mode, drives to skip), Columns (visible
-columns per view). Changes apply at once; no OK / Apply.
+Owner, 2026-11-25 (card «Impostazioni»; working in «Main»: the toolbar's `settings` button, Ctrl+,).
+
+A dialog 780 × 560 (at most the window minus 16 px), `raised`, level-3 shadow, over the `scrim`. On the left a 168 px
+column on `bg` with the overline «SETTINGS» and six sections (the current one `control` with a 2 px `accent` mark on
+its left); on the right the section, scrolling; at the bottom a 48 px bar. **Changes apply at once**, the window
+behind changes with them: no OK, no Apply, no Save. Esc or «Close» closes it. It opens at General; «Change» next to
+the scan mode (Start, § 6.7), the scan mode and the units in the status bar, and «Change in Settings» in the map's
+menu open it at their section.
+
+Each setting is a row: the label (150 px) on the left, the control, then one `caption` line on what it does.
+
+| Section | Settings |
+| --- | --- |
+| **General** | Language: «Like Windows (Italian)» · Italian · English (the default follows Windows: Italian if Windows is Italian, otherwise English; applies at the next launch). Units (§ 4.1): «Like File Explorer» · «Binary (GiB)» · «Decimal», with an example line («A 1 TB drive shows 931 GB, the same numbers as File Explorer»). CSV files (§ 6.18): «Like Windows ( ; )» · Comma · Semicolon · Tab, the separator of exported CSV files; «Like Windows» reads the regional list separator, which is what Excel expects on a double-click. Notifications: a switch «Tell me when a scan ends and DiskDome is not in front» (on). |
+| **Appearance** | Theme: «Like Windows» · Dark · Light (follows Windows even when it changes). Density: Normal · Compact, with a live preview of three table rows. Map style: the eight styles as 96 × 64 tiles, each a small live map of four rectangles in that style, the chosen one with a 1 px `accent` ring (Vignette the default). Map colours: Standard · Soft · Vivid. Map names: None · Few · Many · All (also in the map's menu). |
+| **Scan** | Mode: the three `OptionCard`s of § 6.7. With «never asks» chosen and no service yet: an InfoBar «The service is not installed yet. Windows asks for permission once.» with «Install the service» (`primary`, `shield-alert`: the UAC prompt); installed: «Service installed and running · it only reads the index: it does not write, delete or move.» with «Remove the service» (UAC again); it stays installed if another mode is chosen, and the line says so. One caption: «The interface never runs as administrator: the permission is only for the small index reader» (rule 4). Live updates: a switch (on; «from NTFS's journal; not on folder walks and network paths»). At launch: a switch «Rescan NTFS drives when you open DiskDome» (on; folders and network paths rescan only when asked). Drives: one checkbox per drive, «shown in Start and in the "+" menu»; unticked ones are only here. |
+| **Saved summaries** | «DiskDome keeps a summary of every scan, only on this PC: the last 30 and one per month. Timeline, History and "Since yesterday" use them.» One row per drive or folder: name, «31 summaries · 74.2 MB · since 24/10/2025», «Delete…». Delete asks in place: «Delete the 31 summaries of C:? Timeline, History and "Since yesterday" start again from the next scan.» with «Delete» (`danger`) and «Cancel» (default). Under the list the total and the folder («%LOCALAPPDATA%\DiskDome») with «Open the folder». |
+| **Columns** | The Tree's and the File list's columns as checkable lists (the same as «Columns…», § 5.10), each with «Restore»; order and widths are changed by dragging in the table. |
+| **File Explorer** | A switch «Show "Analyze with DiskDome" on folders and drives» (on; also on the background of an open folder; on Windows 11 it is under «Show more options»; a folder on a drive already scanned opens there without reading it again), and the command line `diskdome.exe <path>`, which does the same (§ 6.20). |
+
+- **Bottom bar**: «Restore the defaults…» (ghost) and «Changes apply at once: nothing to save.» on the left,
+  «Close» (secondary) on the right. «Restore the defaults…» asks in the bar: «Put every setting back as at the
+  start? Saved summaries and saved filters stay.» with «Restore» (`danger`) and «Cancel» (default).
+- Settings are stored on this PC with DiskDome's data (`docs/architecture.md`); nothing is sent anywhere.
+- Keyboard: Ctrl+, opens; ↑ ↓ in the section list, Tab into the section; every control is reachable; Esc closes.
+  Narrator reads the section's name, then each row's label, control and caption.
 
 ### 6.11 Flows and navigation
 
@@ -1238,12 +1684,12 @@ bar: how to look at it) → 3 · in Explore only, the **layout** (Tree · Both �
 | Overview | Ctrl+1 | § 4.5: one sentence on the drive, the map, what you can free | automatically after a drive's scan |
 | Explore | Ctrl+2 | the table (Tree or File list), the map, the side panel | the map and every number, row, bar or dot elsewhere; Enter in the search |
 | Clean-up | Ctrl+3 | § 6.8 | «Free up space…» (Overview's primary button) and «Open Clean-up» |
-| Timeline | Ctrl+4 | months, calendar, history, compare, modified in the last 7 days (§ 4.5, § 4.7) | the day bars |
+| Timeline | Ctrl+4 | what changed and history (from the second scan), the last 7 days, months, calendar (§ 4.5, § 4.7) | the day bars; «See what changed» in Overview |
 | Statistics | Ctrl+5 | § 4.6 | the summary in the section bar and the status bar |
 | Activity | Ctrl+6 | § 4.5; empty at first: «Here you see what changes while DiskDome is open. Nothing yet.» | «Live» in the status bar |
 
 - **Section bar**: a row at `tabbar` height under the toolbar, full width, present once the drive has been scanned:
-  the six section tabs left, ordered by use (Overview, Explore, Clean-up, Timeline, Statistics, Activity), the summary «670 GiB used · 284 GiB free» right (a ghost button to Statistics). It
+  the six section tabs left, ordered by use (Overview, Explore, Clean-up, Timeline, Statistics, Activity), the summary «670 GB used · 284 GB free» right (a ghost button to Statistics). It
   replaces the old view tabs (Tree, Largest files, Clean-up): Largest files becomes Explore › File list.
 - **Explore's bar** (full width under the section bar, Explore only): «Tree · File list» (Ctrl+Alt+T / L), the layout
   «Table · Both · Map» and the panel toggle, which therefore never appear disabled in other sections; on the right
@@ -1303,7 +1749,7 @@ another section. A new control is added here before it is drawn; the Kit (§ 9) 
 | Aa, .* | Alt+C, Alt+R | match case, regular expression |
 | Filters | Ctrl+Shift+F | popover: size, date, category or extension, attributes, owner; each filter becomes a chip |
 | Settings | Ctrl+, | opens Settings |
-| More «⋯» |  | menu: Export… · Commands (Ctrl+K) · Shortcuts (Ctrl+/) · About · Report a problem |
+| More «⋯» |  | menu: Export… (Ctrl+Shift+E) · Command palette (Ctrl+K) · Keyboard shortcuts (Ctrl+\) · Settings · Help (F1) · Report a problem · About DiskDome |
 
 **Filters and messages** (only with a filter or a message)
 
@@ -1387,7 +1833,7 @@ another section. A new control is added here before it is drawn; the Kit (§ 9) 
 | Up | Backspace, Alt+↑ | up one level |
 | Breadcrumb |  | zoom to that level |
 | Free space |  | shows or hides the free-space block (drives only) |
-| Options «⋯» |  | Style ▸ · Shape ▸ Rectangles, Rings, Layers · Colours ▸ Type, Age · Names ▸ · Palette ▸ · Save image… |
+| Options «⋯» |  | Shape: Rectangles, Rings, Layers · Colours: Type, Age · Names · Style (in Settings) · Save as image… · Copy as image |
 | Rectangle |  | hover: outline and details in the header; click: select; double-click or Enter: zoom into the folder |
 | Rectangle, right-click |  | context menu |
 | Free-space block |  | hover only (not selectable) |
@@ -1452,7 +1898,7 @@ another section. A new control is added here before it is drawn; the Kit (§ 9) 
 | Deletion: Move to Recycle Bin / Delete permanently · Cancel | Enter, Esc | Enter never deletes permanently |
 | Deletion: Include system items |  | ticked, a second dialog follows |
 | Move: Browse… · Move · Cancel |  | destination folder |
-| Export: format · what · Save… |  | CSV, JSON, HTML report, map image |
+| Export: what · format · options · Save in | Ctrl+Shift+E | CSV, JSON, HTML report, map image; «Export» or «Replace» (the old file to the Recycle Bin) |
 | Settings: sections · controls · × | Esc | changes apply at once; no OK |
 | Commands (palette) | Ctrl+K | find and run any command or folder by name |
 
@@ -1479,7 +1925,7 @@ When each control of § 6.12 is enabled, disabled, hidden or asks first, in ten 
 disabled control **stays in place**, so nothing moves, and its tooltip says why («Select an item», «Needs the USN
 journal», «E: is not connected»); a hidden one has no meaning in that situation. **File actions are never disabled
 because another one is running** (owner, 2026-11-24: «disabling them looks slow; only a loading modal would
-justify it, and we have none»): they run in parallel, each with its own progress card at the bottom right (§ 5.29);
+justify it, and we have none»): they run in parallel, each listed in the status bar (§ 5.29);
 only closing the window asks while one runs.
 
 | Control | Never scanned | MFT scan | Folder walk | Ready, nothing selected | One item | Several items | System item | No-admin mode | File action running (in parallel) | Drive unavailable | Note |
@@ -1530,7 +1976,7 @@ sentence; the details go to the log (§ 6.9).
 | File in use | toast, danger | 2 items were not moved to the Recycle Bin. | Show details → «In use by Steam» · Try again | `InUse { by }` |
 | No permission for the action | toast, danger | You don’t have permission to move 3 items. DiskDome doesn’t ask for administrator rights for file actions. | Show in File Explorer | `AccessDenied` |
 | Not enough space to move | the dialog | D: has 12 GB free, 48.5 are needed. | «Move» disabled · Choose another folder | `NoSpace { free, need }` |
-| Too large for the Recycle Bin | the dialog | 2 items are too large for the Recycle Bin: Windows would delete them for good. | Leave them out · Delete permanently | `TooLargeForBin` |
+| Too large for the Recycle Bin | the dialog | 2 items are too large for the Recycle Bin: Windows would delete them for good. They are left out. | «Move the other 3 to the Recycle Bin» · «Delete these permanently…» (its own confirmation) | `TooLargeForBin` |
 | Invalid or taken name | the field | A file with this name already exists. | the field stays open | `NameTaken / NameInvalid` |
 | Path too long | toast, warning | File Explorer can’t open paths this long (318 characters). | Open terminal here · Copy path | `PathTooLong` |
 | Journal overrun | status bar, warning | Live updates paused: too many changes at once. | Scan again | `JournalWrapped` |
@@ -1585,7 +2031,8 @@ Main, plus Cartella and Ritorno.
 
 **Where the user comes from**: the Start menu (first time: the Start tab); Windows' «low disk space» warning
 (Windows does not open DiskDome; the drive is marked «almost full» on Start); File Explorer › right-click a drive or
-folder › «Analyze with DiskDome» (v1, owner 2026-11-24: a menu entry registered by the installer, no shell extension); a folder
+folder › «Analyze with DiskDome» (v1, owner 2026-11-24: a menu entry registered by the installer, no shell extension;
+what DiskDome then does is § 6.20); a folder
 dropped on the icon or the window; the next launches (the tab and section of before, § 6.11).
 
 **All the ways to choose what to analyze**
@@ -1599,7 +2046,8 @@ dropped on the icon or the window; the next launches (the tab and section of bef
 | «Network path…» | Start, «+» | User | type `\\server\share` or pick it under Network; mapped network drives are listed with the drives |
 | Recent | Start, «+» | Saved | reopens the tab with its last scan and updates it |
 | Right-click a folder in Explore › «Open in a new tab» | DiskDome | Scan | a tab of that folder, no new read |
-| Command line `diskdome D:\Projects` (v1) | terminal | User | as a dropped folder |
+| «Analyze with DiskDome» | File Explorer | User | § 6.20: the drive's tab, the folder inside its scanned drive, its own tab, or a new folder tab |
+| Command line `diskdome D:\Projects` (v1) | terminal | User | as «Analyze with DiskDome» (§ 6.20) |
 
 **Step by step**: (1) opening: «What do you want to analyze?» and one sentence on what DiskDome does (it only
 reads); (2) the drives as in «This PC», each with a usage bar, used and free, type, «never scanned», and one
@@ -1609,8 +2057,231 @@ time left and «you can keep using the PC»; at the end a notice says what it fo
 space…»; (7) a file: name, folder, type, size (not for now) «What is it?», two lines we write for the most
 common large files and folders (`hiberfil.sys`, `pagefile.sys`, `.vhdx`, `node_modules`, Steam libraries,
 OneDrive…), offline; (8) freeing space: the Recycle Bin by default, why each Clean-up item is safe, system files
-left out; (9) the next time: where they were, the last scan at once and «since yesterday +3.2 GiB» with where it
+left out; (9) the next time: where they were, the last scan at once and «since yesterday +3.2 GB» with where it
 came from.
+
+### 6.17 Scanning more: network paths, a folder again, several drives, live updates
+
+Owner, 2026-11-25 (card «Analisi»; artboard «AnalisiPiu», and working in «Main»).
+
+- **Network path…** (Start and the tabs' «+»): a dialog `medium` «Analyze a network path», a monospace field
+  `\\server\folder` (focused), «RECENT» with the last paths (path, «scanned on 12/11/2026 · 1.40 TB» or «never
+  scanned»; a click fills the field), «Browse the network…» (Windows' folder picker on Network) and one caption: it is
+  read folder by folder with the user's rights, slower on a slow network, no live updates, and mapped drives (Z:) are
+  already among the drives. «Analyze» (`primary`, disabled while empty) and «Cancel». Errors stay in the dialog, under
+  the field in `danger`: a drive letter («Z: is a drive: open it from the tabs or the "+" menu»), a path without
+  `\\`, a server that does not answer («\\nas\foto does not answer. Check the connection and that the path is
+  right, then try again»). Credentials are asked by Windows in its own dialog; meanwhile a neutral InfoBar says
+  «Windows is asking for a user name and password for this server. DiskDome does not see them or save them.» and
+  «Analyze» waits. The path opens as a closable tab with the `network` icon, scanned at once; no rescan at launch.
+- **Rescan this folder** (F5, or the menu; on a file, its folder; Ctrl+F5 the drive): only that folder is read
+  again while everything stays usable. Its row shows the 16 px progress ring instead of the icon and «rescanning
+  35%» after the name in `ink-faint`; its numbers stay, in `ink-faint`, until the new ones arrive. In the map its
+  box is dimmed (`bg` at 40 %) with a 2 px `accent` line along its top edge that grows. At the end every total
+  changes at once and the notice says the difference: «"Downloads" rescanned at 15:27: +1.2 GB since last time»
+  or «no difference since last time».
+- **Another drive while you look at this one**: a scan runs in its tab while another tab is shown. The scanning
+  tab shows a 14 px progress ring instead of its icon (tooltip with the percentage); the status bar lists
+  «Analysis of E:» among the running operations (§ 5.29), with «Folder by folder · 42% · you can keep looking at C:»
+  and «Stop» in its popover. At the end a notice
+  «Analysis of E: complete · 4,552 files, 32.2 GB · you'll find it in its tab» and, when DiskDome is not in front, a
+  Windows notification (Settings › General). Two drive's-index scans of the same drive never run together.
+- **Stopped**: a folder walk keeps what it read: a `warning` info bar under the toolbar «Analysis of E: stopped at
+  42%: you see what was read, totals are lower than real.» with «Resume» (reads again from the start, keeping the
+  partial view until the new one is ready); the tab's tooltip adds «scan stopped». A drive's-index scan is all or
+  nothing: the previous scan stays («stopped: the scan of today at 21:14 stays»), or the call to action comes back.
+- **Live updates** (§ 2.2): the status bar's dot and label say the state; a click opens a 320 px popover with the
+  state, why, and one action:
+
+| Label | When | Action |
+| --- | --- | --- |
+| Live (`success` dot) | NTFS, drive's index, on | Pause |
+| Live updates paused | paused by the user; resuming brings the changes of those minutes from the journal | Resume |
+| Live updates paused | the journal overflowed (`JournalWrapped`, § 6.14) | Scan again |
+| Live updates off | off in Settings › Scan | Turn on |
+| No live updates | not NTFS, network path, folder walk | Scan again · Change mode |
+| No live updates | a folder scanned apart (its drive may be live) | Rescan (F5) |
+
+  Activity without live updates is an `EmptyState` with the same reason and action.
+
+### 6.18 Export
+
+What a scan found, taken out of DiskDome as a file (owner, 2026-11-25; artboard «Esportazione»). Exporting only
+reads the model and writes the one file chosen, with the user's rights (rule 4); it never touches the files analysed.
+
+**From where.** The app's ⋯ menu › «Export…» (Ctrl+Shift+E; Ctrl+E stays «Show in File Explorer») starts on the
+whole drive; the context menu › «Export the selection…» (in the Copy group) starts on the selection; the map's options
+menu › «Save as image…» starts on «Map image» and the folder open in the map (§ 4.4). The command palette lists
+«Export…» and «Save the map as an image…». The dialog remembers the last format and its options; the starting point
+decides «What» every time.
+
+**The dialog** (720 px, fits 960 × 600 without scrolling; artboard «Esportazione»):
+
+- **What**, a radio list with the counts on the right: «All of C:» (or «All of the folder …» for a folder tab),
+  «The folder open in the map» (only when the map is zoomed), «The selection» (disabled with its reason when nothing
+  is selected, or, for an image, when it is not one folder). Selected items hidden by filters or the search are left
+  out until «Also include …» is ticked, as when deleting (§ 6.1, § 6.4). With filters or a search active, a ticked
+  «Only what passes the filters: Video» makes rows and totals follow what is on screen; for an image the filters stay
+  as on screen (dimmed).
+- **Format**, a list of four with what each is for: **CSV** «for Excel and spreadsheets», **JSON** «for scripts and
+  other programs», **HTML report** «to read, print or send», **Map image** «PNG».
+- **Options** of the chosen format, on the right:
+  - CSV and JSON: rows (folders and files · only folders · only files) and depth (all, or up to N levels from the
+    starting point, 1–20, with a stepper).
+  - CSV: columns (Path plus the table's visible columns in their order, or all: Path, Name, Type, Extension,
+    Category, Size, Allocated, % of folder, Files, Folders, Modified, Created, Accessed, Attributes, Owner) and sizes
+    (in bytes, to calculate; or readable, as in the table). The separator is not chosen here: it is a setting
+    (Settings › General › «CSV files», § 6.10), by default Windows' list separator («;» in Italian), and the dialog
+    says which one it will use («Separator: «;», like Windows · changed in Settings › General»).
+  - HTML report: what it contains, ticked by default: the map, the 50 largest folders, the 50 largest files, file
+    types, what can be freed, what changed (only with a saved scan, naming its date); and «Hide your user name in
+    paths» (`C:\Users\…\`), unticked.
+  - Map image: size (as on screen · 1920 × 1080 · 3840 × 2160, with the screen's size written under), «With folder
+    names», «With the colour legend and the total».
+  - Under the options, one line saying what the file is like.
+- **Save in**: the whole path in one field and «Browse…» (Windows' Save As). The first time Documents, then the last
+  folder used; the name «DiskDome C 2026-11-25.csv» (with the folder's name, or «selection», when it is not the whole
+  drive), «(2)» added when it exists.
+- Left of the buttons, the estimate: «4,075,050 rows · about 544 MB» (pixels for an image, «with the filters» when
+  they apply), updated at every choice. «Export» is the default button.
+
+**Cases.** Over 1,048,576 rows in a CSV: a `warning` InfoBar with the real number and what to do («Only folders»,
+fewer levels, another program); it does not block. A name that exists: an InfoBar and the button becomes «Replace»;
+the old file goes to the Recycle Bin (rule 3) and the focus moves to «Cancel». A destination without permission, a
+full disk or a drive removed is found while writing (below).
+
+**While and after.** The dialog closes at once and the export is an operation in the status bar (§ 5.29), «Exporting
+C: to CSV», with «Stop»; work goes on and several can run. It reads a snapshot of the model taken when it starts, so
+changes from the journal do not mix into the file. It writes to `name.ext.part` beside the target and renames it at
+the end: stopping or failing leaves no half file and never touches a file with that name. At the end a notice «Exported
+"DiskDome C 2026-11-25.csv" · 544 MB · 4,075,050 rows» with «Show in File Explorer» and «Open» (Windows' default
+program). On failure a `danger` notice that stays until closed says why (space, permission, drive gone) and offers
+«Choose where to save…» and «Retry»; the full path and the OS error go to the log (§ 6.14).
+
+**The files.**
+
+- **CSV**: UTF-8 with BOM (Excel reads the accents); a header row with the column names in the app's language; text
+  in double quotes (quotes doubled); dates «2026-11-25 14:00» in local time, which Excel recognises; percentages with
+  Windows' decimal separator; folders end with `\`. One row per item, parents before children.
+- **JSON**: UTF-8; sizes always in bytes, dates ISO 8601 in UTC, keys in English (it is for programs): `diskdome`
+  (version), `drive` (letter, label, file system, capacity, free), `scanned`, `scope`, `filters`, `depth`, then
+  `root`, nested like the tree, each item with `name`, `size`, `allocated`, `files`, `folders`, `modified`,
+  `created`, `category`, `attributes`, `owner` and `children`. The command line writes the same format.
+- **PNG**: the map redrawn at that size by `diskdome-treemap` (not scaled up), in the current style, colours and
+  theme, with names and legend when ticked; no selection, no hover.
+- **HTML report**: one `.html` file of about 2–3 MB with its style, the map (PNG inside) and tables; no script, no
+  font, image or link fetched from the internet, no form: it opens offline in any browser and can be attached to a
+  mail. A header (drive, scan date, usage bar and counts), then the parts ticked; each table shows 10 rows and «Show
+  all 50» opens the rest (a `details` element). It follows the reader's light or dark theme
+  (`prefers-color-scheme`) with DiskDome's colours, prints light on white, A4 portrait, a part never split across two
+  pages. The footer says it was made by DiskDome on this PC, that nothing was sent, and what a GB is. No PC name.
+- Sizes follow the units setting (§ 4.1) where they are readable; in bytes they depend on nothing.
+
+**Copy as image** (map options menu) puts the map at the size on screen on the clipboard and says so in a notice
+(«Map copied to the clipboard as an image · 1240 × 410 px»).
+
+### 6.19 The app menu, the command palette, shortcuts, About
+
+The app's own commands (owner, 2026-11-25; artboard «PaletteComandi»).
+
+**The app menu.** The `ellipsis` button at the end of the toolbar, after Settings, opens a `Menu` that never changes:
+«Export…» (Ctrl+Shift+E), «Command palette» (Ctrl+K), «Keyboard shortcuts» (Ctrl+\) · «Settings» (Ctrl+,) · «Help»
+(F1) and «Report a problem», each with a small `external-link` because they open the browser · «About DiskDome».
+Help opens the user guide in the repository (the README until a guide exists). Report a problem opens a new GitHub
+issue with the version and Windows' version already written; DiskDome itself sends nothing. The menu holds only the
+app's commands, never a file's: those are in the context menu and in Explore's bar.
+
+**The command palette** (Ctrl+K, or the app menu): a popup (§ 3.11: one at a time) at the top centre, 40 px from the
+window's top, over the toolbar, 640 px wide (8 px from the edges in a narrow window), at most the window's height
+less 80 px. A field «Type a command, a folder or a filter…» with `search` and an `Esc` key cap; the results; a
+footer with the keys (↑ ↓ to move, Enter to run, Esc to close, Ctrl+\ all the shortcuts).
+
+- **Empty**: «Recent» (the last 5 commands run, kept between sessions), «Sections» with Ctrl+1…6, «DiskDome» (the app
+  menu's commands).
+- **Typing**: «Commands» (up to 8), «Settings» (up to 3: each section of Settings and the main choices, «Theme: Dark»),
+  and from two letters «Folders and files» (the 5 largest whose name contains the words, with path and size), «Saved
+  filters», «Drives and open folders». Words match at the start of a word of the name or of its keywords, which
+  include the English names in the Italian interface («rename», «export»); case and accents do not matter.
+- **Rows**: 30 px, `Menu` items with an icon, the name, a hint in `ink-faint` (a path and size, a filter) and the
+  shortcut as a `Kbd`. A command that cannot run now stays, dimmed, with its reason where the shortcut goes («select
+  something first», «one item at a time», «no filter on»), as disabled controls do (§ 6.13); it sinks below the
+  ones that can run.
+- **Keys**: ↑ ↓ move the highlight (the pointer too), Enter runs the highlighted row and closes, Esc closes. A folder
+  or a file opens Explore with it selected; a saved filter applies; a drive opens its tab; a setting opens Settings on
+  its section.
+- **Nothing found**: «Nothing for "xyz". Try another word, or search the files with Ctrl+F».
+- The commands, their names, shortcuts and reasons are the list of § 6.12 (artboard «Comandi»): one source for the
+  menus, the palette and the shortcuts dialog.
+
+**Keyboard shortcuts** (Ctrl+\, or the app menu; owner, 2026-11-25: not Ctrl+/, which needs Shift on the Italian keyboard): a 780 px dialog, «Keyboard shortcuts», a search field at the top
+right («Search an action or a key»), the shortcuts of § 6.2 by area in two columns — General, Drives and sections,
+Search and filter, Explore, Selection, Files — each row the action and its keys as `Kbd`, written as Windows writes
+them in the interface's language (Maiusc, Canc, Invio, PagSu in Italian). Searching filters by action or key
+(«ctrl+e»); with nothing found it says so. The footer: «Windows' shortcuts work here too. In menus and in the palette
+every command shows its own.» and «Close». A shortcut added to § 6.2 appears here, in the menus and in the palette.
+
+**About DiskDome** (the app menu): a 560 px dialog with three tabs of the same height:
+
+- **DiskDome**: the mark at 48 px, the name, «Version 0.1.0 · 25 November 2026 · Windows 11 24H2, x64» with «Copy»
+  (for a report), one sentence on what it does, the copyright («© 2026 Stefano Domenghini», the owner confirms the
+  holder), the GPL notice («DiskDome is free software: you can redistribute it and/or modify it under the terms of
+  the GNU General Public License, version 3 or, at your option, any later version. It comes with no warranty.»),
+  «Source code» and «Report a problem» (browser), and «DiskDome does not connect to the internet and sends no data to
+  anyone. The buttons with the arrow open your browser.»
+- **Licence**: the full text of the GNU GPL v3 shipped with the program (`LICENSE`), scrollable; the English text is
+  the one that applies. The GPL asks that an interactive program show it to the user.
+- **Third-party components**: component, version, licence and what it is for — Slint (used under GPL-3.0-only),
+  windows-sys and rayon (MIT or Apache-2.0), Lucide (ISC) — then every crate they use, each expandable to its licence
+  text, generated at build time from `Cargo.lock` (cargo-about), plus the assets of `THIRD_PARTY.md`. The font is
+  Windows' Segoe UI, not shipped.
+
+### 6.20 «Analyze with DiskDome» from File Explorer and the command line
+
+Owner, 2026-11-25 (artboard «AnalizzaCon»; in «Main», Tweaks › «Prova: Analizza con DiskDome»).
+
+**In File Explorer.** One entry, «Analyze with DiskDome», with the mark: on a folder, on a drive (in «This PC») and on
+the background of an open folder (it analyses that folder); never on a file. The installer registers it for the user
+(HKCU) as a static verb: no shell extension, no administrator rights (rule 4); Settings › File Explorer removes and
+restores it (§ 6.10). On Windows 11 it is under «Show more options» (Shift+F10): the first menu takes only apps with a
+signed package identity, after v1 with code signing. Several folders selected: one tab each, up to 8; a notice says how
+many were left out.
+
+**From the command line.** `diskdome [path …]` does what the entry does, path by path, and returns to the prompt at
+once. Relative paths against the terminal's folder (`.`), quotes around spaces; a letter alone (`C:`) is the drive;
+`\\server\share` is a network path; a file opens its folder with the file selected. The installer registers
+`diskdome.exe` under App Paths (Win+R too) and adds its folder to the user's PATH. Scripts that want data without a
+window use `diskdome-cli`, whose JSON is the export's (§ 6.18).
+
+**What DiskDome does**
+
+| What you open | What DiskDome does |
+| --- | --- |
+| A drive | its tab; never scanned: the scan starts at once (USB, exFAT folder by folder; an internal drive with its index: Windows' permission prompt first); scanned: as it was, kept current by live updates |
+| A folder on a drive already scanned | the drive's tab, Explore, the folder selected and the map zoomed on it; nothing is read again, and a notice says so: «"Downloads" is in C:, scanned today at 21:14: shown here, not read again» with «Read it again (F5)» |
+| A folder that already has its tab | that tab, no second one; the notice says when it was read, with «Read it again (F5)» |
+| A folder on a drive not scanned | a new tab for the folder, read folder by folder with the user's rights: faster than the whole drive |
+| A network path | the «Network path» dialog with the path written in; Enter starts (§ 6.17) |
+
+- **DiskDome closed**: it opens straight on that tab, not on Start; the tabs of the last session reopen behind it.
+- **DiskDome open**: one window. A second launch hands its paths to the first and exits; the window comes to the front
+  (restored if minimised); the tab shown before keeps its state (Alt+← goes back).
+- **A scan running**: the new one runs alongside in its tab, both listed in the status bar (§ 5.29).
+- **A dialog open** (Export, Settings): it stays; the new tab opens behind it and its notice waits (§ 3.11); a network
+  path waits and its dialog opens when the other closes.
+
+**Errors** are `danger` notices that stay until closed (§ 5.20), with what to do; with DiskDome closed it opens anyway,
+on Start or the last tab, so the notice is seen:
+
+- a drive that is not there: «F: is not connected. Reconnect it and try again.» with «Retry»;
+- a path that does not exist: «Can't find "C:\Progetti": it may have been moved or renamed.» with «Choose a folder…»;
+- a path that is not valid (command line): «"…" is not a valid path: it needs a drive letter or \\server\share.» with
+  «Choose a folder…»;
+- a network path that does not answer: the error inside its dialog, with «Retry» (§ 6.17);
+- a folder the user's rights cannot read: the tab opens and says why (`folder-lock`, «You can't read "System Volume
+  Information" with your rights»), with «Analyze all of C: (asks permission)» — the drive's index reads it, then the
+  folder is shown there — and «Close the tab».
+
+The full path and Windows' message go to the log, never into the sentence (§ 6.14).
 
 ## 7. Accessibility and languages
 
@@ -1651,7 +2322,7 @@ came from.
 
 - Text scale: Windows' «Text size» setting is not applied by Slint; DiskDome reads it and multiplies the type
   steps ⟨to verify⟩, layouts grow with it (no fixed heights for wrapping text).
-- Languages: English source, Italian translation (`@tr()`); the language follows the OS (Italian or English).
+- Languages: English source, Italian translation (`@tr()`); the language follows the OS (Italian or English) unless Settings › General forces one (§ 6.10).
   Plurals through `@tr("{n} item" | "{n} items" % n)`.
 
 ## 8. Implementation in Slint
@@ -1781,6 +2452,8 @@ spots written beside it:
 | `raw-element` | `Text`, `TextInput`, `TouchArea`, `FocusScope`, `Image`, `PopupWindow`, `Flickable` | in `screens/` and `app.slint` |
 | `untranslated` | `text: "…"` with a non-empty literal not in `@tr()` | outside `design-system/kit/` |
 | `kit-coverage` | an exported component of `design-system/components/` missing from `kit.slint` | — |
+| `icon-label` | an icon-only `IconButton` or `Button` without `accessible-label` (Narrator would read nothing) | everywhere |
+| `binary-units` | a literal «GiB», «MiB», «TiB» in a string: sizes go through the unit formatter (§ 4.1) | outside `design-system/tokens/` and the units setting |
 
 And tests on the values, through `slint-interpreter` (a dev-dependency) that loads the token globals and reads
 them in both themes and densities:
@@ -1788,6 +2461,17 @@ them in both themes and densities:
 - contrast of every pair listed in § 7, in dark and light;
 - the minimum ΔE OK between two categories (≥ 0.09) and `on-data` ≥ 4.5:1 on each;
 - density: every compact size ≤ its normal one, `row` ≥ 18, `control` ≥ 20.
+
+**Overlap check** (§ 3.11): a screen test with Slint's testing backend (`ElementHandle`: position and size by
+accessible label) opens each state where two layers can meet, at 960 × 600 and 1280 × 800, in both densities: every
+popup open with operations running and a notice; Clean-up with a notice; a dialog and Settings with operations and a
+notice; the context menu on the last visible row; the status bar's popovers; Statistics, Timeline and Clean-up at
+960; the export dialog in its four formats at 960 × 600; the command palette empty and with results, the shortcuts
+dialog and About in its three tabs at 960 × 600; a path arriving from File Explorer in each case of § 6.20, also with a
+dialog open. It fails when two floating elements intersect, a popup or the notice is closer than 8 px to the window's edge
+or touches a bar, a floating element is clipped by its container, or two texts of the content overlap. Blind
+spot: only the listed states; a new popup or bar is added to the list in the same commit. (The prototype runs the
+same check on the canvas.)
 
 What only review holds: one primary button per view; the accent never in the data area; the tone of the text;
 that a component does what its name says.
@@ -1806,6 +2490,38 @@ drives; file actions in parallel with their own progress, never disabled; Activi
 as in «This PC»; no «What is it?» for now; the table on `ListView` with our own virtual scrolling; global terms
 («Start», «Home», «Timeline») kept in English in the Italian interface; Vignette as the default map style, with
 Folders offered as a setting at every window size; «Open» asks for confirmation above 10 files.
+
+**Final pass (2026-11-25, card «Parti da qui»)**: every v1 feature of `docs/features.md` is designed, on the canvas and here; the
+prototype's checks (§ 10: overlaps, clipping, popups near the edges, text collisions, dialogs inside the window, icon
+buttons without a name, binary units where the setting says otherwise) pass on 200 screens at 960 × 600, 1280 × 800
+and 1920 × 1032, dark and light, normal and compact. What is left is decided in the Kit (8, 9, 11) and the logos'
+second phase.
+
+**Decided by the owner on 2026-11-25**: the «Pie» app mark; «Few» map names at 72 × 30; where every chart lives and
+when it appears (decision 32: § 4.4 options menu, § 4.7, § 5.27 Start from the second time, § 6.8 «To review»);
+multiple selection with Ctrl+click only in the map and nested items counted once (§ 6.1); file actions
+(§ 6.5: rename, Move to…, conflicts with «Keep both» first and «Replace» to the Recycle Bin, copy and paste, drag and
+drop by Windows' rules, Open above 10, partial results, Undo); filters (§ 6.6: the panel applying at once, the
+filter bar, written filters with suggestions, saved filters, filtered totals with the map dimmed; selected items
+that a filter hides stay selected and shown apart, § 6.1); the guided clean-up (§ 6.8: rebuildable folders,
+temporary files, downloads untouched for a year, identical copies compared on request with the last copy never
+removable, Windows' tools, nothing preselected, files in use skipped and said); Settings (§ 6.10: a dialog with six
+sections applying at once, the language overridable, the scan service installed and removed from there, saved
+summaries deletable per drive); scanning more (§ 6.17: network paths with errors in the dialog and Windows asking for
+credentials, F5 on a folder with progress in its row and box, a drive scanning in the background with its card,
+stopped walks kept with «Resume», live updates' states and popover); comparing with a saved scan (the «compared with…»
+menu, History's points, moved folders shown once, summaries deletable one by one); layers and collisions (§ 3.11:
+five layers, one popup at a time, the notice one at a time and waiting under popups and dialogs, running operations
+in the status bar, the placement rules near the edges and the bottom-right corner, bars that shorten instead of
+wrapping); export (§ 6.18: from the app menu, the context menu and the map menu; CSV, JSON, HTML report and map
+image; the selection's hidden items and the filters said in the dialog; a snapshot written to a `.part` file;
+progress in the status bar and a notice to show or open it); the CSV separator as a setting (§ 6.10); the app menu,
+the command palette, the shortcuts dialog and About (§ 6.19: commands that cannot run stay with their reason, English
+words found in the Italian interface, the GPL text and the third-party licences in the app); the keyboard shortcuts list
+on Ctrl+\ (§ 6.2); «Analyze with DiskDome» and the command line (§ 6.20: one window, the right tab, nothing read twice,
+errors as notices that stay); the Tree and the File list (§ 5.10: columns and the
+«Columns…» menu, sort with arrow and Ctrl+Shift+1…9, resize and reorder by dragging, special entries, pending rows;
+§ 4.1: what is shown but not counted is `ink-faint`, and online-only files count 0).
 
 **Still open**
 

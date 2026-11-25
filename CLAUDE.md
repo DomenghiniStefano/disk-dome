@@ -30,8 +30,8 @@ entries, NVMe Gen4): scan ≤ 8 s and memory ≤ 1.5 GB, against WizTree's 24 s 
 - **Code, comments, documentation** (this file, `docs/`, `README.md`, scripts, log messages): **English**.
   Names in code in English.
 - **User interface: never hardcoded.** Every user-visible string goes through `@tr()` in the `.slint` files
-  (English source, Italian translation). The language follows the OS locale; anything that is not Italian gets
-  English.
+  (English source, Italian translation). The language follows the OS locale by default (anything that is not
+  Italian gets English); Settings › General can force Italian or English.
 - The engine sends **structured data, never sentences**: errors are codes with values, turned into text by the
   interface. A path or an OS message goes to the log, never into a user-facing sentence built in Rust.
 - Interface tone (both languages): address the user directly ("tu" in Italian), short sentences, verb first on
