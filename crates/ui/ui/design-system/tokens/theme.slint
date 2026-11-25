@@ -40,6 +40,10 @@ export global Theme {
 
     // States
     out property <color> danger: dark ? #f66d67 : #b32322;
+    // Pending design: the `danger` button's hover and pressed fills (§ 5.2 gives none), a step lighter / darker
+    // as the accent's.
+    out property <color> danger-hover: dark ? #f8837e : #9f1f1e;
+    out property <color> danger-pressed: dark ? #e85a54 : #8c1b1a;
     out property <color> danger-soft: dark ? #f66d6724 : #b3232224;
     out property <color> warning: dark ? #f6b84d : #8a5100;
     out property <color> warning-soft: dark ? #f6b84d24 : #8a510024;

@@ -50,6 +50,17 @@ export global Size {
     out property <length> tool-gap: compact ? 2px : 4px;
     out property <length> bar-h: compact ? 4px : 6px;
 
+    // Fixed control sizes (§ 3.12, § 5.2)
+    out property <length> icon-sm: 12px;
+    out property <length> button-min-w: 64px;
+    // The empty state's call to action: one per screen, same in both densities.
+    out property <length> control-hero: 40px;
+    out property <length> icon-hero: 18px;
+    out property <length> button-pad-x-hero: 20px;
+    out property <length> button-hero-min-w: 160px;
+    // Pending design: the gap between a segmented control's frame and its chosen segment (§ 5.6).
+    out property <length> segment-inset: 2px;
+
     // Fixed sizes (§ 3.5)
     out property <length> side-panel: 300px;
     out property <length> side-panel-min: 220px;
@@ -97,6 +108,8 @@ export global Size {
     out property <length> border-focus: 2px;
     out property <length> border-selection: 2px;
     out property <length> border-cursor: 1px;
+    // The focus ring sits this far outside the control's edge (§ 3.7).
+    out property <length> focus-gap: 1px;
 
     // Elevation (§ 3.8): shadows of levels 1 and 2
     out property <length> shadow-1-y: 4px;

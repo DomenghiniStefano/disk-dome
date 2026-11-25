@@ -1,5 +1,5 @@
 //! The icon set (`docs/design-system.md` § 3.12): every SVG in `design-system/icons/` has its property in
-//! `global Icons` and the pinned Lucide version is the one `THIRD_PARTY.md` lists.
+//! `global Icons` and is shown in the Kit, and the pinned Lucide version is the one `THIRD_PARTY.md` lists.
 
 use std::collections::BTreeSet;
 use std::fs;
@@ -54,6 +54,16 @@ fn lucide_version(text: &str) -> Option<String> {
 #[test]
 fn every_svg_has_its_property_and_every_property_its_svg() {
     assert_eq!(svg_names(), icon_properties());
+}
+
+#[test]
+fn the_kit_shows_every_icon() {
+    let kit = read(&icons_dir().join("../kit/kit.slint"));
+    let missing: Vec<String> = icon_properties()
+        .into_iter()
+        .filter(|name| !kit.contains(&format!("Icons.{name} ")))
+        .collect();
+    assert!(missing.is_empty(), "missing from the Kit: {missing:?}");
 }
 
 #[test]

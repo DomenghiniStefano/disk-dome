@@ -1,0 +1,60 @@
+// The pointer and keyboard behaviour every clickable control shares (§ 5, states table): hover, press, a click,
+// Enter and Space, and the Kit's forced states. A control draws its own look from `hovered`, `pressed` and
+// `show-focus`, and lays this over itself.
+//
+// Not a component of the design system: screens never use it (it is not exported from `index.slint`).
+
+import { Nav } from "../nav.slint";
+import { KitState } from "../enums.slint";
+import { FocusTarget } from "focus-target.slint";
+
+export component Pressable {
+    in property <bool> enabled: true;
+    // False for a part whose focus belongs to its control (a segment: the SegmentedControl is one Tab stop).
+    in property <bool> focusable: true;
+    in property <KitState> kit-state: KitState.live;
+
+    out property <bool> hovered: enabled && (kit-state == KitState.hover || (live && touch.has-hover));
+    out property <bool> pressed: enabled && (kit-state == KitState.pressed || (live && touch.pressed));
+    out property <bool> show-focus: focus.show-focus;
+
+    // A click, Enter or Space.
+    callback activated;
+    // Every other key, for controls that move inside (arrows): return `accept` to take it.
+    callback key-pressed(event: KeyEvent) -> EventResult;
+
+    property <bool> live: kit-state == KitState.live;
+
+    // Laid over the control that holds it, at its size.
+    width: 100%;
+    height: 100%;
+
+    forward-focus: focus;
+
+    focus := FocusTarget {
+        enabled: root.enabled && root.focusable;
+        kit-state: root.kit-state;
+        activated => {
+            root.activated();
+        }
+        key-pressed(event) => {
+            return root.key-pressed(event);
+        }
+    }
+
+    touch := TouchArea {
+        enabled: root.enabled;
+        pointer-event(event) => {
+            if (event.kind == PointerEventKind.down) {
+                Nav.keyboard = false;
+            }
+        }
+        clicked => {
+            // A clicked control takes the focus as on Windows; the ring stays hidden until a key moves it.
+            if (root.focusable) {
+                focus.focus();
+            }
+            root.activated();
+        }
+    }
+}

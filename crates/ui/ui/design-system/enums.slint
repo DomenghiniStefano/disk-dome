@@ -1,0 +1,23 @@
+// The components' variants and sizes (`docs/design-system.md` § 5). Variants are enums, never strings (§ 3.1).
+// `TypeStep` lives with the type tokens (`tokens/type.slint`).
+
+// The colour role of a text or an icon (§ 5.1). `on-data` needs the category it sits on.
+export enum InkTone { normal, muted, faint, accent, danger, warning, success, on-accent, on-danger, on-data }
+
+// How a single-line text that does not fit is shortened (§ 3.3). Slint elides only at the end: a `middle` text
+// arrives already shortened from Rust, and is then cut at the end only if it still does not fit.
+export enum Elide { none, end, middle }
+
+// `small` 12, `normal` 16 / 14 (density), `hero` 18: only inside the hero button (§ 3.12, § 5.2).
+export enum IconSize { small, normal, hero }
+
+export enum ButtonVariant { primary, secondary, ghost, danger, danger-ghost }
+
+// `hero`: only the call to action of an empty state, one per screen (§ 5.2).
+export enum ButtonSize { small, normal, large, hero }
+
+export enum SegmentedSize { small, normal }
+
+// The Kit window shows every state side by side (§ 9): a component shows the forced state instead of the
+// pointer's and the keyboard's. Screens never set it; `live` is the real behaviour.
+export enum KitState { live, hover, pressed, focus }

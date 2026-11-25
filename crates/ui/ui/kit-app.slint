@@ -1,0 +1,8 @@
+// The build entry with the `kit` feature (`build.rs`): the app and the Kit window (`docs/design-system.md` § 9).
+
+export * from "app.slint";
+export { KitWindow } from "design-system/kit/kit.slint";
+
+// The run-time switches, so the Kit's headless test can read what the keyboard changed.
+export { Theme, Size } from "design-system/index.slint";
+export { Nav } from "design-system/nav.slint";

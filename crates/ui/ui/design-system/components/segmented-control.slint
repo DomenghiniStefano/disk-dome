@@ -1,0 +1,116 @@
+// SegmentedControl (§ 5.6): 2–4 options in one frame, one Tab stop; the arrow keys, Home and End move the
+// choice. The chosen segment is `raised` with `ink`, the others `ink-muted`.
+
+import { Size } from "../tokens/size.slint";
+import { Theme } from "../tokens/theme.slint";
+import { Motion } from "../tokens/motion.slint";
+import { TypeStep } from "../tokens/type.slint";
+import { InkTone, KitState, SegmentedSize } from "../enums.slint";
+import { Nav } from "../nav.slint";
+import { Pressable } from "../primitives/pressable.slint";
+import { FocusTarget } from "../primitives/focus-target.slint";
+import { FocusRing } from "../primitives/focus-ring.slint";
+import { Label } from "label.slint";
+
+export component SegmentedControl {
+    in property <[string]> options;
+    in-out property <int> current: 0;
+    in property <SegmentedSize> size: SegmentedSize.normal;
+    in property <bool> enabled: true;
+    // The Kit window only (§ 9): hover and pressed are shown on the segment after the chosen one.
+    in property <KitState> kit-state: KitState.live;
+
+    // The user chose another option.
+    callback changed(index: int);
+
+    property <int> kit-segment: Math.mod(root.current + 1, max(1, root.options.length));
+
+    function choose(index: int) {
+        if (index >= 0 && index < root.options.length && index != root.current) {
+            root.current = index;
+            root.changed(index);
+        }
+    }
+
+    height: root.size == SegmentedSize.small ? Size.control-sm : Size.control;
+    opacity: root.enabled ? 1 : Size.disabled;
+
+    forward-focus: group;
+    accessible-role: radio-group;
+    accessible-enabled: root.enabled;
+
+    group := FocusTarget {
+        enabled: root.enabled;
+        kit-state: root.kit-state;
+        key-pressed(event) => {
+            if (event.text == Key.LeftArrow || event.text == Key.UpArrow) {
+                root.choose(root.current - 1);
+            } else if (event.text == Key.RightArrow || event.text == Key.DownArrow) {
+                root.choose(root.current + 1);
+            } else if (event.text == Key.Home) {
+                root.choose(0);
+            } else if (event.text == Key.End) {
+                root.choose(root.options.length - 1);
+            } else {
+                return reject;
+            }
+            Nav.keyboard = true;
+            return accept;
+        }
+    }
+
+    Rectangle {
+        border-radius: Size.radius-control;
+        background: Theme.control;
+    }
+
+    HorizontalLayout {
+        padding: Size.segment-inset;
+
+        for option[index] in root.options: Rectangle {
+            property <bool> chosen: index == root.current;
+
+            horizontal-stretch: 1;
+            border-radius: Size.radius-control;
+            background: self.chosen ? Theme.raised
+                : segment.pressed ? Theme.control-pressed
+                : segment.hovered ? Theme.control-hover
+                : transparent;
+            animate background { duration: Motion.fast; }
+
+            accessible-role: radio-button;
+            accessible-label: option;
+            accessible-checkable: true;
+            accessible-checked: self.chosen;
+            accessible-action-default => {
+                root.choose(index);
+            }
+
+            HorizontalLayout {
+                padding-left: Size.button-pad-x;
+                padding-right: Size.button-pad-x;
+                Label {
+                    text: option;
+                    step: TypeStep.body;
+                    tone: chosen ? InkTone.normal : InkTone.muted;
+                    align: TextHorizontalAlignment.center;
+                    accessible-role: none;
+                }
+            }
+
+            segment := Pressable {
+                enabled: root.enabled;
+                focusable: false;
+                kit-state: index == root.kit-segment && root.kit-state != KitState.focus ? root.kit-state : KitState.live;
+                activated => {
+                    group.focus();
+                    root.choose(index);
+                }
+            }
+        }
+    }
+
+    if group.show-focus: FocusRing {
+        radius: Size.radius-control;
+    }
+}

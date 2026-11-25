@@ -28,6 +28,10 @@ rayon = "1.12"
 [build-dependencies]
 slint-build.workspace = true
 
+[features]
+# The Kit window of the design system (`docs/design-system.md` § 9): development only, never in a release.
+kit = []
+
 [lints]
 workspace = true
 

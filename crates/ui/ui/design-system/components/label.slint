@@ -1,0 +1,44 @@
+// Label (§ 5.1): the only text primitive. It maps a `TypeStep` to the font and an `InkTone` to the colour;
+// nothing else in the interface sets `font-size`, `font-weight`, `font-family` or `letter-spacing` (rule
+// `font-literal`, § 10).
+
+import { Type, TypeStep } from "../tokens/type.slint";
+import { FileCategory } from "../tokens/data.slint";
+import { InkTone, Elide } from "../enums.slint";
+import { Tones } from "../tones.slint";
+
+export component Label {
+    in property <string> text;
+    in property <TypeStep> step: TypeStep.body;
+    in property <InkTone> tone: InkTone.normal;
+    // The fill the text sits on, for `InkTone.on-data`.
+    in property <FileCategory> category: FileCategory.other;
+    in property <TextHorizontalAlignment> align: TextHorizontalAlignment.left;
+    in property <Elide> elide: Elide.end;
+    // Wrapping only in dialogs, info bars, toasts and empty states (§ 3.3); names and paths never wrap.
+    in property <bool> wrap: false;
+
+    // A single-line label is exactly as tall as its step's line (§ 3.3).
+    min-height: Type.line(root.step);
+    preferred-width: glyphs.preferred-width;
+    preferred-height: root.wrap ? glyphs.preferred-height : Type.line(root.step);
+    accessible-role: AccessibleRole.text;
+    accessible-label: root.text;
+
+    glyphs := Text {
+        width: root.width;
+        height: root.height;
+        // Overline is upper-cased here; the translation stays lower-case (§ 5.1).
+        text: root.step == TypeStep.overline ? root.text.to-uppercase() : root.text;
+        color: Tones.ink(root.tone, root.category);
+        font-family: Type.family-of(root.step);
+        font-size: Type.size(root.step);
+        font-weight: Type.weight(root.step);
+        letter-spacing: Type.tracking(root.step);
+        horizontal-alignment: root.align;
+        vertical-alignment: center;
+        wrap: root.wrap ? TextWrap.word-wrap : TextWrap.no-wrap;
+        overflow: root.elide == Elide.none ? TextOverflow.clip : TextOverflow.elide;
+        accessible-role: none;
+    }
+}
