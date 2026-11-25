@@ -10,7 +10,7 @@ on the card.
 1. DiskDome is licensed GPL-3.0-or-later (`LICENSE`). Everything we write is under it.
 2. Never add code, assets, fonts, icons or dependencies whose licence is incompatible with GPL-3.0-or-later.
    Check the licence **before** adding; `cargo deny check` must pass (`deny.toml`). Fonts, icons and other
-   assets are listed with their licence in `THIRD_PARTY.md` (created with the first one).
+   assets are listed with their licence in `THIRD_PARTY.md`.
 3. **User files are never lost by surprise.** Nothing is deleted, moved or renamed without an explicit action
    of the user and, for deletions, a confirmation. Delete goes to the Recycle Bin unless the user chose a
    permanent delete. System files and folders (`Windows`, `Program Files`, `pagefile.sys`, `hiberfil.sys`,
@@ -42,8 +42,11 @@ entries, NVMe Gen4): scan ≤ 8 s and memory ≤ 1.5 GB, against WizTree's 24 s 
 Steps 0–3 are done. Step 3, the technical proof, ended in a **go** (2026-11-24) on the owner's desktop C:
 (3.4 million entries): scan 7.0 s against WizTree's 22–31 s, 0.40 GB against 1.6 GB, 99.1% of folder totals
 identical (`docs/decisions.md`). The engine and the CLI are in place; the Slint proof table shows the open
-interface questions (row virtualisation, table widget), which go to the design sessions. Step 4,
-the design system (with the owner). The plan and its status: https://claude.ai/artifact/6b7K1hVhjpupdAURw4CfFP
+interface questions (row virtualisation, table widget). Step 4, the design, is complete (2026-11-25): every v1
+feature is specified in `docs/design-system.md` and drawn on the canvas
+(https://claude.ai/artifact/9uEkqjsB82zrQAAr9x97CD), and the logos and icons are in `crates/ui/ui/assets/brand/`.
+Next: the Slint tokens and the automatic checks of `docs/design-system.md` § 10, then the Kit, where the font, the
+renderer and the menus are decided (§ 11, still open). The plan and its status: https://claude.ai/artifact/6b7K1hVhjpupdAURw4CfFP
 and the Trello board: https://trello.com/b/BrdLKkTt/diskdome (personal account, workspace DomeHub).
 
 ## Commands
