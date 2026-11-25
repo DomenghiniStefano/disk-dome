@@ -12,5 +12,7 @@ pub mod generated {
     slint::include_modules!();
 }
 
+#[cfg(feature = "kit")]
+pub mod kit;
 pub mod proof;
 pub mod spike;

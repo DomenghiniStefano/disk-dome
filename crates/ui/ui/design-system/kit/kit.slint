@@ -1,0 +1,350 @@
+// The Kit window (§ 9): every component in every variant, size and state, side by side, with the real
+// components. Card 4.2 starts it with the first components; card 4.3 adds the tokens, the language, the map
+// options and the review board. Opened with `cargo run -p diskdome-ui --features kit -- --kit`.
+//
+// Texts here are the Kit's own, in English and not translated (rule `untranslated` exempts `kit/`).
+
+import {
+    Theme, ThemeMode, Size, TypeStep, Icons, Label, Icon, Button, SegmentedControl,
+    InkTone, IconSize, ButtonVariant, ButtonSize, SegmentedSize, KitState,
+} from "../index.slint";
+
+struct KitIcon { name: string, source: image }
+struct KitStep { name: string, step: TypeStep }
+struct KitTone { name: string, tone: InkTone }
+struct KitVariant { name: string, variant: ButtonVariant }
+struct KitButtonSize { name: string, size: ButtonSize }
+struct KitStateItem { name: string, state: KitState, enabled: bool }
+
+// What the sections iterate: one place, so a new variant or state is one line here.
+global KitData {
+    out property <[KitStateItem]> states: [
+        { name: "rest", state: KitState.live, enabled: true },
+        { name: "hover", state: KitState.hover, enabled: true },
+        { name: "pressed", state: KitState.pressed, enabled: true },
+        { name: "focus", state: KitState.focus, enabled: true },
+        { name: "disabled", state: KitState.live, enabled: false },
+    ];
+    out property <[KitStep]> steps: [
+        { name: "display", step: TypeStep.display },
+        { name: "title", step: TypeStep.title },
+        { name: "body", step: TypeStep.body },
+        { name: "body-strong", step: TypeStep.body-strong },
+        { name: "caption", step: TypeStep.caption },
+        { name: "caption-strong", step: TypeStep.caption-strong },
+        { name: "overline", step: TypeStep.overline },
+        { name: "mono", step: TypeStep.mono },
+        { name: "map-name", step: TypeStep.map-name },
+        { name: "map-name-xs", step: TypeStep.map-name-xs },
+    ];
+    out property <[KitTone]> tones: [
+        { name: "normal", tone: InkTone.normal },
+        { name: "muted", tone: InkTone.muted },
+        { name: "faint", tone: InkTone.faint },
+        { name: "accent", tone: InkTone.accent },
+        { name: "danger", tone: InkTone.danger },
+        { name: "warning", tone: InkTone.warning },
+        { name: "success", tone: InkTone.success },
+    ];
+    out property <[KitVariant]> variants: [
+        { name: "primary", variant: ButtonVariant.primary },
+        { name: "secondary", variant: ButtonVariant.secondary },
+        { name: "ghost", variant: ButtonVariant.ghost },
+        { name: "danger", variant: ButtonVariant.danger },
+        { name: "danger-ghost", variant: ButtonVariant.danger-ghost },
+    ];
+    out property <[KitButtonSize]> button-sizes: [
+        { name: "small", size: ButtonSize.small },
+        { name: "normal", size: ButtonSize.normal },
+        { name: "large", size: ButtonSize.large },
+        { name: "hero", size: ButtonSize.hero },
+    ];
+    // Every icon of `Icons` (checked by `tests/design_icons.rs`).
+    out property <[KitIcon]> icons: [
+            { name: "app-window", source: Icons.app-window },
+            { name: "arrow-down", source: Icons.arrow-down },
+            { name: "arrow-up", source: Icons.arrow-up },
+            { name: "bookmark", source: Icons.bookmark },
+            { name: "braces", source: Icons.braces },
+            { name: "bug", source: Icons.bug },
+            { name: "case-sensitive", source: Icons.case-sensitive },
+            { name: "check", source: Icons.check },
+            { name: "chevron-down", source: Icons.chevron-down },
+            { name: "chevron-right", source: Icons.chevron-right },
+            { name: "circle-alert", source: Icons.circle-alert },
+            { name: "circle-help", source: Icons.circle-help },
+            { name: "clipboard-list", source: Icons.clipboard-list },
+            { name: "command", source: Icons.command },
+            { name: "copy", source: Icons.copy },
+            { name: "corner-left-up", source: Icons.corner-left-up },
+            { name: "cpu", source: Icons.cpu },
+            { name: "database", source: Icons.database },
+            { name: "ellipsis", source: Icons.ellipsis },
+            { name: "external-link", source: Icons.external-link },
+            { name: "file", source: Icons.file },
+            { name: "file-archive", source: Icons.file-archive },
+            { name: "file-audio", source: Icons.file-audio },
+            { name: "file-code", source: Icons.file-code },
+            { name: "file-image", source: Icons.file-image },
+            { name: "file-question", source: Icons.file-question },
+            { name: "file-text", source: Icons.file-text },
+            { name: "file-video", source: Icons.file-video },
+            { name: "filter", source: Icons.filter },
+            { name: "folder", source: Icons.folder },
+            { name: "folder-input", source: Icons.folder-input },
+            { name: "folder-open", source: Icons.folder-open },
+            { name: "folder-search", source: Icons.folder-search },
+            { name: "gamepad-2", source: Icons.gamepad-2 },
+            { name: "hard-drive", source: Icons.hard-drive },
+            { name: "history", source: Icons.history },
+            { name: "house", source: Icons.house },
+            { name: "image", source: Icons.image },
+            { name: "info", source: Icons.info },
+            { name: "keyboard", source: Icons.keyboard },
+            { name: "layers", source: Icons.layers },
+            { name: "layout-dashboard", source: Icons.layout-dashboard },
+            { name: "link", source: Icons.link },
+            { name: "monitor", source: Icons.monitor },
+            { name: "moon", source: Icons.moon },
+            { name: "package", source: Icons.package },
+            { name: "panel-right", source: Icons.panel-right },
+            { name: "pencil", source: Icons.pencil },
+            { name: "play", source: Icons.play },
+            { name: "recycle", source: Icons.recycle },
+            { name: "refresh-cw", source: Icons.refresh-cw },
+            { name: "regex", source: Icons.regex },
+            { name: "search", source: Icons.search },
+            { name: "settings", source: Icons.settings },
+            { name: "share", source: Icons.share },
+            { name: "sheet", source: Icons.sheet },
+            { name: "shield-alert", source: Icons.shield-alert },
+            { name: "square", source: Icons.square },
+            { name: "sun", source: Icons.sun },
+            { name: "terminal", source: Icons.terminal },
+            { name: "trash-2", source: Icons.trash-2 },
+            { name: "triangle-alert", source: Icons.triangle-alert },
+            { name: "x", source: Icons.x },
+    ];
+    out property <[string]> two-options: ["Extensions", "Categories"];
+    out property <[string]> three-options: ["Dark", "Light", "System"];
+    // An Italian label, ~25 % longer than English (§ 3.3): buttons must grow with it.
+    out property <string> long-label: "Sposta nel Cestino";
+    out property <string> sample-text: "Users 310.4 GB · 46.4 % · 3,789,066 files";
+}
+
+component KitSection {
+    in property <string> title;
+
+    VerticalLayout {
+        spacing: Size.space-8;
+        Label {
+            text: root.title;
+            step: TypeStep.overline;
+            tone: InkTone.muted;
+        }
+
+        @children
+    }
+}
+
+// The name of a row, in the Kit's quiet style, in a fixed column so the rows line up.
+component KitCaption inherits Label {
+    step: TypeStep.caption;
+    tone: InkTone.faint;
+    width: Size.bar-w * 2;
+}
+
+// One row of a section: its name, then the samples.
+component KitRow inherits HorizontalLayout {
+    in property <string> name;
+
+    spacing: Size.space-16;
+    alignment: start;
+    KitCaption { text: root.name; }
+
+    @children
+}
+
+// A text on a filled ground, for the `on-*` tones.
+component KitOnFill inherits Rectangle {
+    in property <string> text;
+    in property <InkTone> tone;
+
+    HorizontalLayout {
+        padding-left: Size.space-4;
+        padding-right: Size.space-4;
+        Label { text: root.text; tone: root.tone; }
+    }
+}
+
+// Every icon, in rows of `columns` (Slint 1.19 layouts do not wrap).
+component KitIconGrid {
+    property <int> columns: 21;
+    property <length> pitch: Size.control-sm;
+
+    width: self.columns * self.pitch;
+    height: Math.ceil(KitData.icons.length / self.columns) * self.pitch;
+
+    for item[index] in KitData.icons: Icon {
+        x: Math.mod(index, root.columns) * root.pitch;
+        y: Math.floor(index / root.columns) * root.pitch;
+        source: item.source;
+        label: item.name;
+    }
+}
+
+export component KitWindow inherits Window {
+    title: "DiskDome Kit";
+    preferred-width: Size.window-w;
+    preferred-height: Size.window-h;
+    min-width: Size.window-min-w;
+    min-height: Size.window-min-h;
+    background: Theme.bg;
+
+    VerticalLayout {
+        // The run-time switches of § 3.1.
+        Rectangle {
+            height: Size.toolbar;
+            background: Theme.surface;
+
+            HorizontalLayout {
+                padding-left: Size.panel-pad;
+                padding-right: Size.panel-pad;
+                spacing: Size.group-gap;
+                alignment: start;
+
+                VerticalLayout {
+                    alignment: center;
+                    Label { text: "DiskDome Kit"; step: TypeStep.body-strong; }
+                }
+
+                VerticalLayout {
+                    alignment: center;
+                    SegmentedControl {
+                        options: ["Dark", "Light"];
+                        current: Theme.mode == ThemeMode.dark ? 0 : 1;
+                        changed(index) => {
+                            Theme.mode = index == 0 ? ThemeMode.dark : ThemeMode.light;
+                        }
+                        accessible-label: "Theme";
+                    }
+                }
+
+                VerticalLayout {
+                    alignment: center;
+                    SegmentedControl {
+                        options: ["Normal", "Compact"];
+                        current: Size.compact ? 1 : 0;
+                        changed(index) => {
+                            Size.compact = index == 1;
+                        }
+                        accessible-label: "Density";
+                    }
+                }
+            }
+        }
+
+        Flickable {
+            content-height: sections.preferred-height;
+
+            sections := VerticalLayout {
+                padding: Size.space-16;
+                spacing: Size.space-24;
+                alignment: start;
+
+                KitSection {
+                    title: "Label · steps";
+                    for item in KitData.steps: KitRow {
+                        name: item.name;
+                        Label { text: KitData.sample-text; step: item.step; }
+                    }
+                }
+
+                KitSection {
+                    title: "Label · tones";
+                    KitRow {
+                        name: "tones";
+                        for item in KitData.tones: Label { text: item.name; tone: item.tone; }
+                        KitOnFill { text: "on-accent"; tone: InkTone.on-accent; background: Theme.accent; }
+                        KitOnFill { text: "on-danger"; tone: InkTone.on-danger; background: Theme.danger; }
+                    }
+                }
+
+                KitSection {
+                    title: "Icon";
+                    KitRow {
+                        name: "all";
+                        KitIconGrid { }
+                    }
+                    KitRow {
+                        name: "sizes";
+                        Icon { source: Icons.folder; size: IconSize.small; }
+                        Icon { source: Icons.folder; size: IconSize.normal; }
+                        Icon { source: Icons.folder; size: IconSize.hero; }
+                    }
+                    KitRow {
+                        name: "tones";
+                        for item in KitData.tones: Icon { source: Icons.hard-drive; tone: item.tone; }
+                    }
+                }
+
+                KitSection {
+                    title: "Button · variants × states";
+                    for row in KitData.variants: KitRow {
+                        name: row.name;
+                        for state in KitData.states: Button {
+                            text: state.name;
+                            variant: row.variant;
+                            kit-state: state.state;
+                            enabled: state.enabled;
+                        }
+                    }
+                }
+
+                KitSection {
+                    title: "Button · content and sizes";
+                    for row in KitData.variants: KitRow {
+                        name: row.name;
+                        Button { text: "Scan"; icon: Icons.play; variant: row.variant; }
+                        Button { icon: Icons.refresh-cw; variant: row.variant; accessible-label: "Rescan"; }
+                        Button { text: KitData.long-label; variant: row.variant; }
+                        for size in KitData.button-sizes: Button {
+                            text: size.name;
+                            variant: row.variant;
+                            size: size.size;
+                        }
+                    }
+                    KitRow {
+                        name: "hero";
+                        Button {
+                            text: "Scan C:";
+                            icon: Icons.hard-drive;
+                            variant: ButtonVariant.primary;
+                            size: ButtonSize.hero;
+                        }
+                    }
+                }
+
+                KitSection {
+                    title: "SegmentedControl · sizes × states";
+                    for state in KitData.states: KitRow {
+                        name: state.name;
+                        SegmentedControl {
+                            options: KitData.two-options;
+                            size: SegmentedSize.small;
+                            kit-state: state.state;
+                            enabled: state.enabled;
+                            accessible-label: "Side panel list";
+                        }
+                        SegmentedControl {
+                            options: KitData.three-options;
+                            kit-state: state.state;
+                            enabled: state.enabled;
+                            accessible-label: "Theme";
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

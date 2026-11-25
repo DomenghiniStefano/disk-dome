@@ -11,8 +11,8 @@ function Step($name, [scriptblock]$command) {
 }
 
 Step 'Format' { cargo fmt --all -- --check }
-Step 'Clippy' { cargo clippy --workspace --all-targets -- -D warnings }
-Step 'Test' { cargo test --workspace }
+Step 'Clippy' { cargo clippy --workspace --all-targets --all-features -- -D warnings }
+Step 'Test' { cargo test --workspace --all-features }
 
 if (Get-Command cargo-deny -ErrorAction SilentlyContinue) {
     Step 'Licences and advisories' { cargo deny check }

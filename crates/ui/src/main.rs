@@ -15,6 +15,11 @@ fn main() -> Result<(), slint::PlatformError> {
     if std::env::args().any(|a| a == spike::FLAG) {
         return spike::run();
     }
+    // The design system's Kit window (card 4.2, § 9): `diskdome --kit`, with the `kit` feature only.
+    #[cfg(feature = "kit")]
+    if std::env::args().any(|a| a == diskdome_ui::kit::FLAG) {
+        return diskdome_ui::kit::run();
+    }
     let window = MainWindow::new()?;
     window.run()
 }

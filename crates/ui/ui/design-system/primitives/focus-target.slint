@@ -1,0 +1,45 @@
+// One keyboard focus stop: Enter and Space, other keys handed to the control, the keyboard-focus flag of § 3.7
+// and the Kit's forced focus. `Pressable` adds the pointer to it; a control that is one stop with several
+// parts (SegmentedControl) uses it directly.
+//
+// Not a component of the design system: screens never use it (it is not exported from `index.slint`).
+
+import { Nav } from "../nav.slint";
+import { KitState } from "../enums.slint";
+
+export component FocusTarget {
+    in property <bool> enabled: true;
+    in property <KitState> kit-state: KitState.live;
+
+    // The focus ring shows only while the user moves with the keyboard.
+    out property <bool> show-focus: enabled
+        && (kit-state == KitState.focus || (kit-state == KitState.live && scope.has-focus && Nav.keyboard));
+
+    // Enter or Space.
+    callback activated;
+    // Every other key, for controls that move inside (arrows): return `accept` to take it.
+    callback key-pressed(event: KeyEvent) -> EventResult;
+
+    // Laid over the control that holds it, at its size.
+    width: 100%;
+    height: 100%;
+
+    forward-focus: scope;
+
+    scope := FocusScope {
+        enabled: root.enabled;
+        focus-gained(reason) => {
+            if (reason == FocusReason.tab-navigation) {
+                Nav.keyboard = true;
+            }
+        }
+        key-pressed(event) => {
+            if (event.text == Key.Return || event.text == Key.Space) {
+                Nav.keyboard = true;
+                root.activated();
+                return accept;
+            }
+            return root.key-pressed(event);
+        }
+    }
+}

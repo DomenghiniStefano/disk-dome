@@ -1,0 +1,35 @@
+// Icon (§ 3.12): draws one of `Icons` at a token size, tinted with an `InkTone`. A faded icon fades its
+// container (one `opacity` on the parent), never its colour: Lucide strokes overlap and a translucent tint
+// darkens every joint.
+
+import { Size } from "../tokens/size.slint";
+import { FileCategory } from "../tokens/data.slint";
+import { InkTone, IconSize } from "../enums.slint";
+import { Tones } from "../tones.slint";
+
+export component Icon {
+    in property <image> source;
+    in property <IconSize> size: IconSize.normal;
+    in property <InkTone> tone: InkTone.muted;
+    // The fill the icon sits on, for `InkTone.on-data`.
+    in property <FileCategory> category: FileCategory.other;
+    // What the icon means, for Narrator. Empty for a decorative icon next to a text that says it already.
+    in property <string> label;
+
+    property <length> side: root.size == IconSize.small ? Size.icon-sm
+        : root.size == IconSize.hero ? Size.icon-hero
+        : Size.icon;
+
+    width: root.side;
+    height: root.side;
+    accessible-role: image;
+    accessible-label: root.label;
+
+    Image {
+        source: root.source;
+        colorize: Tones.ink(root.tone, root.category);
+        width: root.side;
+        height: root.side;
+        accessible-role: none;
+    }
+}

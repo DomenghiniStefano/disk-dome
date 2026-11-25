@@ -46,8 +46,9 @@ interface questions (row virtualisation, table widget). Step 4, the design, is c
 feature is specified in `docs/design-system.md` and drawn on the canvas
 (https://claude.ai/artifact/9uEkqjsB82zrQAAr9x97CD), and the logos and icons are in `crates/ui/ui/assets/brand/`.
 The Slint tokens (`crates/ui/ui/design-system/tokens/`) and the source checks of `docs/design-system.md` § 10 are in
-place (`crates/ui/tests/design_conventions.rs`, `design_tokens.rs`). Next: the components and the Kit, where the
-font, the renderer and the menus are decided (§ 11, still open). The plan and its status: https://claude.ai/artifact/6b7K1hVhjpupdAURw4CfFP
+place (`crates/ui/tests/design_conventions.rs`, `design_tokens.rs`). The first components (Label, Icon with the Lucide
+set, Button, SegmentedControl) are in `crates/ui/ui/design-system/components/` and shown in the first Kit window
+(card 4.2). Next: the full Kit (card 4.3), where the font, the renderer and the menus are decided (§ 11, still open). The plan and its status: https://claude.ai/artifact/6b7K1hVhjpupdAURw4CfFP
 and the Trello board: https://trello.com/b/BrdLKkTt/diskdome (personal account, workspace DomeHub).
 
 ## Commands
@@ -55,6 +56,7 @@ and the Trello board: https://trello.com/b/BrdLKkTt/diskdome (personal account, 
 ```
 cargo run -p diskdome-ui            # the desktop app (binary `diskdome`)
 cargo run -p diskdome-cli           # the command line (benchmarks, JSON export)
+cargo run -p diskdome-ui --features kit -- --kit   # the Kit window: every component, variant and state
 ./scripts/check.ps1                 # format, clippy, tests, licences: what the CI runs
 ./scripts/proof.ps1                 # step 3 go / no-go on this PC's C: (asks for admin once)
 cargo deny check                    # licences and advisories (cargo install cargo-deny --locked)
