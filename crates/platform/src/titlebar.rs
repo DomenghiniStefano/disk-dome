@@ -330,8 +330,10 @@ mod imp {
                     hit_test(hwnd, lparam).map_or(native, |hit| hit as LRESULT)
                 }
                 WM_NCMOUSEMOVE => {
-                    if is_max(wparam) {
-                        // Ask for the non-client hover that Windows 11 answers with Snap Layouts.
+                    let entering = is_max(wparam)
+                        && !STATE.with_borrow(|s| s.as_ref().is_some_and(|s| s.hovered));
+                    if entering {
+                        // Ask once, on entering, for the non-client hover that Windows 11 answers with Snap Layouts.
                         let mut track = TRACKMOUSEEVENT {
                             cbSize: std::mem::size_of::<TRACKMOUSEEVENT>() as u32,
                             dwFlags: TME_HOVER | TME_LEAVE | TME_NONCLIENT,
