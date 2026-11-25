@@ -26,6 +26,7 @@ pub fn run() -> Result<(), slint::PlatformError> {
         letter: SharedString::from(letter),
         label: SharedString::from(label),
     });
+    window.set_small_min(std::env::var_os("DISKDOME_SPIKE_SMALL_MIN").is_some());
     window.set_tabs(ModelRc::from(Rc::new(VecModel::from(tabs.to_vec()))));
 
     let weak = window.as_weak();
