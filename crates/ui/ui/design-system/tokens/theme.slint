@@ -1,0 +1,60 @@
+// Colours that change with the theme. Values: `docs/design-system.md` § 3.2, § 3.8 and § 4.7.
+// Every literal colour of the interface lives in `design-system/tokens/` (rule `literal-colour`).
+
+export enum ThemeMode { dark, light }
+
+export global Theme {
+    // Set by Rust from Settings › Appearance (and from Windows when the setting is «System»).
+    in-out property <ThemeMode> mode: ThemeMode.dark;
+    out property <bool> dark: mode == ThemeMode.dark;
+
+    // Neutrals (graphite)
+    out property <color> bg: dark ? #0f1113 : #dee0e2;
+    out property <color> surface: dark ? #161719 : #eaebed;
+    out property <color> raised: dark ? #1f2123 : #f2f3f5;
+    out property <color> field: dark ? #1c1e20 : #f1f2f4;
+    out property <color> control: dark ? #232528 : #d7d9dc;
+    out property <color> control-hover: dark ? #2c2e31 : #cdd0d3;
+    out property <color> control-pressed: dark ? #1a1c1f : #c3c6ca;
+    out property <color> line: dark ? #282a2d : #cbced1;
+    out property <color> line-strong: dark ? #66696e : #717579;
+    out property <color> edge: dark ? #35383c : #bbbec2;
+    out property <color> ink: dark ? #e8eaec : #191c20;
+    out property <color> ink-muted: dark ? #abaeb3 : #494d54;
+    out property <color> ink-faint: dark ? #7e8288 : #65696f;
+
+    // Accent: Laguna
+    out property <color> accent: dark ? #37c2bb : #007c79;
+    out property <color> accent-hover: dark ? #4dd2cb : #006f6d;
+    out property <color> accent-pressed: dark ? #12aea8 : #006360;
+    out property <color> on-accent: dark ? #0f1113 : #ffffff;
+    out property <color> accent-text: dark ? #37c2bb : #006663;
+    out property <color> accent-soft: dark ? #37c2bb38 : #007c7929;
+    out property <color> focus: dark ? #37c2bb : #006663;
+
+    // States
+    out property <color> danger: dark ? #f66d67 : #b32322;
+    out property <color> danger-soft: dark ? #f66d6724 : #b3232224;
+    out property <color> warning: dark ? #f6b84d : #8a5100;
+    out property <color> warning-soft: dark ? #f6b84d24 : #8a510024;
+    out property <color> success: dark ? #5fcf83 : #10703a;
+    out property <color> success-soft: dark ? #5fcf8324 : #10703a24;
+
+    // Other colour tokens
+    out property <color> hover: dark ? #222325 : #e0e1e3;
+    out property <color> selected-inactive: dark ? #2b2c2e : #d7d8db;
+    out property <color> bar-track: dark ? #2b2c2e : #d5d6d9;
+    out property <color> bar-fill: dark ? #6e7072 : #96989b;
+    out property <color> scroll-thumb: dark ? #e8eaec3d : #191c2038;
+    out property <color> scroll-thumb-hover: dark ? #e8eaec66 : #191c205c;
+    out property <color> scrim: dark ? #0000008c : #1a1c2059;
+    out property <color> shadow: dark ? #00000099 : #1a1c2033;
+    out property <color> data-gap: bg;
+    out property <color> data-hover: ink;
+    out property <color> data-selection: ink;
+
+    // Charts (§ 4.7)
+    out property <color> chart-space: dark ? #e79551 : #ae6626;
+    out property <color> delta-up: dark ? #e79551 : #ae6626;
+    out property <color> delta-down: dark ? #4caccb : #1c87a5;
+}

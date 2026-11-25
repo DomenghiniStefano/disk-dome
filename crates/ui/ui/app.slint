@@ -1,16 +1,17 @@
 // Placeholder window: it proves the Slint toolchain builds on every platform.
-// The design system (ui/design-system/) and the real screens arrive with step 4 of the plan.
+// The real screens arrive with step 4 of the plan, built only from `design-system/index.slint`.
 // User-visible text always goes through @tr() (English source, Italian translation).
+
+import { Size, Theme } from "design-system/index.slint";
 
 // The technical proof of step 3 (card 3c): a table over millions of fake rows.
 export { ProofRow, ProofTableWindow, ProofListWindow } from "proof.slint";
 
 export component MainWindow inherits Window {
     title: @tr("DiskDome");
-    preferred-width: 960px;
-    preferred-height: 600px;
-
-    Text {
-        text: @tr("DiskDome");
-    }
+    preferred-width: Size.window-w;
+    preferred-height: Size.window-h;
+    min-width: Size.window-min-w;
+    min-height: Size.window-min-h;
+    background: Theme.bg;
 }

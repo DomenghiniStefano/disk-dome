@@ -1,0 +1,115 @@
+// Spacing, sizes, radii, borders, opacity and layers. Values: `docs/design-system.md` § 3.4–§ 3.9, § 3.11, § 2.1.
+// Every literal length of the interface lives in `design-system/tokens/` (rule `literal-length`).
+
+export global Size {
+    // Set by Rust from Settings › Appearance › Density.
+    in-out property <bool> compact: false;
+
+    // Spacing grid (§ 3.4)
+    out property <length> space-2: 2px;
+    out property <length> space-4: 4px;
+    out property <length> space-6: 6px;
+    out property <length> space-8: 8px;
+    out property <length> space-10: 10px;
+    out property <length> space-12: 12px;
+    out property <length> space-16: 16px;
+    out property <length> space-20: 20px;
+    out property <length> space-24: 24px;
+    out property <length> space-32: 32px;
+    out property <length> space-48: 48px;
+
+    // Spacing roles (§ 3.4)
+    out property <length> card-pad: 10px;
+    out property <length> dialog-pad: 16px;
+    out property <length> dialog-gap: 12px;
+    out property <length> menu-pad: 4px;
+    out property <length> item-pad-x: 8px;
+    out property <length> field-pad-x: 6px;
+    out property <length> button-pad-x: 10px;
+    out property <length> button-pad-x-icon: 8px;
+    out property <length> label-gap: 6px;
+    out property <length> group-gap: 8px;
+    out property <length> section-gap: 16px;
+    out property <length> tooltip-pad-y: 4px;
+    out property <length> tooltip-pad-x: 8px;
+
+    // Density (§ 3.5): normal / compact
+    out property <length> control-sm: compact ? 20px : 24px;
+    out property <length> control: compact ? 24px : 28px;
+    out property <length> control-lg: compact ? 28px : 32px;
+    out property <length> row: compact ? 18px : 22px;
+    out property <length> header-row: compact ? 20px : 24px;
+    out property <length> toolbar: compact ? 32px : 36px;
+    out property <length> tabbar: compact ? 24px : 28px;
+    out property <length> statusbar: compact ? 20px : 22px;
+    out property <length> menu-item: compact ? 22px : 24px;
+    out property <length> icon: compact ? 14px : 16px;
+    out property <length> indent: compact ? 14px : 16px;
+    out property <length> cell-pad-x: compact ? 4px : 6px;
+    out property <length> panel-pad: compact ? 6px : 8px;
+    out property <length> tool-gap: compact ? 2px : 4px;
+    out property <length> bar-h: compact ? 4px : 6px;
+
+    // Fixed sizes (§ 3.5)
+    out property <length> side-panel: 300px;
+    out property <length> side-panel-min: 220px;
+    out property <length> side-panel-max: 480px;
+    out property <length> treemap-min: 120px;
+    out property <length> table-min: 120px;
+    out property <length> splitter-hit: 6px;
+    out property <length> scrollbar: 10px;
+    out property <length> scroll-thumb: 6px;
+    out property <length> scroll-thumb-hover: 8px;
+    out property <length> swatch: 10px;
+    out property <length> bar-w: 56px;
+    out property <length> search-w: 320px;
+    out property <length> search-w-max: 400px;
+    out property <length> drive-picker-w: 232px;
+    out property <length> dialog-sm: 400px;
+    out property <length> dialog-md: 520px;
+    out property <length> dialog-lg: 680px;
+    out property <length> menu-min: 200px;
+    out property <length> menu-max: 360px;
+    out property <length> tooltip-max: 320px;
+    out property <length> toast-w: 360px;
+
+    // Window (§ 2.1)
+    out property <length> window-w: 1280px;
+    out property <length> window-h: 800px;
+    out property <length> window-min-w: 960px;
+    out property <length> window-min-h: 600px;
+    out property <length> titlebar: 32px;
+
+    // Radii (§ 3.6)
+    out property <length> radius-badge: 2px;
+    out property <length> radius-control: 2px;
+    out property <length> radius-button: 4px;
+    out property <length> radius-card: 3px;
+    out property <length> radius-panel: 4px;
+    out property <length> radius-swatch: 2px;
+    out property <length> radius-bar: 1px;
+
+    // Borders and focus (§ 3.7)
+    out property <length> border-hairline: 1px;
+    out property <length> border-focus: 2px;
+    out property <length> border-selection: 2px;
+    out property <length> border-cursor: 1px;
+
+    // Elevation (§ 3.8): shadows of levels 1 and 2
+    out property <length> shadow-1-y: 4px;
+    out property <length> shadow-1-blur: 16px;
+    out property <length> shadow-2-y: 16px;
+    out property <length> shadow-2-blur: 48px;
+
+    // Opacity (§ 3.9)
+    out property <float> disabled: 0.40;
+    out property <float> pending: 0.55;
+    out property <float> dimmed: 0.30;
+
+    // Layers inside the content (§ 3.11)
+    out property <float> z-sticky-header: 1;
+    out property <float> z-splitter: 2;
+    out property <float> z-drag-ghost: 3;
+    out property <float> z-notice: 5;
+    out property <float> z-dialog: 10;
+}

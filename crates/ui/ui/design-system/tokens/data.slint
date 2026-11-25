@@ -1,0 +1,79 @@
+// Data colours: file categories and age. Values: `docs/design-system.md` § 3.2 «Data».
+// The same in every theme: a file's colour never changes with the theme.
+
+// The names are shared with Rust (`diskdome-core` maps an extension to one of them).
+export enum FileCategory { video, image, audio, document, game, app, data, code, build, archive, system, other }
+
+// Which of the three shades of a category (§ 3.2 «Shades per extension»).
+export enum DataShade { base, lighter, darker }
+
+export enum DataPalette { standard, soft, vivid }
+
+export enum MapStyle { vignette, diagonal-light, mosaic, structure, flat, cushion, relief, folders }
+
+export enum AgeBucket { d7, m1, m6, y1, y3, older }
+
+export global Data {
+    // Set by Rust from Settings › Appearance.
+    // Pending design: Soft and Vivid are computed by the treemap crate's transform and fed here; until then every
+    // palette shows the standard colours.
+    in-out property <DataPalette> palette: DataPalette.standard;
+    in-out property <MapStyle> style: MapStyle.vignette;
+
+    out property <color> on-data-dark: #16181b;
+    out property <color> on-data-light: #ffffff;
+
+    public pure function colour(category: FileCategory, shade: DataShade) -> color {
+        if category == FileCategory.video {
+            return shade == DataShade.lighter ? #f18664 : shade == DataShade.darker ? #c15a3a : #d9704f;
+        }
+        if category == FileCategory.image {
+            return shade == DataShade.lighter ? #fea4d2 : shade == DataShade.darker ? #ce78a5 : #e68ebb;
+        }
+        if category == FileCategory.audio {
+            return shade == DataShade.lighter ? #b88ae0 : shade == DataShade.darker ? #8d60b2 : #a275c9;
+        }
+        if category == FileCategory.document {
+            return shade == DataShade.lighter ? #6f9ce5 : shade == DataShade.darker ? #4671b7 : #5a86ce;
+        }
+        if category == FileCategory.game {
+            return shade == DataShade.lighter ? #7268c5 : shade == DataShade.darker ? #4c3e97 : #5f53ae;
+        }
+        if category == FileCategory.app {
+            return shade == DataShade.lighter ? #64c3e2 : shade == DataShade.darker ? #3296b4 : #4caccb;
+        }
+        if category == FileCategory.data {
+            return shade == DataShade.lighter ? #358f7b : shade == DataShade.darker ? #006453 : #197a67;
+        }
+        if category == FileCategory.code {
+            return shade == DataShade.lighter ? #73cb87 : shade == DataShade.darker ? #459f5d : #5cb572;
+        }
+        if category == FileCategory.build {
+            return shade == DataShade.lighter ? #8d9f4d : shade == DataShade.darker ? #647520 : #788a37;
+        }
+        if category == FileCategory.archive {
+            return shade == DataShade.lighter ? #e8b86b : shade == DataShade.darker ? #ba8c3e : #d1a255;
+        }
+        if category == FileCategory.system {
+            return shade == DataShade.lighter ? #928377 : shade == DataShade.darker ? #695b50 : #7d6e63;
+        }
+        // other
+        return shade == DataShade.lighter ? #696c70 : shade == DataShade.darker ? #424549 : #55585d;
+    }
+
+    // The text drawn on a category colour: dark ink where it reaches 4.5:1, white otherwise.
+    public pure function on-data(category: FileCategory) -> color {
+        return category == FileCategory.game || category == FileCategory.data || category == FileCategory.system
+            || category == FileCategory.other ? on-data-light : on-data-dark;
+    }
+
+    // Age: bright = recent, dim = old.
+    public pure function age(bucket: AgeBucket) -> color {
+        return bucket == AgeBucket.d7 ? #ffb984 : bucket == AgeBucket.m1 ? #e79551 : bucket == AgeBucket.m6
+            ? #ba7c4c : bucket == AgeBucket.y1 ? #8e6445 : bucket == AgeBucket.y3 ? #664d3a : #453b33;
+    }
+
+    public pure function on-age(bucket: AgeBucket) -> color {
+        return bucket == AgeBucket.d7 || bucket == AgeBucket.m1 || bucket == AgeBucket.m6 ? on-data-dark : on-data-light;
+    }
+}

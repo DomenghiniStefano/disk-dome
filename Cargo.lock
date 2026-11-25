@@ -995,6 +995,7 @@ dependencies = [
  "diskdome-core",
  "diskdome-treemap",
  "rayon",
+ "regex",
  "slint",
  "slint-build",
 ]

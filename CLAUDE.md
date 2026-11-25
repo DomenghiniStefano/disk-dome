@@ -45,8 +45,9 @@ identical (`docs/decisions.md`). The engine and the CLI are in place; the Slint 
 interface questions (row virtualisation, table widget). Step 4, the design, is complete (2026-11-25): every v1
 feature is specified in `docs/design-system.md` and drawn on the canvas
 (https://claude.ai/artifact/9uEkqjsB82zrQAAr9x97CD), and the logos and icons are in `crates/ui/ui/assets/brand/`.
-Next: the Slint tokens and the automatic checks of `docs/design-system.md` § 10, then the Kit, where the font, the
-renderer and the menus are decided (§ 11, still open). The plan and its status: https://claude.ai/artifact/6b7K1hVhjpupdAURw4CfFP
+The Slint tokens (`crates/ui/ui/design-system/tokens/`) and the source checks of `docs/design-system.md` § 10 are in
+place (`crates/ui/tests/design_conventions.rs`, `design_tokens.rs`). Next: the components and the Kit, where the
+font, the renderer and the menus are decided (§ 11, still open). The plan and its status: https://claude.ai/artifact/6b7K1hVhjpupdAURw4CfFP
 and the Trello board: https://trello.com/b/BrdLKkTt/diskdome (personal account, workspace DomeHub).
 
 ## Commands
