@@ -90,8 +90,10 @@ export component TitlebarSpike inherits Window {
     title: @tr("DiskDome — title bar test");
     preferred-width: Size.window-w;
     preferred-height: Size.window-h;
-    min-width: Size.window-min-w;
-    min-height: Size.window-min-h;
+    // DISKDOME_SPIKE_SMALL_MIN=1: a small minimum, to see whether 960 px keeps Snap Layouts from opening.
+    in property <bool> small-min;
+    min-width: small-min ? Size.side-panel-min : Size.window-min-w;
+    min-height: small-min ? Size.side-panel-min : Size.window-min-h;
     background: Theme.bg;
 
     in property <[SpikeTab]> tabs;
