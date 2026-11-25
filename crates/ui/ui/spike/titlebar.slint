@@ -207,21 +207,28 @@ export component TitlebarSpike inherits Window {
                     font-size: Type.size(TypeStep.body);
                 }
 
-                theme-button := Rectangle {
-                    width: Size.search-w;
-                    height: Size.control;
-                    background: theme-touch.has-hover ? Theme.control-hover : Theme.control;
-                    border-radius: Size.radius-button;
-                    theme-touch := TouchArea {
-                        clicked => {
-                            Theme.mode = Theme.dark ? ThemeMode.light : ThemeMode.dark;
+                // A fixed-width child alone would cap the window's maximum width; the spacer keeps it free.
+                HorizontalLayout {
+                    theme-button := Rectangle {
+                        width: Size.search-w;
+                        height: Size.control;
+                        background: theme-touch.has-hover ? Theme.control-hover : Theme.control;
+                        border-radius: Size.radius-button;
+                        theme-touch := TouchArea {
+                            clicked => {
+                                Theme.mode = Theme.dark ? ThemeMode.light : ThemeMode.dark;
+                            }
+                        }
+                        Text {
+                            text: Theme.dark ? @tr("Switch to the light theme") : @tr("Switch to the dark theme");
+                            color: Theme.ink;
+                            font-family: Type.family;
+                            font-size: Type.size(TypeStep.body);
                         }
                     }
-                    Text {
-                        text: Theme.dark ? @tr("Switch to the light theme") : @tr("Switch to the dark theme");
-                        color: Theme.ink;
-                        font-family: Type.family;
-                        font-size: Type.size(TypeStep.body);
+
+                    Rectangle {
+                        horizontal-stretch: 1;
                     }
                 }
             }

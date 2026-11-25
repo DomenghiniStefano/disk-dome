@@ -54,7 +54,6 @@ mod imp {
 #[cfg(windows)]
 mod imp {
     use std::cell::RefCell;
-    use std::mem::size_of;
     use std::ptr::null_mut;
 
     use windows_sys::Win32::Foundation::{HWND, LPARAM, LRESULT, POINT, RECT, WPARAM};
@@ -62,9 +61,6 @@ mod imp {
     use windows_sys::Win32::Graphics::Gdi::ScreenToClient;
     use windows_sys::Win32::UI::Controls::MARGINS;
     use windows_sys::Win32::UI::HiDpi::{GetDpiForWindow, GetSystemMetricsForDpi};
-    use windows_sys::Win32::UI::Input::KeyboardAndMouse::{
-        TME_LEAVE, TME_NONCLIENT, TRACKMOUSEEVENT, TrackMouseEvent,
-    };
     use windows_sys::Win32::UI::Shell::{DefSubclassProc, RemoveWindowSubclass, SetWindowSubclass};
     use windows_sys::Win32::UI::WindowsAndMessaging::{
         GetClientRect, HTCAPTION, HTCLIENT, HTMAXBUTTON, HTTOP, HTTOPLEFT, HTTOPRIGHT, IsZoomed,
@@ -260,18 +256,9 @@ mod imp {
                     hit_test(hwnd, lparam).map_or(native, |hit| hit as LRESULT)
                 }
                 WM_NCMOUSEMOVE => {
-                    if is_max(wparam) {
-                        let mut track = TRACKMOUSEEVENT {
-                            cbSize: size_of::<TRACKMOUSEEVENT>() as u32,
-                            dwFlags: TME_LEAVE | TME_NONCLIENT,
-                            hwndTrack: hwnd,
-                            dwHoverTime: 0,
-                        };
-                        TrackMouseEvent(&mut track);
-                        set_hover(true);
-                    } else {
-                        set_hover(false);
-                    }
+                    // No TrackMouseEvent here: it would replace the hover tracking Windows 11 uses to open
+                    // Snap Layouts. Leaving the button is seen by the next mouse message on another part.
+                    set_hover(is_max(wparam));
                     DefSubclassProc(hwnd, msg, wparam, lparam)
                 }
                 WM_NCMOUSELEAVE | WM_MOUSEMOVE => {
