@@ -220,7 +220,59 @@ mod imp {
         wparam == HTMAXBUTTON as WPARAM
     }
 
+    /// `DISKDOME_TITLEBAR_LOG=1` prints the title bar's mouse messages and hit-test answers (spike diagnostics).
+    fn logging() -> bool {
+        static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+        *ON.get_or_init(|| std::env::var_os("DISKDOME_TITLEBAR_LOG").is_some())
+    }
+
+    fn log(msg: u32, wparam: WPARAM, result: LRESULT) {
+        thread_local! {
+            static LAST: std::cell::Cell<(u32, WPARAM, LRESULT)> = const { std::cell::Cell::new((0, 0, 0)) };
+        }
+        let name = match msg {
+            WM_NCHITTEST => "WM_NCHITTEST",
+            WM_NCMOUSEMOVE => "WM_NCMOUSEMOVE",
+            0x02A0 => "WM_NCMOUSEHOVER",
+            WM_NCMOUSELEAVE => "WM_NCMOUSELEAVE",
+            0x02A3 => "WM_MOUSELEAVE",
+            WM_NCLBUTTONDOWN => "WM_NCLBUTTONDOWN",
+            WM_NCLBUTTONUP => "WM_NCLBUTTONUP",
+            0x0112 => "WM_SYSCOMMAND",
+            0x0020 => "WM_SETCURSOR",
+            _ => return,
+        };
+        // Repeats of the same message with the same values are printed once.
+        if LAST.replace((msg, wparam, result)) != (msg, wparam, result) {
+            eprintln!("titlebar: {name} wparam={wparam:#x} result={result}");
+        }
+    }
+
     unsafe extern "system" fn subclass_proc(
+        hwnd: HWND,
+        msg: u32,
+        wparam: WPARAM,
+        lparam: LPARAM,
+        id: usize,
+        data: usize,
+    ) -> LRESULT {
+        // SAFETY: forwarded unchanged from Windows.
+        let result = unsafe { handle(hwnd, msg, wparam, lparam, id, data) };
+        if logging() {
+            log(
+                msg,
+                if msg == 0x0020 {
+                    lparam as usize
+                } else {
+                    wparam
+                },
+                result,
+            );
+        }
+        result
+    }
+
+    unsafe fn handle(
         hwnd: HWND,
         msg: u32,
         wparam: WPARAM,
