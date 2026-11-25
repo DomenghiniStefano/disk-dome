@@ -1,4 +1,4 @@
-// The Kit's «Text and digits» section (§ 12 test 7, decision 8): the 12–13 px steps in the chosen font,
+// The Kit's «Text and digits» section (§ 12 test 7, decision 8): the 12–13 px steps and a tree total,
 // right-aligned figures that stay in columns only if the digits are tabular, and a live check of it.
 // Texts are the Kit's own, not translated (rule `untranslated` exempts `kit/`).
 
@@ -50,16 +50,15 @@ component KitSizeLine inherits HorizontalLayout {
     Label { text: root.entry.files; step: root.figure-step; align: TextHorizontalAlignment.right; width: Size.bar-w * 1.5; }
 }
 
-// A small tree table whose total row is strong: its figures take `total-figure-step` (decision 8).
-export component KitSizeTable inherits VerticalLayout {
-    in property <TypeStep> total-figure-step;
+// A small tree table whose total row is strong: its figures must line up with the rows above (decision 8).
+component KitSizeTable inherits VerticalLayout {
 
     for row in KitTextData.rows: KitSizeLine { entry: row; name-step: TypeStep.body; figure-step: TypeStep.body; }
     Rectangle { height: Size.border-hairline; background: Theme.line; }
     KitSizeLine {
         entry: KitTextData.total;
         name-step: TypeStep.body-strong;
-        figure-step: root.total-figure-step;
+        figure-step: TypeStep.body-strong;
     }
 }
 
@@ -98,8 +97,7 @@ component KitTextStep inherits HorizontalLayout {
 }
 
 export component KitText inherits KitSection {
-    // Whether the 12–13 px steps have tabular digits in the chosen font, by weight (400, 600): the headless test
-    // reads them.
+    // Whether the 12–13 px steps have tabular digits, regular and strong: the headless test reads them.
     out property <bool> regular-tabular: caption.tabular && body.tabular;
     out property <bool> strong-tabular: caption-strong.tabular && body-strong.tabular;
 
@@ -107,6 +105,10 @@ export component KitText inherits KitSection {
     KitRow {
         name: "font";
         Label { text: Type.family; step: TypeStep.body-strong; }
+    }
+    KitRow {
+        name: "tree total";
+        KitSizeTable { }
     }
     caption := KitTextStep { name: "caption 12"; step: TypeStep.caption; }
     caption-strong := KitTextStep { name: "caption-strong 12"; step: TypeStep.caption-strong; }
