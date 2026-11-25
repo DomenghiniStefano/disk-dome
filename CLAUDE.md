@@ -47,8 +47,9 @@ feature is specified in `docs/design-system.md` and drawn on the canvas
 (https://claude.ai/artifact/9uEkqjsB82zrQAAr9x97CD), and the logos and icons are in `crates/ui/ui/assets/brand/`.
 The Slint tokens (`crates/ui/ui/design-system/tokens/`) and the source checks of `docs/design-system.md` § 10 are in
 place (`crates/ui/tests/design_conventions.rs`, `design_tokens.rs`). The first components (Label, Icon with the Lucide
-set, Button, SegmentedControl) are in `crates/ui/ui/design-system/components/` and shown in the first Kit window
-(card 4.2). Next: the full Kit (card 4.3), where the font, the renderer and the menus are decided (§ 11, still open). The plan and its status: https://claude.ai/artifact/6b7K1hVhjpupdAURw4CfFP
+set, Button, SegmentedControl) are in `crates/ui/ui/design-system/components/`; the Kit window shows every token,
+every component and the review board (cards 4.2, 4.3). Next: in the Kit, the font, the renderer and the menus
+(cards 4.T7, 4.T8; § 11, still open). The plan and its status: https://claude.ai/artifact/6b7K1hVhjpupdAURw4CfFP
 and the Trello board: https://trello.com/b/BrdLKkTt/diskdome (personal account, workspace DomeHub).
 
 ## Commands

@@ -1,5 +1,6 @@
-//! Drives the Kit window off screen (Slint's software renderer, no window opened): the components of card 4.2
-//! with the keyboard and the pointer, through the Kit's own theme and density switches (two SegmentedControls).
+//! Drives the Kit window off screen (Slint's software renderer, no window opened): the components with the
+//! keyboard and the pointer, through the Kit's own theme and density switches (two SegmentedControls), and the
+//! review board's count.
 //!
 //! `DISKDOME_KIT_SHOTS=<folder>` also saves the Kit as BMP in dark / normal and light / compact, for a look.
 
@@ -7,14 +8,15 @@
 
 use std::path::PathBuf;
 
-use diskdome_ui::generated::{KitWindow, Nav, Size, Theme, ThemeMode};
+use diskdome_ui::generated::{KitReview, Nav, Size, Theme, ThemeMode};
+use diskdome_ui::kit;
 use diskdome_ui::proof::headless::Headless;
 use slint::ComponentHandle;
 use slint::platform::Key;
 
 const WIDTH: u32 = 1280;
-// Tall enough to show every section of the Kit in one shot.
-const HEIGHT: u32 = 1400;
+// Tall enough to show every section of the Kit, tokens included, in one shot.
+const HEIGHT: u32 = 5200;
 
 /// The theme switch's «Dark» segment, in the Kit's top bar (logical pixels).
 const DARK_SEGMENT: (f32, f32) = (125.0, 18.0);
@@ -31,8 +33,12 @@ fn save_shot(headless: &Headless, name: &str) {
 #[test]
 fn kit_switches_work_by_keyboard_and_pointer() {
     let mut headless = Headless::install(WIDTH, HEIGHT).expect("headless platform");
-    let kit = KitWindow::new().expect("the Kit compiles");
+    let kit = kit::open().expect("the Kit compiles");
     kit.show().expect("the Kit shows off screen");
+    // The review board's count in the top bar comes from Rust.
+    let review = kit.global::<KitReview>();
+    assert_eq!(review.get_open_count(), 0);
+    assert_eq!(review.get_proposed_count(), 3);
     headless.frame();
     save_shot(&headless, "dark-normal");
 

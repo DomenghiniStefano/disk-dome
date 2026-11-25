@@ -122,6 +122,9 @@ export global Size {
     out property <float> pending: 0.55;
     out property <float> dimmed: 0.30;
 
+    // The unit the Kit shows lengths in (§ 9): a length divided by it is its number of logical pixels.
+    out property <length> unit: 1px;
+
     // Layers inside the content (§ 3.11)
     out property <float> z-sticky-header: 1;
     out property <float> z-splitter: 2;

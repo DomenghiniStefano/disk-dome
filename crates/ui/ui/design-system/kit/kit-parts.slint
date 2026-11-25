@@ -1,0 +1,67 @@
+// The Kit's own layout pieces (§ 9): a section with its title, a row with its name, a pane with a frame. Kit only:
+// screens never import them. Texts are the Kit's own, not translated (rule `untranslated` exempts `kit/`).
+
+import { Theme, Size, TypeStep, Label, InkTone } from "../index.slint";
+
+export component KitSection {
+    in property <string> title;
+
+    VerticalLayout {
+        spacing: Size.space-8;
+        Label {
+            text: root.title;
+            step: TypeStep.overline;
+            tone: InkTone.muted;
+        }
+
+        @children
+    }
+}
+
+// The name of a row, in the Kit's quiet style, in a fixed column so the rows line up.
+export component KitCaption inherits Label {
+    step: TypeStep.caption;
+    tone: InkTone.faint;
+    width: Size.bar-w * 2;
+}
+
+// One row of a section: its name, then the samples.
+export component KitRow inherits HorizontalLayout {
+    in property <string> name;
+
+    spacing: Size.space-16;
+    alignment: start;
+    KitCaption { text: root.name; }
+
+    @children
+}
+
+// A text on a filled ground, for the `on-*` tones.
+export component KitOnFill inherits Rectangle {
+    in property <string> text;
+    in property <InkTone> tone;
+
+    HorizontalLayout {
+        padding-left: Size.space-4;
+        padding-right: Size.space-4;
+        Label { text: root.text; tone: root.tone; }
+    }
+}
+
+// A framed area with a small title, for the «Now» and «Proposal» of a review issue.
+export component KitPane inherits Rectangle {
+    in property <string> title;
+
+    border-width: Size.border-hairline;
+    border-color: Theme.line;
+    border-radius: Size.radius-panel;
+
+    VerticalLayout {
+        padding: Size.card-pad;
+        spacing: Size.space-8;
+        alignment: start;
+        Label { text: root.title; step: TypeStep.overline; tone: InkTone.faint; }
+
+        @children
+    }
+}

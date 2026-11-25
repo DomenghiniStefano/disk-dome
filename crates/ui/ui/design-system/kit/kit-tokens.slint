@@ -1,0 +1,526 @@
+// The Kit's token sections (§ 9, the values of § 3): every colour, data colour, length, radius, border, shadow,
+// opacity and duration of `design-system/tokens/`, drawn with the token itself so a theme or density switch
+// shows at once. Texts are the Kit's own, not translated (rule `untranslated` exempts `kit/`).
+
+import {
+    Theme, Data, FileCategory, DataShade, AgeBucket, Size, Type, TypeStep, Motion, Icons, Label, Button,
+    InkTone, ButtonVariant, ButtonSize,
+} from "../index.slint";
+import { KitSection, KitRow } from "kit-parts.slint";
+
+struct KitColour { name: string, colour: color }
+struct KitCategory { name: string, category: FileCategory }
+struct KitLength { name: string, value: length }
+struct KitFloat { name: string, value: float }
+struct KitDuration { name: string, value: duration }
+
+// Every token, in the order of § 3. A token added to `tokens/` gets its line here.
+global KitTokenData {
+    out property <[KitColour]> neutrals: [
+        { name: "bg", colour: Theme.bg },
+        { name: "surface", colour: Theme.surface },
+        { name: "raised", colour: Theme.raised },
+        { name: "field", colour: Theme.field },
+        { name: "control", colour: Theme.control },
+        { name: "control-hover", colour: Theme.control-hover },
+        { name: "control-pressed", colour: Theme.control-pressed },
+        { name: "line", colour: Theme.line },
+        { name: "line-strong", colour: Theme.line-strong },
+        { name: "edge", colour: Theme.edge },
+        { name: "ink", colour: Theme.ink },
+        { name: "ink-muted", colour: Theme.ink-muted },
+        { name: "ink-faint", colour: Theme.ink-faint },
+        { name: "frame", colour: Theme.frame },
+    ];
+    out property <[KitColour]> accent: [
+        { name: "accent", colour: Theme.accent },
+        { name: "accent-hover", colour: Theme.accent-hover },
+        { name: "accent-pressed", colour: Theme.accent-pressed },
+        { name: "on-accent", colour: Theme.on-accent },
+        { name: "accent-text", colour: Theme.accent-text },
+        { name: "accent-soft", colour: Theme.accent-soft },
+        { name: "focus", colour: Theme.focus },
+    ];
+    out property <[KitColour]> states: [
+        { name: "danger", colour: Theme.danger },
+        { name: "danger-hover", colour: Theme.danger-hover },
+        { name: "danger-pressed", colour: Theme.danger-pressed },
+        { name: "danger-soft", colour: Theme.danger-soft },
+        { name: "warning", colour: Theme.warning },
+        { name: "warning-soft", colour: Theme.warning-soft },
+        { name: "success", colour: Theme.success },
+        { name: "success-soft", colour: Theme.success-soft },
+        { name: "caption-close", colour: Theme.caption-close },
+        { name: "on-caption-close", colour: Theme.on-caption-close },
+    ];
+    out property <[KitColour]> others: [
+        { name: "hover", colour: Theme.hover },
+        { name: "selected-inactive", colour: Theme.selected-inactive },
+        { name: "bar-track", colour: Theme.bar-track },
+        { name: "bar-fill", colour: Theme.bar-fill },
+        { name: "scroll-thumb", colour: Theme.scroll-thumb },
+        { name: "scroll-thumb-hover", colour: Theme.scroll-thumb-hover },
+        { name: "scrim", colour: Theme.scrim },
+        { name: "shadow", colour: Theme.shadow },
+        { name: "data-gap", colour: Theme.data-gap },
+        { name: "data-hover", colour: Theme.data-hover },
+        { name: "data-selection", colour: Theme.data-selection },
+        { name: "chart-space", colour: Theme.chart-space },
+        { name: "delta-up", colour: Theme.delta-up },
+        { name: "delta-down", colour: Theme.delta-down },
+    ];
+    out property <[KitCategory]> categories: [
+        { name: "video", category: FileCategory.video },
+        { name: "image", category: FileCategory.image },
+        { name: "audio", category: FileCategory.audio },
+        { name: "document", category: FileCategory.document },
+        { name: "game", category: FileCategory.game },
+        { name: "app", category: FileCategory.app },
+        { name: "data", category: FileCategory.data },
+        { name: "code", category: FileCategory.code },
+        { name: "build", category: FileCategory.build },
+        { name: "archive", category: FileCategory.archive },
+        { name: "system", category: FileCategory.system },
+        { name: "other", category: FileCategory.other },
+    ];
+    out property <[KitColour]> ages: [
+        { name: "d7", colour: Data.age(AgeBucket.d7) },
+        { name: "m1", colour: Data.age(AgeBucket.m1) },
+        { name: "m6", colour: Data.age(AgeBucket.m6) },
+        { name: "y1", colour: Data.age(AgeBucket.y1) },
+        { name: "y3", colour: Data.age(AgeBucket.y3) },
+        { name: "older", colour: Data.age(AgeBucket.older) },
+    ];
+    out property <[KitLength]> spacing: [
+        { name: "space-2", value: Size.space-2 },
+        { name: "space-4", value: Size.space-4 },
+        { name: "space-6", value: Size.space-6 },
+        { name: "space-8", value: Size.space-8 },
+        { name: "space-10", value: Size.space-10 },
+        { name: "space-12", value: Size.space-12 },
+        { name: "space-16", value: Size.space-16 },
+        { name: "space-20", value: Size.space-20 },
+        { name: "space-24", value: Size.space-24 },
+        { name: "space-32", value: Size.space-32 },
+        { name: "space-48", value: Size.space-48 },
+    ];
+    out property <[KitLength]> spacing-roles: [
+        { name: "card-pad", value: Size.card-pad },
+        { name: "dialog-pad", value: Size.dialog-pad },
+        { name: "dialog-gap", value: Size.dialog-gap },
+        { name: "menu-pad", value: Size.menu-pad },
+        { name: "item-pad-x", value: Size.item-pad-x },
+        { name: "field-pad-x", value: Size.field-pad-x },
+        { name: "button-pad-x", value: Size.button-pad-x },
+        { name: "button-pad-x-icon", value: Size.button-pad-x-icon },
+        { name: "label-gap", value: Size.label-gap },
+        { name: "group-gap", value: Size.group-gap },
+        { name: "section-gap", value: Size.section-gap },
+        { name: "tooltip-pad-y", value: Size.tooltip-pad-y },
+        { name: "tooltip-pad-x", value: Size.tooltip-pad-x },
+    ];
+    out property <[KitLength]> density: [
+        { name: "control-sm", value: Size.control-sm },
+        { name: "control", value: Size.control },
+        { name: "control-lg", value: Size.control-lg },
+        { name: "row", value: Size.row },
+        { name: "header-row", value: Size.header-row },
+        { name: "toolbar", value: Size.toolbar },
+        { name: "tabbar", value: Size.tabbar },
+        { name: "statusbar", value: Size.statusbar },
+        { name: "menu-item", value: Size.menu-item },
+        { name: "icon", value: Size.icon },
+        { name: "indent", value: Size.indent },
+        { name: "cell-pad-x", value: Size.cell-pad-x },
+        { name: "panel-pad", value: Size.panel-pad },
+        { name: "tool-gap", value: Size.tool-gap },
+        { name: "bar-h", value: Size.bar-h },
+    ];
+    out property <[KitLength]> fixed: [
+        { name: "icon-sm", value: Size.icon-sm },
+        { name: "icon-hero", value: Size.icon-hero },
+        { name: "control-hero", value: Size.control-hero },
+        { name: "button-min-w", value: Size.button-min-w },
+        { name: "button-pad-x-hero", value: Size.button-pad-x-hero },
+        { name: "button-hero-min-w", value: Size.button-hero-min-w },
+        { name: "segment-inset", value: Size.segment-inset },
+        { name: "swatch", value: Size.swatch },
+        { name: "bar-w", value: Size.bar-w },
+        { name: "scrollbar", value: Size.scrollbar },
+        { name: "scroll-thumb", value: Size.scroll-thumb },
+        { name: "scroll-thumb-hover", value: Size.scroll-thumb-hover },
+        { name: "splitter-hit", value: Size.splitter-hit },
+        { name: "treemap-min", value: Size.treemap-min },
+        { name: "table-min", value: Size.table-min },
+        { name: "side-panel-min", value: Size.side-panel-min },
+        { name: "side-panel", value: Size.side-panel },
+        { name: "side-panel-max", value: Size.side-panel-max },
+        { name: "drive-picker-w", value: Size.drive-picker-w },
+        { name: "search-w", value: Size.search-w },
+        { name: "search-w-max", value: Size.search-w-max },
+        { name: "menu-min", value: Size.menu-min },
+        { name: "menu-max", value: Size.menu-max },
+        { name: "tooltip-max", value: Size.tooltip-max },
+        { name: "toast-w", value: Size.toast-w },
+        { name: "dialog-sm", value: Size.dialog-sm },
+        { name: "dialog-md", value: Size.dialog-md },
+        { name: "dialog-lg", value: Size.dialog-lg },
+        { name: "titlebar", value: Size.titlebar },
+        { name: "caption-button-w", value: Size.caption-button-w },
+        { name: "caption-glyph", value: Size.caption-glyph },
+        { name: "window-min-w", value: Size.window-min-w },
+        { name: "window-min-h", value: Size.window-min-h },
+        { name: "window-w", value: Size.window-w },
+        { name: "window-h", value: Size.window-h },
+    ];
+    out property <[KitLength]> radii: [
+        { name: "radius-badge", value: Size.radius-badge },
+        { name: "radius-control", value: Size.radius-control },
+        { name: "radius-button", value: Size.radius-button },
+        { name: "radius-card", value: Size.radius-card },
+        { name: "radius-panel", value: Size.radius-panel },
+        { name: "radius-swatch", value: Size.radius-swatch },
+        { name: "radius-bar", value: Size.radius-bar },
+    ];
+    out property <[KitLength]> borders: [
+        { name: "border-hairline", value: Size.border-hairline },
+        { name: "border-focus", value: Size.border-focus },
+        { name: "border-selection", value: Size.border-selection },
+        { name: "border-cursor", value: Size.border-cursor },
+        { name: "focus-gap", value: Size.focus-gap },
+    ];
+    out property <[KitFloat]> opacities: [
+        { name: "disabled", value: Size.disabled },
+        { name: "pending", value: Size.pending },
+        { name: "dimmed", value: Size.dimmed },
+    ];
+    out property <[KitFloat]> layers: [
+        { name: "z-sticky-header", value: Size.z-sticky-header },
+        { name: "z-splitter", value: Size.z-splitter },
+        { name: "z-drag-ghost", value: Size.z-drag-ghost },
+        { name: "z-notice", value: Size.z-notice },
+        { name: "z-dialog", value: Size.z-dialog },
+    ];
+    out property <[KitDuration]> durations: [
+        { name: "fast", value: Motion.fast },
+        { name: "base", value: Motion.base },
+        { name: "slow", value: Motion.slow },
+        { name: "tooltip-delay", value: Motion.tooltip-delay },
+    ];
+}
+
+// The narrowest cell of the Kit's grids, and the gap that separates the cells.
+global KitGrid {
+    out property <length> pitch: Size.bar-w * 2;
+    out property <length> gap: Size.space-8;
+}
+
+// A token's number, in the Kit's mono step, right-aligned in a fixed column.
+component KitValue inherits Label {
+    step: TypeStep.mono;
+    tone: InkTone.muted;
+    align: TextHorizontalAlignment.right;
+    width: Size.bar-w;
+}
+
+// Colours as swatches with their names, in as many columns as the width holds (Slint layouts do not wrap).
+component KitSwatchGrid {
+    in property <[KitColour]> colours;
+
+    property <length> cell-h: Size.control-lg + Size.space-4 + Type.line(TypeStep.caption) + KitGrid.gap;
+    property <int> columns: Math.max(1, Math.floor(self.width / KitGrid.pitch));
+    // The cells share the whole width: no empty band at the right edge.
+    property <length> cell-w: self.width / self.columns;
+
+    min-width: KitGrid.pitch;
+    height: Math.ceil(self.colours.length / self.columns) * self.cell-h;
+
+    for item[index] in root.colours: VerticalLayout {
+        x: Math.mod(index, root.columns) * root.cell-w;
+        y: Math.floor(index / root.columns) * root.cell-h;
+        width: root.cell-w - KitGrid.gap;
+        height: root.cell-h - KitGrid.gap;
+        spacing: Size.space-4;
+
+        Rectangle {
+            height: Size.control-lg;
+            background: item.colour;
+            border-width: Size.border-hairline;
+            border-color: Theme.line;
+            border-radius: Size.radius-card;
+        }
+
+        Label { text: item.name; step: TypeStep.caption; tone: InkTone.muted; }
+    }
+}
+
+// The file categories: the name on the base colour in its `on-data` ink, the three shades underneath.
+component KitCategoryGrid {
+    property <length> cell-h: Size.control-lg + Size.control-sm + KitGrid.gap;
+    property <int> columns: Math.max(1, Math.floor(self.width / KitGrid.pitch));
+    // The cells share the whole width: no empty band at the right edge.
+    property <length> cell-w: self.width / self.columns;
+
+    min-width: KitGrid.pitch;
+    height: Math.ceil(KitTokenData.categories.length / self.columns) * self.cell-h;
+
+    for item[index] in KitTokenData.categories: VerticalLayout {
+        x: Math.mod(index, root.columns) * root.cell-w;
+        y: Math.floor(index / root.columns) * root.cell-h;
+        width: root.cell-w - KitGrid.gap;
+        height: root.cell-h - KitGrid.gap;
+
+        Rectangle {
+            height: Size.control-lg;
+            background: Data.colour(item.category, DataShade.base);
+
+            HorizontalLayout {
+                padding-left: Size.space-6;
+                Label { text: item.name; tone: InkTone.on-data; category: item.category; }
+            }
+        }
+
+        HorizontalLayout {
+            height: Size.control-sm;
+            Rectangle { background: Data.colour(item.category, DataShade.lighter); }
+            Rectangle { background: Data.colour(item.category, DataShade.base); }
+            Rectangle { background: Data.colour(item.category, DataShade.darker); }
+        }
+    }
+}
+
+// Lengths as bars as long as the token, with the number; a bar longer than a large dialog is cut there.
+component KitLengths inherits VerticalLayout {
+    in property <[KitLength]> lengths;
+
+    spacing: Size.space-2;
+    for item in root.lengths: KitRow {
+        name: item.name;
+        KitValue { text: item.value / Size.unit; }
+        VerticalLayout {
+            alignment: center;
+            Rectangle {
+                width: Math.min(item.value, Size.dialog-lg);
+                height: Size.bar-h;
+                background: Theme.bar-fill;
+                border-radius: Size.radius-bar;
+            }
+        }
+    }
+}
+
+// A small tile with a name under it, for the radii, borders, shadows and opacities.
+component KitTile inherits VerticalLayout {
+    in property <string> name;
+
+    spacing: Size.space-4;
+    width: KitGrid.pitch - KitGrid.gap;
+
+    @children
+    Label { text: root.name; step: TypeStep.caption; tone: InkTone.muted; }
+}
+
+// The durations: «Play» moves a block along each track with that duration and the easing of § 3.10.
+component KitMotion inherits VerticalLayout {
+    property <bool> moved;
+
+    spacing: Size.space-4;
+    KitRow {
+        name: "ease-out";
+        Button {
+            text: root.moved ? "Back" : "Play";
+            icon: Icons.play;
+            size: ButtonSize.small;
+            clicked => {
+                root.moved = !root.moved;
+            }
+        }
+    }
+
+    for item in KitTokenData.durations: KitRow {
+        name: item.name;
+        KitValue { text: item.value / Motion.unit; }
+        Rectangle {
+            width: Size.side-panel;
+            height: Size.control-sm;
+            background: Theme.bar-track;
+            border-radius: Size.radius-bar;
+
+            Rectangle {
+                x: root.moved ? parent.width - self.width : 0;
+                width: Size.control-sm;
+                height: parent.height;
+                background: Theme.accent;
+                border-radius: Size.radius-bar;
+                animate x {
+                    duration: item.value;
+                    easing: Motion.ease-out;
+                }
+            }
+        }
+    }
+}
+
+// Every section of tokens, in the order of § 3.
+export component KitTokens inherits VerticalLayout {
+    spacing: Size.space-24;
+
+    KitSection {
+        title: "Colour · neutrals";
+        KitSwatchGrid { colours: KitTokenData.neutrals; }
+    }
+
+    KitSection {
+        title: "Colour · accent";
+        KitSwatchGrid { colours: KitTokenData.accent; }
+    }
+
+    KitSection {
+        title: "Colour · states";
+        KitSwatchGrid { colours: KitTokenData.states; }
+    }
+
+    KitSection {
+        title: "Colour · others and charts";
+        KitSwatchGrid { colours: KitTokenData.others; }
+    }
+
+    KitSection {
+        title: "Data · categories (lighter, base, darker)";
+        KitCategoryGrid { }
+    }
+
+    KitSection {
+        title: "Data · age";
+        KitSwatchGrid { colours: KitTokenData.ages; }
+    }
+
+    KitSection {
+        title: "Type · families";
+        KitRow {
+            name: "family";
+            Label { text: Type.family + " · 0123456789 · 310.4 GB"; }
+        }
+        KitRow {
+            name: "family-mono";
+            Label { text: Type.family-mono + " · C:\\Users\\Public"; step: TypeStep.mono; }
+        }
+    }
+
+    KitSection {
+        title: "Spacing · grid";
+        KitLengths { lengths: KitTokenData.spacing; }
+    }
+
+    KitSection {
+        title: "Spacing · roles";
+        KitLengths { lengths: KitTokenData.spacing-roles; }
+    }
+
+    KitSection {
+        title: "Sizes · density";
+        KitLengths { lengths: KitTokenData.density; }
+    }
+
+    KitSection {
+        title: "Sizes · fixed";
+        KitLengths { lengths: KitTokenData.fixed; }
+    }
+
+    KitSection {
+        title: "Radii";
+        HorizontalLayout {
+            alignment: start;
+            spacing: KitGrid.gap;
+            for item in KitTokenData.radii: KitTile {
+                name: item.name + " · " + item.value / Size.unit;
+                Rectangle {
+                    height: Size.control-lg;
+                    background: Theme.raised;
+                    border-width: Size.border-hairline;
+                    border-color: Theme.edge;
+                    border-radius: item.value;
+                }
+            }
+        }
+    }
+
+    KitSection {
+        title: "Borders and focus";
+        HorizontalLayout {
+            alignment: start;
+            spacing: KitGrid.gap;
+            for item in KitTokenData.borders: KitTile {
+                name: item.name + " · " + item.value / Size.unit;
+                Rectangle {
+                    height: Size.control-lg;
+                    border-width: item.value;
+                    border-color: Theme.focus;
+                    border-radius: Size.radius-control;
+                }
+            }
+        }
+    }
+
+    KitSection {
+        title: "Elevation";
+        HorizontalLayout {
+            alignment: start;
+            padding-bottom: Size.shadow-2-y;
+            spacing: Size.space-24;
+            KitTile {
+                name: "level 1 · menus, popovers";
+                Rectangle {
+                    height: Size.control-lg * 2;
+                    background: Theme.raised;
+                    border-radius: Size.radius-panel;
+                    drop-shadow-offset-y: Size.shadow-1-y;
+                    drop-shadow-blur: Size.shadow-1-blur;
+                    drop-shadow-color: Theme.shadow;
+                }
+            }
+            KitTile {
+                name: "level 2 · dialogs";
+                Rectangle {
+                    height: Size.control-lg * 2;
+                    background: Theme.raised;
+                    border-radius: Size.radius-panel;
+                    drop-shadow-offset-y: Size.shadow-2-y;
+                    drop-shadow-blur: Size.shadow-2-blur;
+                    drop-shadow-color: Theme.shadow;
+                }
+            }
+        }
+    }
+
+    KitSection {
+        title: "Opacity";
+        HorizontalLayout {
+            alignment: start;
+            spacing: KitGrid.gap;
+            for item in KitTokenData.opacities: KitTile {
+                name: item.name + " · " + item.value;
+                Rectangle {
+                    opacity: item.value;
+                    HorizontalLayout {
+                        alignment: start;
+                        Button { text: "Delete"; variant: ButtonVariant.danger; }
+                    }
+                }
+            }
+        }
+    }
+
+    KitSection {
+        title: "Layers (z)";
+        for item in KitTokenData.layers: KitRow {
+            name: item.name;
+            KitValue { text: item.value; }
+        }
+    }
+
+    KitSection {
+        title: "Motion";
+        KitMotion { }
+    }
+}

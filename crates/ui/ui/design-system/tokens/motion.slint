@@ -9,6 +9,8 @@ export global Motion {
     out property <duration> slow: reduced ? 0ms : 200ms;
     // A tooltip waits for the mouse to rest even with reduced motion; on keyboard focus it shows at once.
     out property <duration> tooltip-delay: 500ms;
+    // The unit the Kit shows durations in (§ 9): a duration divided by it is its number of milliseconds.
+    out property <duration> unit: 1ms;
     out property <easing> ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
     // Menus and tooltips rise this much while they fade in; dialogs grow from this scale.
     out property <length> rise: 4px;

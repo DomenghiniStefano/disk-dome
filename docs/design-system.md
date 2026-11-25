@@ -2424,10 +2424,14 @@ can be fully set by our tokens (or not at all: for behaviour such as `TextInput`
 `cargo run -p diskdome-ui --features kit -- --kit` (debug builds only; the feature is never in a release) opens
 `KitWindow`: every component in every variant, size and state, side by side.
 
-- A top bar: theme (Dark / Light), density (Normal / Compact), language (English / Italian), map style
-  and palette.
+- A top bar: theme (Dark / Light), density (Normal / Compact) and the review board's count. Language (English /
+  Italian), map style and palette join it when something in the Kit changes with them: translated component texts,
+  the treemap, the Soft and Vivid palettes.
+- The tokens first, in the order of § 3, each drawn with itself (swatches, bars as long as the length, tiles with
+  the radius, border, shadow or opacity, durations played on a track), so a theme or density switch shows at once.
 - One section per component; each shows its states with the real component, never a picture. Main screens'
-  parts (a table with 30 fake rows, a treemap from a fixed fake tree, the side panel, the status bar) are shown too.
+  parts (a table with 30 fake rows, a treemap from a fixed fake tree, the side panel, the status bar) are shown too,
+  as their components are built.
 - **Review board**, as in EmuDome: under a section, a `KitIssue` holds a problem with «Now» and «Proposal»
   rendered with the real components and a status (open / proposed / decided); the top bar counts the open ones.
   A decided issue is deleted once the component carries it.
