@@ -48,8 +48,8 @@ feature is specified in `docs/design-system.md` and drawn on the canvas
 The Slint tokens (`crates/ui/ui/design-system/tokens/`) and the source checks of `docs/design-system.md` § 10 are in
 place (`crates/ui/tests/design_conventions.rs`, `design_tokens.rs`). The first components (Label, Icon with the Lucide
 set, Button, SegmentedControl, ToggleButton, SearchField, ScrollBar) are in `crates/ui/ui/design-system/components/`; the Kit window shows every token,
-every component and the review board (cards 4.2, 4.3), and measures text and digits with a font switch (card
-4.T7). Slint draws with its software renderer only (decision 9); the weight of strong figures waits on the owner. Next: the menus
+every component and the review board (cards 4.2, 4.3), and checks text and digits (card 4.T7). Slint draws with
+its software renderer only (decision 9); Segoe UI at 400 and 700 only (decision 8). Next: the menus
 (card 4.T8; § 11, still open). The plan and its status: https://claude.ai/artifact/6b7K1hVhjpupdAURw4CfFP
 and the Trello board: https://trello.com/b/BrdLKkTt/diskdome (personal account, workspace DomeHub).
 
@@ -160,7 +160,7 @@ Clean code, small components, one source of truth. They apply to Rust and Slint 
   - strings have no `contains` or regex: answer it in Rust with a `pure callback`;
   - off-screen shots do not advance time: animations and `Timer`s stay where they started, so a colour caught
     mid-animation in a shot is not a bug;
-  - Segoe UI Semibold (600) has proportional digits; 400 and 700 are tabular (§ 3.3).
+  - Segoe UI Semibold (600) has proportional digits; 400 and 700 are tabular, so the design uses only those (§ 3.3).
 
 ## Interface and design
 

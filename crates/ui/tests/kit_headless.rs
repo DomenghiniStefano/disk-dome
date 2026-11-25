@@ -8,7 +8,7 @@
 
 use std::path::PathBuf;
 
-use diskdome_ui::generated::{KitReview, KitSearch, Nav, Size, Theme, ThemeMode, Type};
+use diskdome_ui::generated::{KitReview, KitSearch, Nav, Size, Theme, ThemeMode};
 use diskdome_ui::kit;
 use diskdome_ui::proof::headless::Headless;
 use slint::ComponentHandle;
@@ -37,7 +37,7 @@ fn kit_switches_work_by_keyboard_and_pointer() {
     kit.show().expect("the Kit shows off screen");
     // The review board's count in the top bar comes from Rust.
     let review = kit.global::<KitReview>();
-    assert_eq!(review.get_open_count(), 1);
+    assert_eq!(review.get_open_count(), 0);
     assert_eq!(review.get_proposed_count(), 3);
     headless.frame();
     save_shot(&headless, "dark-normal");
@@ -69,27 +69,13 @@ fn kit_switches_work_by_keyboard_and_pointer() {
         "a pointer press hides the focus ring"
     );
 
-    // Test 7: the font switch is the third stop. Segoe UI's regular digits are tabular (the tree's columns rely on
-    // it); the other measures are printed, they are the owner's to judge. Windows only: macOS has no Segoe UI.
-    headless.press_key(Key::Tab);
-    headless.press_key(Key::Tab);
-    let type_ = kit.global::<Type>();
-    assert_eq!(type_.get_family(), type_.get_family_segoe());
-    headless.frame();
-    save_shot(&headless, "font-segoe");
+    // Test 7, decision 8: Segoe UI 400 and 700 have tabular digits, so tree columns and their bold totals line
+    // up. Windows only: macOS has no Segoe UI.
     #[cfg(windows)]
-    assert!(kit.get_regular_tabular(), "Segoe UI 400 has tabular digits");
-    eprintln!("Segoe UI: 600 tabular {}", kit.get_strong_tabular());
-
-    headless.press_key(Key::RightArrow);
-    assert_eq!(type_.get_family(), type_.get_family_variable());
-    headless.frame();
-    save_shot(&headless, "font-variable");
-    eprintln!(
-        "Segoe UI Variable: 400 tabular {}, 600 tabular {}",
-        kit.get_regular_tabular(),
-        kit.get_strong_tabular()
-    );
+    {
+        assert!(kit.get_regular_tabular(), "Segoe UI 400 has tabular digits");
+        assert!(kit.get_strong_tabular(), "Segoe UI 700 has tabular digits");
+    }
 
     // The search keeps only the sections whose title matches; Rust answers the match.
     let search = kit.global::<KitSearch>();

@@ -11,7 +11,7 @@ import {
 } from "../index.slint";
 import { KitSection, KitRow, KitOnFill, KitPane, KitSearch } from "kit-parts.slint";
 import { KitTokens } from "kit-tokens.slint";
-import { KitText, KitSizeTable } from "kit-text.slint";
+import { KitText } from "kit-text.slint";
 import { KitReview, KitIssue, KitReviewCount } from "kit-review.slint";
 
 struct KitIcon { name: string, source: image }
@@ -134,10 +134,6 @@ global KitData {
     out property <[ToggleSize]> toggle-sizes: [ToggleSize.small, ToggleSize.normal];
     // The scroll bar at rest is hidden: `live` shows nothing until the content moves.
     out property <[KitState]> scroll-states: [KitState.live, KitState.focus, KitState.hover, KitState.pressed];
-    // The font candidates of test 7, in the order of `Type.family-*`.
-    out property <[string]> families: ["Segoe UI", "Segoe UI Variable"];
-    // The strong weights of decision 8, in the order of `Type.weight-semibold`, `Type.weight-bold`.
-    out property <[string]> strong-weights: ["Strong 600", "Strong 700"];
     out property <[string]> three-options: ["Dark", "Light", "System"];
     // An Italian label, ~25 % longer than English (§ 3.3): buttons must grow with it.
     out property <string> long-label: "Sposta nel Cestino";
@@ -217,44 +213,8 @@ export component KitWindow inherits Window {
                     alignment: center;
                     KitReviewCount { }
                 }
-            }
-        }
 
-        // Test 7's font and weight, and the Kit's search over the sections' titles.
-        Rectangle {
-            height: Size.toolbar;
-            background: Theme.surface;
-
-            HorizontalLayout {
-                padding-left: Size.panel-pad;
-                padding-right: Size.panel-pad;
-                spacing: Size.group-gap;
-                alignment: start;
-
-                VerticalLayout {
-                    alignment: center;
-                    SegmentedControl {
-                        options: KitData.families;
-                        current: Type.family == Type.family-variable ? 1 : 0;
-                        changed(index) => {
-                            Type.family = index == 1 ? Type.family-variable : Type.family-segoe;
-                        }
-                        accessible-label: "Font";
-                    }
-                }
-
-                VerticalLayout {
-                    alignment: center;
-                    SegmentedControl {
-                        options: KitData.strong-weights;
-                        current: Type.strong-weight == Type.weight-bold ? 1 : 0;
-                        changed(index) => {
-                            Type.strong-weight = index == 1 ? Type.weight-bold : Type.weight-semibold;
-                        }
-                        accessible-label: "Strong weight";
-                    }
-                }
-
+                // The Kit's search over the sections' titles.
                 VerticalLayout {
                     alignment: center;
                     horizontal-stretch: 1;
@@ -283,21 +243,6 @@ export component KitWindow inherits Window {
                 alignment: start;
 
                 text := KitText { }
-
-                KitSection {
-                    title: "Review · font";
-                    KitIssue {
-                        issue: KitReview.issues[3];
-                        KitPane {
-                            title: "a · total figures at 400";
-                            KitSizeTable { total-figure-step: TypeStep.body; }
-                        }
-                        KitPane {
-                            title: "b / c · total all strong at " + Type.strong-weight;
-                            KitSizeTable { total-figure-step: TypeStep.body-strong; }
-                        }
-                    }
-                }
 
                 KitTokens { }
 

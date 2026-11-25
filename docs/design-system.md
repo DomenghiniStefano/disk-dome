@@ -309,26 +309,26 @@ without the legend and in grey-scale; the same colours in every theme, like the 
 
 **Font: Segoe UI** (Windows' system font; nothing bundled, nothing to license). Its default figures are
 tabular (all digits the same width), which matters because Slint's `Text` has no OpenType feature switch
-(no `tnum`): the font's default figures are what the columns get. Segoe UI has no 500 weight: the design uses
-400 and 600 only. ⟨open⟩ Measured in the Kit and in the font files (test 7, 2026-11-25): Segoe UI 400 and 700
-have tabular digits, **Semibold 600 does not** (its «1» is 28 % narrower), so a column of `-strong` figures does
-not line up; Segoe UI Variable has a narrow «1» at every weight, and Slint 1.19 does not apply its «Text» and
-«Small» optical sizes. Which weight the strong figures take is the owner's choice (decision 8).
+(no `tnum`): the font's default figures are what the columns get. **The design uses 400 and 700 only**
+(decision 8, owner 2026-11-26). Measured in the Kit and in the font files (test 7): Segoe UI 400 and 700 have
+tabular digits, Semibold 600 does not (its «1» is 28 % narrower), so a bold total in 600 would not line up with
+the rows above it. Segoe UI Variable is out: its «1» is narrow at every weight, and Slint 1.19 does not apply its
+«Text» and «Small» optical sizes.
 
 macOS (after v1): SF Pro's default figures are proportional, so numbers there will need a font with tabular
 defaults; decided when the macOS port starts.
 
 | Step | Size / line | Weight | Tracking | Use |
 | --- | --- | --- | --- | --- |
-| `display` | 20 / 26 | 600 | -0.2 px | empty states, first-run title |
-| `title` | 15 / 20 | 600 | 0 | dialog and panel titles |
+| `display` | 20 / 26 | 700 | -0.2 px | empty states, first-run title |
+| `title` | 15 / 20 | 700 | 0 | dialog and panel titles |
 | `body` | 13 / 18 | 400 | 0 | default text, table cells (normal) |
-| `body-strong` | 13 / 18 | 600 | 0 | primary button, emphasised values |
+| `body-strong` | 13 / 18 | 700 | 0 | primary button, emphasised values |
 | `caption` | 12 / 16 | 400 | 0 | secondary text, column headers, status bar, table cells (compact) |
-| `caption-strong` | 12 / 16 | 600 | 0 | treemap name + size labels, badge text |
-| `map-name` | 11 / 13 | 600 | 0 | treemap names on small rectangles (Names: Many, All); map only |
-| `map-name-xs` | 10 / 11 | 600 | 0 | treemap names on the smallest rectangles (Names: All); map only |
-| `overline` | 11 / 14 | 600 | +0.6 px | uppercase section labels, two words at most |
+| `caption-strong` | 12 / 16 | 700 | 0 | treemap name + size labels, badge text |
+| `map-name` | 11 / 13 | 700 | 0 | treemap names on small rectangles (Names: Many, All); map only |
+| `map-name-xs` | 10 / 11 | 700 | 0 | treemap names on the smallest rectangles (Names: All); map only |
+| `overline` | 11 / 14 | 700 | +0.6 px | uppercase section labels, two words at most |
 | `mono` | 12 / 16 | 400 | 0 | regular expressions, hashes (Cascadia Mono, Consolas) |
 
 - One `Label` component draws every text (§ 5.1): it takes a `TypeStep` and a colour role; nothing else sets
@@ -644,8 +644,8 @@ the code and the docs.
   | Tier | Rectangle at least | Text | Padding | Names |
   | --- | --- | --- | --- | --- |
   | name + size | 72 × 30 | name `caption-strong`, size `caption` under it | 4 px | Few, Many, All |
-  | name | 36 × 15 | `map-name` (11 / 13, 600) | 3 px | Many, All |
-  | small name | 22 × 11 | `map-name-xs` (10 / 11, 600) | 2 px | All |
+  | name | 36 × 15 | `map-name` (11 / 13, 700) | 3 px | Many, All |
+  | small name | 22 × 11 | `map-name-xs` (10 / 11, 700) | 2 px | All |
 
   At most 64 names (Few), 260 (Many), 700 (All). The free-space block, when shown, keeps its own label. Placement
   is computed in Rust on the layout (`diskdome-treemap`) whenever the layout changes; Slint draws the names over
@@ -1572,7 +1572,7 @@ is the guided clean-up of § 4.8: one list in groups, the drive of the tab, noth
 - **Table** columns: checkbox (34), Name (240, icon), Where (the folder, middle-elided, whole in the tooltip), Size,
   Modified, and a ghost «Show» on hover (opens Explore with the item selected). Rows `row`, sorted by size.
 - **Groups**, each a 34 px sticky header on `bg` with a chevron (collapse), a tri-state checkbox for the whole group
-  (`minus` when some are ticked), the group's icon in `accent-text`, its name in 600, «why it is safe» in `caption`
+  (`minus` when some are ticked), the group's icon in `accent-text`, its name in 700, «why it is safe» in `caption`
   `ink-muted` (whole in the tooltip), the ticked sum in `accent-text` and «24 items · 147 GB» on the right:
   1. **Rebuildable folders** (`recycle`): «They are rebuilt by the next build or install: node_modules, target, the
      npm, pnpm, cargo and gradle caches.»
@@ -1588,7 +1588,7 @@ is the guided clean-up of § 4.8: one list in groups, the drive of the tab, noth
   file) and online-only files (comparing them would download them) never count.
   - **Before comparing**: the header says «File with the same size: maybe copies. Compare the content first, then
     choose which to remove», «4 sets · up to 28.6 GB» and a secondary button «Compare the content». Each set is a
-    row (`copy` icon, the name in 600, «2 files of 17.0 GB», a `neutral` badge «to compare», the space it would free
+    row (`copy` icon, the name in 700, «2 files of 17.0 GB», a `neutral` badge «to compare», the space it would free
     and «to free»), followed by its copies indented by 20 px with their folder and date, the oldest marked «the
     oldest». The checkboxes are disabled («Compare the content first»): nothing that might differ can be ticked.
   - **Comparing**: a background job with its `ActionProgress` («Comparing the content of 4 sets · 26.2 GB»,
@@ -2505,6 +2505,9 @@ buttons without a name, binary units where the setting says otherwise) pass on 2
 and 1920 × 1032, dark and light, normal and compact. What is left is decided in the Kit (8, 9, 11) and the logos'
 second phase.
 
+**Decided by the owner on 2026-11-26**: Segoe UI at 400 and 700, every strong step in Bold so bold figures stay
+tabular (decision 8, § 3.3).
+
 **Decided by the owner on 2026-11-25**: the software renderer (decision 9, § 3.3); the «Pie» app mark; «Few» map names at 72 × 30; where every chart lives and
 when it appears (decision 32: § 4.4 options menu, § 4.7, § 5.27 Start from the second time, § 6.8 «To review»);
 multiple selection with Ctrl+click only in the map and nested items counted once (§ 6.1); file actions
@@ -2535,7 +2538,6 @@ errors as notices that stay); the Tree and the File list (§ 5.10: columns and t
 
 | # | Decision | Proposal |
 | --- | --- | --- |
-| 8 | Font | Segoe UI (Variable is out: proportional digits). Open: Semibold's digits are proportional; figures in columns at 400, or 700 for strong steps (test 7, § 3.3) |
 | 11 | Menus and tooltips: Slint's elements or ours | ours if Slint's cannot take the tokens (test 8) |
 
 ## 12. Tests before the code relies on them
@@ -2551,7 +2553,7 @@ the rest is checked in the Kit as the components are built.
 | 4 | **Map styles in the CPU renderer** (done 2026-11-24: redraw 0.4–1.9 ms, Cushion the slowest) | each style at 1920 × 1080 with 50 000 rectangles, release build | redraw ≤ 16 ms per style (gradients per rectangle are the costliest) |
 | 5 | **Free space values** | `GetDiskFreeSpaceExW` on NTFS, exFAT, a network share with quotas | used + free = capacity within 1 %, the quota case explained in the tooltip |
 | 6 | **People test** | the mockup's «Map» and «Both» views, then Overview, Rings and «Colours: Age», shown to 3 people who never used a disk analyzer: «what takes the most space? where is it? what haven't you touched in years?» | they answer in < 30 s without help; the view and style they find clearest becomes the default |
-| 7 | **Text and digits** (2026-11-25: digits measured, § 3.3; renderer decided, software) | the Kit's «Text and digits» section at 12–13 px with Segoe UI and Segoe UI Variable, femtovg, Skia and software | digits tabular, text crisp (owner's eye) |
+| 7 | **Text and digits** (done: software renderer 2026-11-25, Segoe UI 400 / 700 2026-11-26, § 3.3) | the Kit's «Text and digits» section at 12–13 px with Segoe UI and Segoe UI Variable, femtovg, Skia and software | digits tabular, text crisp (owner's eye) |
 | 8 | **Slint menus and tooltips** | `ContextMenuArea`, `Menu`, `Tooltip` with our tokens in the Kit | they take our colours, radii and sizes; otherwise ours (§ 5.16, § 5.17) |
 | 9 | **Contrast of every theme and palette** | the automatic test of § 10, extended to the Soft / Vivid palettes and the age ramp | every pair of § 7 passes |
 | 10 | **Map names** (placement done 2026-11-24: ≤ 0.05 ms; Slint's drawing of 700 names still to check) | placement in Rust on 50 000 rectangles at 1920 × 1080 with «All»; Slint draws 700 names over the image while the window is resized | placement ≤ 2 ms (release); resizing stays smooth (≥ 60 fps); otherwise «All» is dropped and «Many» capped lower |
