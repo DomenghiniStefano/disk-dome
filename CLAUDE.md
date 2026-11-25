@@ -47,7 +47,7 @@ feature is specified in `docs/design-system.md` and drawn on the canvas
 (https://claude.ai/artifact/9uEkqjsB82zrQAAr9x97CD), and the logos and icons are in `crates/ui/ui/assets/brand/`.
 The Slint tokens (`crates/ui/ui/design-system/tokens/`) and the source checks of `docs/design-system.md` § 10 are in
 place (`crates/ui/tests/design_conventions.rs`, `design_tokens.rs`). The first components (Label, Icon with the Lucide
-set, Button, SegmentedControl) are in `crates/ui/ui/design-system/components/`; the Kit window shows every token,
+set, Button, SegmentedControl, ToggleButton, SearchField, ScrollBar) are in `crates/ui/ui/design-system/components/`; the Kit window shows every token,
 every component and the review board (cards 4.2, 4.3), and measures text and digits with a font switch (card
 4.T7). Slint draws with its software renderer only (decision 9); the weight of strong figures waits on the owner. Next: the menus
 (card 4.T8; § 11, still open). The plan and its status: https://claude.ai/artifact/6b7K1hVhjpupdAURw4CfFP

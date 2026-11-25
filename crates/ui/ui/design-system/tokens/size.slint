@@ -71,8 +71,12 @@ export global Size {
     out property <length> scrollbar: 10px;
     out property <length> scroll-thumb: 6px;
     out property <length> scroll-thumb-hover: 8px;
+    // Pending design: the shortest the scroll bar's thumb gets on a very long content, so it stays easy to grab.
+    out property <length> scroll-thumb-min: 24px;
     out property <length> swatch: 10px;
     out property <length> bar-w: 56px;
+    // The search field narrows to this below 1100 px of window width (§ 2.1).
+    out property <length> search-w-min: 200px;
     out property <length> search-w: 320px;
     out property <length> search-w-max: 400px;
     out property <length> drive-picker-w: 232px;

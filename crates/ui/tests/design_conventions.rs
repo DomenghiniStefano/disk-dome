@@ -110,7 +110,11 @@ const RULES: &[Rule] = &[
     Rule {
         name: "font-literal",
         check: |s| {
-            if s.in_tokens() || s.path == "design-system/components/label.slint" {
+            // `Label` draws every text, `TextEntry` every editable one.
+            if s.in_tokens()
+                || s.path == "design-system/components/label.slint"
+                || s.path == "design-system/primitives/text-entry.slint"
+            {
                 return vec![];
             }
             hits(
@@ -164,15 +168,20 @@ const RULES: &[Rule] = &[
     Rule {
         name: "icon-label",
         check: |s| {
-            // An `IconButton`, or a `Button` with an `icon` and no `text`. Blind spot: a `Button` whose text is
-            // bound to an empty string is not recognised.
+            // An `IconButton` or a `ToggleButton` (always icon only, § 5.3), or a `Button` with an `icon` and no
+            // `text`. Blind spot: a `Button` whose text is bound to an empty string is not recognised.
             let mut found = vec![];
-            for m in Regex::new(r"\b(?:IconButton|Button)\s*\{")
+            for m in Regex::new(r"\b(?:IconButton|ToggleButton|Button)\s*\{")
                 .expect("test data is valid")
                 .find_iter(&s.bare)
             {
+                // The component's own definition is not a use of it.
+                if s.bare[..m.start()].trim_end().ends_with("component") {
+                    continue;
+                }
                 let body = block_after(&s.bare, m.end());
                 let icon_only = m.as_str().starts_with("Icon")
+                    || m.as_str().starts_with("Toggle")
                     || (has_property(body, "icon") && !has_property(body, "text"));
                 if icon_only && !body.contains("accessible-label") {
                     found.push(m.as_str().to_owned());
@@ -351,6 +360,11 @@ fn icon_label_catches_an_icon_only_button() {
         .expect("test data is valid");
     let count = |code: &str| (rule.check)(&Source::new("screens/main/main.slint", code)).len();
     assert_eq!(count("Button { icon: Icons.x; }"), 1);
+    assert_eq!(count("ToggleButton { icon: Icons.regex; }"), 1);
+    assert_eq!(
+        count(r#"ToggleButton { icon: Icons.regex; accessible-label: @tr("Regex"); }"#),
+        0
+    );
     assert_eq!(
         count(r#"Button { icon: Icons.x; accessible-label: @tr("Close"); }"#),
         0

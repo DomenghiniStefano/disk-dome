@@ -2454,13 +2454,13 @@ spots written beside it:
 | `literal-colour` | `#rgb`, `#rrggbb(aa)`, `rgb(`, `rgba(`, `hsl(`, `Colors.` | everywhere outside `design-system/tokens/` |
 | `literal-length` | a number with `px`, `phx`, `rem`, `pt`, `cm`, `mm`, `in` (`0` and `%` allowed) | everywhere outside `design-system/tokens/` |
 | `literal-duration` | a number with `ms` or `s` | outside `design-system/tokens/` |
-| `font-literal` | `font-size`, `font-weight`, `font-family`, `letter-spacing` | outside `components/label.slint` and the tokens |
+| `font-literal` | `font-size`, `font-weight`, `font-family`, `letter-spacing` | outside `components/label.slint`, `primitives/text-entry.slint` (the editable text) and the tokens |
 | `std-widgets` | `import … from "std-widgets.slint"` | outside `design-system/components/` |
 | `boundary` | an import of a file under `design-system/` other than `index.slint` | in `screens/` and `app.slint` |
 | `raw-element` | `Text`, `TextInput`, `TouchArea`, `FocusScope`, `Image`, `PopupWindow`, `Flickable` | in `screens/` and `app.slint` |
 | `untranslated` | `text: "…"` with a non-empty literal not in `@tr()` | outside `design-system/kit/` |
 | `kit-coverage` | an exported component of `design-system/components/` missing from `kit.slint` | — |
-| `icon-label` | an icon-only `IconButton` or `Button` without `accessible-label` (Narrator would read nothing) | everywhere |
+| `icon-label` | an icon-only `IconButton` or `Button`, or a `ToggleButton`, without `accessible-label` (Narrator would read nothing) | everywhere |
 | `binary-units` | a literal «GiB», «MiB», «TiB» in a string: sizes go through the unit formatter (§ 4.1) | outside `design-system/tokens/` and the units setting |
 
 And tests on the values, through `slint-interpreter` (a dev-dependency) that loads the token globals and reads
