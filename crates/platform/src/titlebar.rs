@@ -57,10 +57,13 @@ mod imp {
     use std::ptr::null_mut;
 
     use windows_sys::Win32::Foundation::{HWND, LPARAM, LRESULT, POINT, RECT, WPARAM};
-    use windows_sys::Win32::Graphics::Dwm::DwmExtendFrameIntoClientArea;
+    use windows_sys::Win32::Graphics::Dwm::{DwmDefWindowProc, DwmExtendFrameIntoClientArea};
     use windows_sys::Win32::Graphics::Gdi::ScreenToClient;
     use windows_sys::Win32::UI::Controls::MARGINS;
     use windows_sys::Win32::UI::HiDpi::{GetDpiForWindow, GetSystemMetricsForDpi};
+    use windows_sys::Win32::UI::Input::KeyboardAndMouse::{
+        TME_HOVER, TME_LEAVE, TME_NONCLIENT, TRACKMOUSEEVENT, TrackMouseEvent,
+    };
     use windows_sys::Win32::UI::Shell::{DefSubclassProc, RemoveWindowSubclass, SetWindowSubclass};
     use windows_sys::Win32::UI::WindowsAndMessaging::{
         GetClientRect, HTCAPTION, HTCLIENT, HTMAXBUTTON, HTTOP, HTTOPLEFT, HTTOPRIGHT, IsZoomed,
@@ -74,6 +77,8 @@ mod imp {
     use super::{Event, RawWindowHandle, Regions};
 
     const SUBCLASS_ID: usize = 0x4444_5442; // "DDTB"
+    /// The system hover time (`HOVER_DEFAULT`).
+    const HOVER_DEFAULT: u32 = 0xFFFF_FFFF;
 
     struct State {
         regions: Regions,
@@ -282,6 +287,12 @@ mod imp {
     ) -> LRESULT {
         // SAFETY: called by Windows for our live window with the arguments of the message.
         unsafe {
+            // DWM gets the first look at every message of a window with a custom frame (Microsoft, «Custom Window
+            // Frame Using DWM»).
+            let mut dwm: LRESULT = 0;
+            if DwmDefWindowProc(hwnd, msg, wparam, lparam, &mut dwm) != 0 {
+                return dwm;
+            }
             match msg {
                 WM_NCCALCSIZE if wparam != 0 => {
                     let params = lparam as *mut NCCALCSIZE_PARAMS;
@@ -319,8 +330,16 @@ mod imp {
                     hit_test(hwnd, lparam).map_or(native, |hit| hit as LRESULT)
                 }
                 WM_NCMOUSEMOVE => {
-                    // No TrackMouseEvent here: it would replace the hover tracking Windows 11 uses to open
-                    // Snap Layouts. Leaving the button is seen by the next mouse message on another part.
+                    if is_max(wparam) {
+                        // Ask for the non-client hover that Windows 11 answers with Snap Layouts.
+                        let mut track = TRACKMOUSEEVENT {
+                            cbSize: std::mem::size_of::<TRACKMOUSEEVENT>() as u32,
+                            dwFlags: TME_HOVER | TME_LEAVE | TME_NONCLIENT,
+                            hwndTrack: hwnd,
+                            dwHoverTime: HOVER_DEFAULT,
+                        };
+                        TrackMouseEvent(&mut track);
+                    }
                     set_hover(is_max(wparam));
                     DefSubclassProc(hwnd, msg, wparam, lparam)
                 }
