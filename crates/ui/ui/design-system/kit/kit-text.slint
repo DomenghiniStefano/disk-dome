@@ -1,14 +1,9 @@
-// The Kit's «Text and digits» section (§ 12 test 7, decisions 8 and 9): the 12–13 px steps in the chosen font and
-// renderer, right-aligned figures that stay in columns only if the digits are tabular, and a live check of it.
+// The Kit's «Text and digits» section (§ 12 test 7, decision 8): the 12–13 px steps in the chosen font,
+// right-aligned figures that stay in columns only if the digits are tabular, and a live check of it.
 // Texts are the Kit's own, not translated (rule `untranslated` exempts `kit/`).
 
 import { Size, Type, TypeStep, Label, InkTone } from "../index.slint";
 import { KitSection, KitRow, KitCaption } from "kit-parts.slint";
-
-// What the Kit was started with, set by Rust (`src/kit.rs`): the renderer cannot change while the window is open.
-export global KitRun {
-    in property <string> renderer: "default";
-}
 
 global KitTextData {
     out property <[string]> figures: ["1,111.1 GB", "8,888.8 GB", "310.4 GB", "46.4 %", "3,789,066", "0 bytes"];
@@ -74,8 +69,8 @@ export component KitText inherits KitSection {
 
     title: "Text and digits · 12–13 px (test 7)";
     KitRow {
-        name: "font · renderer";
-        Label { text: Type.family + " · " + KitRun.renderer; step: TypeStep.body-strong; }
+        name: "font";
+        Label { text: Type.family; step: TypeStep.body-strong; }
     }
     caption := KitTextStep { name: "caption 12"; step: TypeStep.caption; }
     caption-strong := KitTextStep { name: "caption-strong 12"; step: TypeStep.caption-strong; }
