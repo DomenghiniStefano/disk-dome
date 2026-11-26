@@ -1,0 +1,41 @@
+// TooltipBubble (§ 5.17): what a tooltip shows: the level-1 surface with `tooltip-pad`, a `caption` text in `ink`
+// that wraps, an optional shortcut in `ink-faint`, and free content under them (a hover card). `Tooltip` places it;
+// the Kit shows it on its own.
+
+import { Size } from "../tokens/size.slint";
+import { TypeStep } from "../tokens/type.slint";
+import { InkTone } from "../enums.slint";
+import { PopupSurface } from "../primitives/popup-surface.slint";
+import { Label } from "label.slint";
+
+export component TooltipBubble inherits PopupSurface {
+    in property <string> text;
+    in property <string> shortcut;
+
+    inset-x: Size.tooltip-pad-x;
+    inset-y: Size.tooltip-pad-y;
+    accessible-role: AccessibleRole.text;
+    accessible-label: root.text;
+    accessible-description: root.shortcut;
+
+    if root.text != "" || root.shortcut != "": HorizontalLayout {
+        spacing: Size.label-gap;
+
+        if root.text != "": Label {
+            text: root.text;
+            step: TypeStep.caption;
+            wrap: true;
+            horizontal-stretch: 1;
+            accessible-role: none;
+        }
+
+        if root.shortcut != "": Label {
+            text: root.shortcut;
+            step: TypeStep.caption;
+            tone: InkTone.faint;
+            accessible-role: none;
+        }
+    }
+
+    @children
+}

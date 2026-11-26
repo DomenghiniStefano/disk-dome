@@ -16,7 +16,8 @@ The Slint side of `docs/design-system.md`, which holds every value and the reaso
   `SegmentedControl`, `ToggleButton`, `SearchField`, `ScrollBar` (vertical only for now), `DesignWindow` (the window
   every screen inherits: it tells the popups its size), and the menu (§ 5.16): `MenuFrame` (the level-1 surface),
   `MenuList` (entries from `[MenuEntry]`), `Menu` (the popup, three levels), `ContextMenu` (right click, Menu key,
-  Shift+F10), `MenuButton`.
+  Shift+F10), `MenuButton`, and the tooltip (§ 5.17): `Tooltip` (inside a control; `Button` and `ToggleButton`
+  have it through `tooltip`) and `TooltipBubble`, drawn by `DesignWindow` from `primitives/tooltip-layer.slint`.
 - `MenuNav` (in `menu-list.slint`) — what Slint cannot compute (no loops, no prefix test): the walk over a menu's
   entries and its type-ahead, answered by `src/design_system.rs`. Every window calls `design_system::install`.
 - `primitives/` — the behaviour components share, never used by screens: `FocusTarget` (one keyboard stop),
@@ -41,6 +42,7 @@ keyboard and pointer behaviour off screen by `kit_headless.rs` (`DISKDOME_KIT_SH
 menu on its test window `kit/kit-menu-harness.slint` by `menu_headless.rs`.
 
 Slint traps met by the menu: an element of size 0 outside a layout is centred in its parent (a `Menu` covers its
-parent instead); inside a `PopupWindow`, `absolute-position` is the popup's own; a size that depends on whether a
+parent instead); inside a `PopupWindow`, `absolute-position` is the popup's own; a `PopupWindow` takes the keyboard focus when it shows (so the tooltip is
+not one); a size that depends on whether a
 scroll bar shows overflowed the compiler's stack (the menu's scroll bar lies over the rows); `accessible-role` must
 be constant (an `if` element per role).

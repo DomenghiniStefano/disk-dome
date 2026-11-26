@@ -59,7 +59,8 @@ every component and the review board (cards 4.2, 4.3), and checks text and digit
 its software renderer only (decision 9); Segoe UI at 400 and 700 only (decision 8). Menus and tooltips are ours (decision 11,
 2026-11-26, after test 8). The menu is built (`Menu`, `MenuList`,
 `MenuFrame`, `ContextMenu`, `MenuButton`, § 5.16) with `DesignWindow`, which every window inherits, and
-`design_system::install`, which every window calls. Next: the Tooltip (§ 5.17). The plan and its status: https://claude.ai/artifact/6b7K1hVhjpupdAURw4CfFP
+`design_system::install`, which every window calls; the tooltip too (`Tooltip`, drawn by `DesignWindow`, § 5.17).
+Both wait for the owner's look in the Kit. The plan and its status: https://claude.ai/artifact/6b7K1hVhjpupdAURw4CfFP
 and the Trello board: https://trello.com/b/BrdLKkTt/diskdome (personal account, workspace DomeHub).
 
 ## Commands
@@ -144,7 +145,17 @@ Clean code, small components, one source of truth. They apply to Rust and Slint 
   section it implements (`§ 5.2`).
 - **Tests come with the change**: a behaviour gets a test, a bug fix starts with a failing one. UI tests run
   off screen (`crates/ui/src/headless.rs`), never in a window.
-- **Before «done»**: `./scripts/check.ps1` (format, clippy and tests with every feature, licences) passes.
+- **Before «done»**: `./scripts/check.ps1` (format, clippy and tests with every feature, licences) passes. It takes
+  over 10 minutes from a fresh worktree: run it in the background. From Windows PowerShell 5.1, cargo's progress on
+  stderr reads as a failure: run it as `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check.ps1`
+  from Git Bash and read its exit code.
+- **Before building on a Slint element, read its source** in `~/.cargo/registry/src/*/i-slint-*-1.19.1/`
+  (`builtin_elements.rs`, `widgets/`, `i-slint-core/window.rs`): what it draws, what it takes (focus, the pointer),
+  what can be set. Two days of guessing are one `grep`.
+- **The Kit shot covers the whole Kit**: a new section raises `HEIGHT` in `tests/kit_headless.rs` until the last
+  section is in the shot; a cut shot hides the new work silently.
+- **Expected values come from the spec**: compute them before running; a failing test is first read as a bug in the
+  code, and only an expectation proven wrong by the spec is changed, with the reason in its comment.
 
 ### Slint
 
@@ -180,14 +191,33 @@ Clean code, small components, one source of truth. They apply to Rust and Slint 
   a local look only: never committed, never compared by a test.
 - **Slint 1.19 traps**:
   - an element inside a component without a layout is centred at its preferred size, so an overlay sets
-    `width: 100%; height: 100%`;
+    `width: 100%; height: 100%`; a helper that only holds a popup (`Menu`) does the same, or its coordinates start
+    at the parent's centre;
   - `&&` next to `||` needs parentheses;
   - an enum value whose name matches a property is written in full (`AccessibleRole.text`);
   - `Flickable` takes `content-height` and `content-y`, not the deprecated `viewport-*`;
   - `visible: false` keeps the element's place in a layout: to take no room, bind its min / preferred / max height
     to 0 (as `KitSection`) or use `if`;
-  - a property named like a built-in one cannot be declared (`row` in a layout child): pick another name;
-  - strings have no `contains` or regex: answer it in Rust with a `pure callback`;
+  - a property named like a built-in one cannot be declared (`row` in a layout child, `padding` on a component):
+    pick another name (`inset`);
+  - strings have no `contains`, prefix test or regex, and functions have no loops and no recursion: answer it in
+    Rust with a `pure callback` on a global, wired on every window (`MenuNav`, `design_system::install`) and unit
+    tested in Rust;
+  - a `PopupWindow` takes the keyboard focus when it shows and gives it back when it closes, and while it is open
+    the next pointer move goes to the popup layer: never put something that must not take the focus (a tooltip,
+    a badge, a hint) on one; draw it in `DesignWindow`'s top layer (`TooltipLayer`);
+  - inside a `PopupWindow`, `absolute-position` is relative to the popup, not the window: add the popup's own
+    `x` / `y` (and its parent's `absolute-position`) to get window coordinates;
+  - properties of elements inside a `PopupWindow` cannot be read from outside it: keep a popup's state on the
+    component that owns it and let the popup read it;
+  - `accessible-role` must be a constant: an element that is sometimes an item and sometimes a title gets one
+    `if` element per role;
+  - a size computed from itself through a layout is a binding loop, and some loops crash the compiler with a stack
+    overflow instead of an error (a width that depends on whether a scroll bar shows): lay the scroll bar over the
+    content; a row whose height must not follow its text gets a fixed `preferred-height` and its inner layout an
+    explicit `x` / `y`;
+  - a `Timer` or a `changed` handler that opens or closes a popup is seen one frame later: headless tests let two
+    frames run (`settle`) and wait with a margin over every delay;
   - off-screen shots do not advance time: animations and `Timer`s stay where they started, so a colour caught
     mid-animation in a shot is not a bug;
   - Segoe UI Semibold (600) has proportional digits; 400 and 700 are tabular, so the design uses only those (§ 3.3).

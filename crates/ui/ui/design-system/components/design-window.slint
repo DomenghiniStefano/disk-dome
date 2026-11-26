@@ -1,8 +1,12 @@
-// DesignWindow (§ 3.11): the window every screen and the Kit inherit. It gives the window its ground and tells the
-// popups its size, so menus, tooltips and popovers stay inside it and flip when there is no room.
+// DesignWindow (§ 3.11): the window every screen and the Kit inherit. It gives the window its ground, tells the
+// popups its size, so menus and popovers stay inside it and flip when there is no room, and draws the window's one
+// tooltip over all its content (`TooltipLayer`).
 
 import { Theme } from "../tokens/theme.slint";
-import { Viewport } from "../primitives/placement.slint";
+import { PopupSide } from "../enums.slint";
+import { Viewport, Placement } from "../primitives/placement.slint";
+import { TooltipLayer } from "../primitives/tooltip-layer.slint";
+import { TooltipBubble } from "tooltip-bubble.slint";
 
 export component DesignWindow inherits Window {
     background: Theme.bg;
@@ -16,5 +20,22 @@ export component DesignWindow inherits Window {
     }
     changed height => {
         Viewport.height = self.height;
+    }
+
+    @children
+
+    // Last, so it is drawn over every content; it has no pointer area, so the pointer goes through it.
+    if TooltipLayer.owner > 0: TooltipBubble {
+        // The width does not depend on the side, so the wrapped text's height can decide the side.
+        property <length> wanted-width: Placement.limit-width(min(self.preferred-width, TooltipLayer.max-width), TooltipLayer.margin);
+        property <PopupSide> placed: Placement.side(TooltipLayer.anchor, self.wanted-width, self.preferred-height, TooltipLayer.side, TooltipLayer.gap, TooltipLayer.margin);
+
+        text: TooltipLayer.text;
+        shortcut: TooltipLayer.shortcut;
+        side: self.placed;
+        width: self.wanted-width;
+        height: Placement.fitted-height(TooltipLayer.anchor, self.preferred-height, self.placed, TooltipLayer.gap, TooltipLayer.margin);
+        x: Placement.x(TooltipLayer.anchor, self.width, self.placed, TooltipLayer.align, TooltipLayer.gap, TooltipLayer.margin);
+        y: Placement.y(TooltipLayer.anchor, self.height, self.placed, TooltipLayer.align, TooltipLayer.gap, TooltipLayer.margin);
     }
 }

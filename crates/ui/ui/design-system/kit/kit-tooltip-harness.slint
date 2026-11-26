@@ -1,0 +1,49 @@
+// The Tooltip's test window (`tests/tooltip_headless.rs`, § 5.17): two buttons side by side in the top-left corner
+// (an icon-only one that says its label, one with its own text), and a disabled one in the bottom-right corner,
+// where the tooltip must flip and shift. Kit only; texts are the Kit's own, not translated.
+
+import {
+    DesignWindow,
+    Button,
+    Icons,
+    Size,
+    ButtonVariant,
+} from "../index.slint";
+
+export component KitTooltipHarness inherits DesignWindow {
+    preferred-width: Size.window-min-w;
+    preferred-height: Size.window-min-h;
+
+    out property <bool> first-shown: first.tooltip-shown;
+    out property <bool> second-shown: second.tooltip-shown;
+    out property <bool> far-shown: far.tooltip-shown;
+    out property <length> second-x: second.x;
+    out property <length> far-x: far.x;
+    out property <length> far-y: far.y;
+    out property <length> button-height: first.height;
+
+    first := Button {
+        x: 0;
+        y: 0;
+        icon: Icons.refresh-cw;
+        accessible-label: "Scan again";
+        tooltip-shortcut: "F5";
+    }
+
+    second := Button {
+        x: first.width + Size.group-gap;
+        y: 0;
+        text: "Export";
+        variant: ButtonVariant.secondary;
+        tooltip: "Save the scan as CSV, JSON or an HTML report";
+    }
+
+    far := Button {
+        x: parent.width - self.width;
+        y: parent.height - self.height;
+        text: "Rename";
+        variant: ButtonVariant.secondary;
+        enabled: false;
+        tooltip: "Select one item to rename it";
+    }
+}

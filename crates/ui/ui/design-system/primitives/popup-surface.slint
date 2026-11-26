@@ -1,0 +1,61 @@
+// The level-1 floating surface (§ 3.8): `raised`, a 1 px `edge`, radius `panel`, the level-1 shadow, an inner
+// padding, free content. It appears with a fade and a rise from the side its popup opened on (§ 3.10). Menus
+// (`MenuFrame`) and tooltips (`TooltipBubble`) are this surface with their own padding.
+//
+// Not a component of the design system: screens never use it (it is not exported from `index.slint`).
+
+import { Size } from "../tokens/size.slint";
+import { Theme } from "../tokens/theme.slint";
+import { Motion } from "../tokens/motion.slint";
+import { PopupSide } from "../enums.slint";
+
+export component PopupSurface {
+    // The inner padding on the sides and at the top and bottom; 0 for content that brings its own.
+    in property <length> inset-x;
+    in property <length> inset-y;
+    // The side the popup opened on: the rise comes from the anchor.
+    in property <PopupSide> side: PopupSide.bottom;
+    // False draws it at once, as the Kit does.
+    in property <bool> animate-in: true;
+
+    // Set once the surface exists, so the fade and the rise run from their start values.
+    property <bool> entered: !root.animate-in;
+    property <length> rise: root.entered ? 0 : Motion.rise;
+
+    init => {
+        root.entered = true;
+    }
+
+    min-width: content.min-width;
+    preferred-width: content.preferred-width;
+    min-height: content.min-height;
+    preferred-height: content.preferred-height;
+
+    Rectangle {
+        x: root.side == PopupSide.right ? -root.rise : root.side == PopupSide.left ? root.rise : 0;
+        y: root.side == PopupSide.bottom ? -root.rise : root.side == PopupSide.top ? root.rise : 0;
+        width: root.width;
+        height: root.height;
+        opacity: root.entered ? 1 : 0;
+        background: Theme.raised;
+        border-width: Size.border-hairline;
+        border-color: Theme.edge;
+        border-radius: Size.radius-panel;
+        drop-shadow-color: Theme.shadow;
+        drop-shadow-offset-y: Size.shadow-1-y;
+        drop-shadow-blur: Size.shadow-1-blur;
+        animate opacity, x, y {
+            duration: Motion.base;
+            easing: Motion.ease-out;
+        }
+
+        content := VerticalLayout {
+            padding-left: root.inset-x + Size.border-hairline;
+            padding-right: root.inset-x + Size.border-hairline;
+            padding-top: root.inset-y + Size.border-hairline;
+            padding-bottom: root.inset-y + Size.border-hairline;
+
+            @children
+        }
+    }
+}

@@ -13,6 +13,8 @@ export global Motion {
     out property <duration> scrollbar-linger: 1000ms;
     // A tooltip waits for the mouse to rest even with reduced motion; on keyboard focus it shows at once.
     out property <duration> tooltip-delay: 500ms;
+    // Pending design: after a tooltip closes, another one within this time opens without waiting (Radix's 300 ms).
+    out property <duration> tooltip-skip: 300ms;
     // Pending design: how long the pointer rests on an item before its submenu opens (Windows' default, 400 ms).
     out property <duration> submenu-delay: 400ms;
     // Pending design: letters typed within this time make one search in a menu; a longer pause starts a new one.

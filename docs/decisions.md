@@ -5,6 +5,7 @@ never an edit of an old one.
 
 | Date | Decision | Why |
 | --- | --- | --- |
+| 2026-11-26 | The tooltip is drawn by `DesignWindow` as the window's last layer (`TooltipLayer`), not on a `PopupWindow` | Slint 1.19 gives a popup the keyboard focus when it shows (`window.rs`, show_popup; only its own tooltip is spared): a tooltip there closed itself on keyboard focus and would take the focus from a field being typed in |
 | 2026-11-26 | Design-system components are **library-grade** (shadcn / Radix level): full behaviour, every placement and overflow case, accessible, parameterised with token defaults, nothing specific to DiskDome (`docs/design-system.md` § 8.0) | the owner wants components that hold in every case and serve future Slint projects too |
 | 2026-11-26 | Menus and tooltips are **ours** on `PopupWindow` (decision 11); a Slint built-in that cannot follow the design is replaced by ours without waiting | test 8: Slint's menu keeps the Fluent style's fixed colours (light in our dark theme), radius 7, 280 wide, 32 px items; its tooltip takes our content but opens on hover only, beside the pointer |
 | 2026-11-26 | The scan pool has **eight threads** whatever the cores (`DEFAULT_THREADS`), 4 MB reads; replaces «twice the cores, at most 32» | on the KIOXIA laptop (14 GB `$MFT`) more concurrent reads slow the drive down: read alone 4–8 threads 4.6–5.6 s, 16 in 10 s, 32 in 15–30 s, 64 in 45 s; full scan 7.3–7.6 s with eight against 31–35 s with 32, peak 0.90 GB. On the desktop's Crucial P3 the read rate did not depend on the threads (~640 MB/s) |

@@ -57,6 +57,11 @@ export global Placement {
         return vertical(side) ? Viewport.width - 2 * margin : Viewport.height - 2 * margin;
     }
 
+    // A width kept inside the window's margins, whatever the side.
+    public pure function limit-width(width: length, margin: length) -> length {
+        return known ? min(width, Viewport.width - 2 * margin) : width;
+    }
+
     // The side the popup opens on: the preferred one if the content fits, else the opposite one if it fits there,
     // else whichever has more room (the content then scrolls).
     public pure function side(anchor: PopupAnchor, width: length, height: length, prefer: PopupSide, gap: length, margin: length) -> PopupSide {

@@ -1,0 +1,27 @@
+// The window's one tooltip (§ 5.17, § 3.11): which control owns it, what it says and where it goes. `Tooltip`
+// writes it, `DesignWindow` draws it over every content as its last layer. Not a `PopupWindow`: Slint gives a popup
+// the keyboard focus (`window.rs`, show_popup), so a tooltip there would take it from the control it describes and
+// from a field being typed in.
+//
+// Not a component of the design system: screens never use it (it is not exported from `index.slint`).
+
+import { PopupSide, PopupAlign } from "../enums.slint";
+import { PopupAnchor } from "placement.slint";
+
+export global TooltipLayer {
+    // The `Tooltip` showing, by its id; 0 for none.
+    in-out property <int> owner;
+    // The last id given; each `Tooltip` takes the next one.
+    in-out property <int> last-id;
+    // A tooltip has just closed: the next one skips its delay until `cooled`.
+    in-out property <bool> warm;
+
+    in-out property <string> text;
+    in-out property <string> shortcut;
+    in-out property <PopupAnchor> anchor;
+    in-out property <PopupSide> side;
+    in-out property <PopupAlign> align;
+    in-out property <length> gap;
+    in-out property <length> margin;
+    in-out property <length> max-width;
+}

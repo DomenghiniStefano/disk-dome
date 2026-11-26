@@ -32,6 +32,7 @@ import {
     Menu,
     ContextMenu,
     MenuButton,
+    TooltipBubble,
     MenuEntryKind,
     MenuItemVariant,
     PopupAlign,
@@ -780,6 +781,73 @@ export component KitWindow inherits DesignWindow {
                                         return KitData.submenu(entry);
                                     }
                                 }
+                            }
+                        }
+                    }
+
+                    KitSection {
+                        title: "Tooltip · bubble and buttons";
+
+                        KitRow {
+                            name: "bubbles";
+
+                            TooltipBubble {
+                                animate-in: false;
+                                height: self.preferred-height;
+                                text: "Scan again";
+                            }
+
+                            TooltipBubble {
+                                animate-in: false;
+                                height: self.preferred-height;
+                                text: "Export";
+                                shortcut: "Ctrl+Shift+E";
+                            }
+
+                            TooltipBubble {
+                                animate-in: false;
+                                width: Size.tooltip-max;
+                                height: self.preferred-height;
+                                text: "A long tooltip wraps at the tooltip's maximum width and never grows wider than the window allows.";
+                            }
+
+                            TooltipBubble {
+                                animate-in: false;
+                                height: self.preferred-height;
+                                text: "Free content under the text";
+
+                                Label {
+                                    text: "C:\\Users · 310.4 GB";
+                                    step: TypeStep.caption;
+                                    tone: InkTone.muted;
+                                }
+                            }
+                        }
+
+                        KitRow {
+                            name: "hover or focus these";
+
+                            Button {
+                                icon: Icons.refresh-cw;
+                                accessible-label: "Scan again";
+                                tooltip-shortcut: "F5";
+                            }
+
+                            ToggleButton {
+                                icon: Icons.panel-right;
+                                accessible-label: "File types panel";
+                            }
+
+                            Button {
+                                text: "Export";
+                                tooltip: "Save the scan as CSV, JSON or an HTML report";
+                                tooltip-shortcut: "Ctrl+Shift+E";
+                            }
+
+                            Button {
+                                text: "Rename";
+                                enabled: false;
+                                tooltip: "Select one item to rename it";
                             }
                         }
                     }
