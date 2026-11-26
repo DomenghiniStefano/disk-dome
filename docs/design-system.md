@@ -1145,7 +1145,7 @@ and below. `MenuSection`: `overline` title.
 
 Slint's `ContextMenuArea` / `Menu` draw with the widget style, not our tokens (test 8, 2026-11-26: the Fluent
 style's colours are fixed, the menu stays light in our dark theme, radius 7, at least 280 wide, items 32 tall; no
-shortcut text outside a menu bar, no `danger` item, no section title). Proposal for decision 11: `Menu` is ours on a `PopupWindow`, with the same keyboard behaviour (arrows, Enter, Esc,
+shortcut text outside a menu bar, no `danger` item, no section title). Decision 11 (owner, 2026-11-26): `Menu` is ours on a `PopupWindow`, with the same keyboard behaviour (arrows, Enter, Esc,
 → / ← for submenus, the Menu key and Shift+F10 to open).
 
 ### 5.17 Tooltip
@@ -1154,7 +1154,8 @@ shortcut text outside a menu bar, no `danger` item, no section title). Proposal 
 with the mouse, at once on keyboard focus; never on rows of the table (they have the status bar) or on the treemap
 (it has its header). Slint 1.19's `Tooltip` element takes our tokens when it is given our content instead of a
 `text` (test 8, 2026-11-26), but it shows on hover only (never on keyboard focus), after a fixed 500 ms, beside the
-pointer, without the fade and rise; with a `text` it draws the style's own light box.
+pointer, without the fade and rise; with a `text` it draws the style's own light box. Decision 11 (owner,
+2026-11-26): the tooltip is ours on a `PopupWindow`, with the keyboard behaviour above.
 
 ### 5.18 Dialog
 
@@ -2334,6 +2335,16 @@ The full path and Windows' message go to the log, never into the sentence (§ 6.
 
 ## 8. Implementation in Slint
 
+### 8.0 Library-grade components
+
+Owner, 2026-11-26: every component in `design-system/` is as solid as a shadcn / Radix one, not the minimum one
+screen needs. It has its full behaviour (pointer, keyboard, focus return, every state); it handles every placement,
+alignment, collision and overflow case (window edges, long and translated text, empty, many items, scrolling); it is
+accessible; it is customised through properties whose defaults are tokens. It holds nothing specific to DiskDome, so
+the same component serves future Slint projects. Before a component is built, its behaviour is listed against its
+Radix / shadcn counterpart on its card; the Kit shows every case and the headless tests prove it. A Slint built-in
+element that cannot follow the design is replaced by ours, without waiting for the owner.
+
 ### 8.1 Folders
 
 ```
@@ -2416,8 +2427,8 @@ size, weight and line through pure functions in `global Type`.
 | OpenType features (tabular figures) | no (`Text` has family, size, weight, letter-spacing, overflow, wrap) | a font with tabular default figures (Segoe UI) |
 | middle elision | no (end only) | paths elided in Rust |
 | keyboard shortcuts | `KeyBinding` + `@keys()` (1.16) | § 6.2 |
-| tooltips | `Tooltip` element | styled or ours (§ 5.17) |
-| context menu, menu bar | `ContextMenuArea`, `Menu`, `MenuItem` | styled or ours (§ 5.16) |
+| tooltips | `Tooltip` element | ours (decision 11, § 5.17) |
+| context menu, menu bar | `ContextMenuArea`, `Menu`, `MenuItem` | ours (decision 11, § 5.16) |
 | huge lists | `Model` trait, only visible rows | the virtual table |
 | pixel buffers | `SharedPixelBuffer` → `Image` | the treemap |
 | drag and drop with Explorer | experimental | after the basics |
@@ -2509,7 +2520,9 @@ and 1920 × 1032, dark and light, normal and compact. What is left is decided in
 second phase.
 
 **Decided by the owner on 2026-11-26**: Segoe UI at 400 and 700, every strong step in Bold so bold figures stay
-tabular (decision 8, § 3.3).
+tabular (decision 8, § 3.3); menus and tooltips are ours on `PopupWindow`, since Slint's cannot take the tokens
+(decision 11, test 8, § 5.16, § 5.17); a built-in element that cannot follow the design is replaced by ours without
+waiting; the design system's components are library-grade (§ 8.0).
 
 **Decided by the owner on 2026-11-25**: the software renderer (decision 9, § 3.3); the «Pie» app mark; «Few» map names at 72 × 30; where every chart lives and
 when it appears (decision 32: § 4.4 options menu, § 4.7, § 5.27 Start from the second time, § 6.8 «To review»);
@@ -2537,11 +2550,7 @@ errors as notices that stay); the Tree and the File list (§ 5.10: columns and t
 «Columns…» menu, sort with arrow and Ctrl+Shift+1…9, resize and reorder by dragging, special entries, pending rows;
 § 4.1: what is shown but not counted is `ink-faint`, and online-only files count 0).
 
-**Still open**
-
-| # | Decision | Proposal |
-| --- | --- | --- |
-| 11 | Menus and tooltips: Slint's elements or ours | ours if Slint's cannot take the tokens (test 8) |
+**Still open**: none.
 
 ## 12. Tests before the code relies on them
 
@@ -2557,7 +2566,7 @@ the rest is checked in the Kit as the components are built.
 | 5 | **Free space values** | `GetDiskFreeSpaceExW` on NTFS, exFAT, a network share with quotas | used + free = capacity within 1 %, the quota case explained in the tooltip |
 | 6 | **People test** | the mockup's «Map» and «Both» views, then Overview, Rings and «Colours: Age», shown to 3 people who never used a disk analyzer: «what takes the most space? where is it? what haven't you touched in years?» | they answer in < 30 s without help; the view and style they find clearest becomes the default |
 | 7 | **Text and digits** (done: software renderer 2026-11-25, Segoe UI 400 / 700 2026-11-26, § 3.3) | the Kit's «Text and digits» section at 12–13 px with Segoe UI and Segoe UI Variable, femtovg, Skia and software | digits tabular, text crisp (owner's eye) |
-| 8 | **Slint menus and tooltips** (done 2026-11-26: the menu cannot take the tokens; the tooltip can, with our content, but not its keyboard behaviour; § 5.16, § 5.17) | `ContextMenuArea`, `Menu`, `Tooltip` with our tokens, off screen (`tests/menus_spike.rs`) | they take our colours, radii and sizes; otherwise ours (§ 5.16, § 5.17) |
+| 8 | **Slint menus and tooltips** (done 2026-11-26: the menu cannot take the tokens; the tooltip can, with our content, but not its keyboard behaviour; both ours, decision 11) | `ContextMenuArea`, `Menu`, `Tooltip` with our tokens, off screen (a throwaway spike, removed) | they take our colours, radii and sizes; otherwise ours (§ 5.16, § 5.17) |
 | 9 | **Contrast of every theme and palette** | the automatic test of § 10, extended to the Soft / Vivid palettes and the age ramp | every pair of § 7 passes |
 | 10 | **Map names** (placement done 2026-11-24: ≤ 0.05 ms; Slint's drawing of 700 names still to check) | placement in Rust on 50 000 rectangles at 1920 × 1080 with «All»; Slint draws 700 names over the image while the window is resized | placement ≤ 2 ms (release); resizing stays smooth (≥ 60 fps); otherwise «All» is dropped and «Many» capped lower |
 | 11 | **Windows' own tools** | each button of «Windows' space» (§ 4.5) on Windows 10 and 11, as a standard user | the right tool opens; DiskDome never elevates (a tool that needs it shows its own UAC prompt) |

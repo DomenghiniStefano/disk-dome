@@ -24,3 +24,9 @@ export enum ToggleSize { small, normal }
 // The Kit window shows every state side by side (§ 9): a component shows the forced state instead of the
 // pointer's and the keyboard's. Screens never set it; `live` is the real behaviour.
 export enum KitState { live, hover, pressed, focus }
+
+// What a menu entry is (§ 5.16): an item, a separator line, or a section's overline title.
+export enum MenuEntryKind { item, separator, section }
+
+// `danger`: an item that cannot be undone, as «Delete permanently» (§ 6.3).
+export enum MenuItemVariant { normal, danger }

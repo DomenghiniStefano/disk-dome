@@ -56,9 +56,8 @@ The Slint tokens (`crates/ui/ui/design-system/tokens/`) and the source checks of
 place (`crates/ui/tests/design_conventions.rs`, `design_tokens.rs`). The first components (Label, Icon with the Lucide
 set, Button, SegmentedControl, ToggleButton, SearchField, ScrollBar) are in `crates/ui/ui/design-system/components/`; the Kit window shows every token,
 every component and the review board (cards 4.2, 4.3), and checks text and digits (card 4.T7). Slint draws with
-its software renderer only (decision 9); Segoe UI at 400 and 700 only (decision 8). Test 8 (card 4.T8, 2026-11-26): Slint's
-menu cannot take the tokens, its tooltip can with our content but shows on hover only; decision 11 (§ 11) waits on
-the owner. The plan and its status: https://claude.ai/artifact/6b7K1hVhjpupdAURw4CfFP
+its software renderer only (decision 9); Segoe UI at 400 and 700 only (decision 8). Menus and tooltips are ours (decision 11,
+2026-11-26, after test 8). Next: the Menu (card «Menu nostro», § 5.16), then the Tooltip (§ 5.17). The plan and its status: https://claude.ai/artifact/6b7K1hVhjpupdAURw4CfFP
 and the Trello board: https://trello.com/b/BrdLKkTt/diskdome (personal account, workspace DomeHub).
 
 ## Commands
@@ -128,6 +127,10 @@ and after, and the numbers go in the PR.
 
 Clean code, small components, one source of truth. They apply to Rust and Slint alike.
 
+- **Library-grade components** (`docs/design-system.md` § 8.0): a design-system component is as solid as a
+  shadcn / Radix one: full behaviour, every placement, alignment and overflow case, accessible, parameterised with
+  token defaults, nothing specific to DiskDome. Its behaviour is listed against its Radix counterpart on the card
+  before it is built. A Slint built-in that cannot follow the design is replaced by ours without waiting.
 - **One job per unit.** A function, component or file does one thing and its name says which. Split when a
   name needs «and».
 - **No magic values.** A number, string or colour with a meaning gets a name: a Rust `const`, a Slint token
