@@ -2,13 +2,15 @@
 // The real screens arrive with step 4 of the plan, built only from `design-system/index.slint`.
 // User-visible text always goes through @tr() (English source, Italian translation).
 
-import { Size, Theme } from "design-system/index.slint";
+import { Size, DesignWindow } from "design-system/index.slint";
 
-export component MainWindow inherits Window {
+// Answered by Rust on every window (`src/design_system.rs`).
+export { MenuNav } from "design-system/index.slint";
+
+export component MainWindow inherits DesignWindow {
     title: @tr("DiskDome");
     preferred-width: Size.window-w;
     preferred-height: Size.window-h;
     min-width: Size.window-min-w;
     min-height: Size.window-min-h;
-    background: Theme.bg;
 }

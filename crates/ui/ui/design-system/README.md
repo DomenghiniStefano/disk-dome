@@ -13,10 +13,15 @@ The Slint side of `docs/design-system.md`, which holds every value and the reaso
 - `icons/` — the Lucide SVGs (version pinned in `icons.slint` and `THIRD_PARTY.md`) and `global Icons`, one
   property per file.
 - `components/` — one file per component of § 5, each exported through `index.slint`: `Label`, `Icon`, `Button`,
-  `SegmentedControl`, `ToggleButton`, `SearchField`, `ScrollBar` (vertical only for now).
+  `SegmentedControl`, `ToggleButton`, `SearchField`, `ScrollBar` (vertical only for now), `DesignWindow` (the window
+  every screen inherits: it tells the popups its size), and the menu (§ 5.16): `MenuFrame` (the level-1 surface),
+  `MenuList` (entries from `[MenuEntry]`), `Menu` (the popup, three levels), `ContextMenu` (right click, Menu key,
+  Shift+F10), `MenuButton`.
+- `MenuNav` (in `menu-list.slint`) — what Slint cannot compute (no loops, no prefix test): the walk over a menu's
+  entries and its type-ahead, answered by `src/design_system.rs`. Every window calls `design_system::install`.
 - `primitives/` — the behaviour components share, never used by screens: `FocusTarget` (one keyboard stop),
   `Pressable` (pointer + keyboard, the states of § 5), `FocusRing`, `TextEntry` (the one editable text, which like
-  `Label` sets font properties).
+  `Label` sets font properties), `placement.slint` (`Viewport` and `Placement`: where a popup goes, § 3.11).
 - `kit/` — the Kit window (§ 9): `cargo run -p diskdome-ui --features kit -- --kit`. `kit.slint` holds the window
   and the component sections (every component shows each state through `kit-state: KitState`, Kit only; screens
   leave it `live`); `kit-tokens.slint` draws every token (a new token gets its line in `KitTokenData`, shown in
@@ -32,4 +37,10 @@ the whole control with one `opacity`.
 
 The rules are checked by `crates/ui/tests/design_conventions.rs` (§ 10); the token values are compared with the
 tables of `docs/design-system.md` by `crates/ui/tests/design_tokens.rs`; the icon set by `design_icons.rs`; the Kit's
-keyboard and pointer behaviour off screen by `kit_headless.rs` (`DISKDOME_KIT_SHOTS=<folder>` saves screenshots).
+keyboard and pointer behaviour off screen by `kit_headless.rs` (`DISKDOME_KIT_SHOTS=<folder>` saves screenshots); the
+menu on its test window `kit/kit-menu-harness.slint` by `menu_headless.rs`.
+
+Slint traps met by the menu: an element of size 0 outside a layout is centred in its parent (a `Menu` covers its
+parent instead); inside a `PopupWindow`, `absolute-position` is the popup's own; a size that depends on whether a
+scroll bar shows overflowed the compiler's stack (the menu's scroll bar lies over the rows); `accessible-role` must
+be constant (an `if` element per role).

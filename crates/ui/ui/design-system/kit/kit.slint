@@ -25,6 +25,16 @@ import {
     ToggleSize,
     SearchField,
     ScrollBar,
+    DesignWindow,
+    MenuFrame,
+    MenuList,
+    MenuEntry,
+    Menu,
+    ContextMenu,
+    MenuButton,
+    MenuEntryKind,
+    MenuItemVariant,
+    PopupAlign,
 } from "../index.slint";
 import {
     KitSection,
@@ -161,6 +171,89 @@ global KitData {
     // An Italian label, ~25 % longer than English (§ 3.3): buttons must grow with it.
     out property <string> long-label: "Sposta nel Cestino";
     out property <string> sample-text: "Users 310.4 GB · 46.4 % · 3,789,066 files";
+    // Every kind of entry, variant and state of § 5.16, with repeated and trailing separators that must not show.
+    out property <[MenuEntry]> menu: [
+        { id: "open", label: "Open", icon: Icons.folder-open, shortcut: "Enter" },
+        {
+            id: "explorer",
+            label: "Show in File Explorer",
+            icon: Icons.external-link,
+            shortcut: "Ctrl+E"
+        },
+        { kind: MenuEntryKind.separator },
+        { kind: MenuEntryKind.section, label: "Sort by" },
+        { id: "size", kind: MenuEntryKind.radio, label: "Size", checked: true },
+        { id: "name", kind: MenuEntryKind.radio, label: "Name" },
+        { kind: MenuEntryKind.separator },
+        { kind: MenuEntryKind.separator },
+        { id: "free", kind: MenuEntryKind.checkbox, label: "Free space", checked: true },
+        { id: "names", kind: MenuEntryKind.checkbox, label: "Names" },
+        { id: "columns", label: "Columns", icon: Icons.layout-dashboard, submenu: true },
+        {
+            id: "rename",
+            label: "Rename",
+            icon: Icons.pencil,
+            shortcut: "F2",
+            disabled: true,
+            reason: "Select one item to rename it"
+        },
+        { kind: MenuEntryKind.separator },
+        { id: "recycle", label: "Move to the Recycle Bin", icon: Icons.trash-2, shortcut: "Del" },
+        {
+            id: "delete",
+            label: "Delete permanently",
+            icon: Icons.trash-2,
+            shortcut: "Shift+Del",
+            variant: MenuItemVariant.danger
+        },
+        { kind: MenuEntryKind.separator },
+    ];
+    out property <[MenuEntry]> menu-columns: [
+        {
+            id: "col-name",
+            kind: MenuEntryKind.checkbox,
+            label: "Name",
+            checked: true,
+            disabled: true,
+            reason: "The name is always shown"
+        },
+        { id: "col-size", kind: MenuEntryKind.checkbox, label: "Size", checked: true },
+        { id: "col-allocated", kind: MenuEntryKind.checkbox, label: "Allocated", checked: true },
+        { id: "col-modified", kind: MenuEntryKind.checkbox, label: "Modified" },
+        { kind: MenuEntryKind.separator },
+        { id: "col-more", label: "More columns", submenu: true },
+    ];
+    out property <[MenuEntry]> menu-more: [
+        { id: "col-created", kind: MenuEntryKind.checkbox, label: "Created" },
+        { id: "col-attributes", kind: MenuEntryKind.checkbox, label: "Attributes" },
+    ];
+    // Overflow: a label longer than `menu-max`, a hint, and a list taller than its box.
+    out property <[MenuEntry]> menu-long: [
+        {
+            id: "long",
+            label: "A label much longer than the widest menu, cut at the end with an ellipsis",
+            icon: Icons.file
+        },
+        {
+            id: "hint",
+            label: "Downloads",
+            hint: "C:\\Users\\Anna\\Downloads · 12.4 GB",
+            icon: Icons.folder
+        },
+        { id: "a", label: "Alpha" },
+        { id: "b", label: "Bravo" },
+        { id: "c", label: "Charlie" },
+        { id: "d", label: "Delta" },
+        { id: "e", label: "Echo" },
+        { id: "f", label: "Foxtrot" },
+        { id: "g", label: "Golf" },
+        { id: "h", label: "Hotel" },
+    ];
+    out property <[MenuEntry]> no-entries: [];
+
+    public pure function submenu(entry: MenuEntry) -> [MenuEntry] {
+        return entry.id == "columns" ? menu-columns : entry.id == "col-more" ? menu-more : no-entries;
+    }
 }
 
 // Every icon, in rows of `columns` (Slint 1.19 layouts do not wrap).
@@ -179,13 +272,12 @@ component KitIconGrid {
     }
 }
 
-export component KitWindow inherits Window {
+export component KitWindow inherits DesignWindow {
     title: "DiskDome Kit";
     preferred-width: Size.window-w;
     preferred-height: Size.window-h;
     min-width: Size.window-min-w;
     min-height: Size.window-min-h;
-    background: Theme.bg;
 
     // Read by the headless test (test 7).
     out property <bool> regular-tabular: text.regular-tabular;
@@ -559,6 +651,135 @@ export component KitWindow inherits Window {
                             SearchField {
                                 placeholder: "Search names";
                                 enabled: false;
+                            }
+                        }
+                    }
+
+                    KitSection {
+                        title: "MenuList · entries and states";
+
+                        KitRow {
+                            name: "highlight, every kind";
+
+                            MenuFrame {
+                                animate-in: false;
+                                height: self.preferred-height;
+
+                                MenuList {
+                                    entries: KitData.menu;
+                                    highlighted: 1;
+                                }
+                            }
+
+                            MenuFrame {
+                                animate-in: false;
+                                height: self.preferred-height;
+
+                                MenuList {
+                                    entries: KitData.menu-columns;
+                                    highlighted: 1;
+                                }
+                            }
+                        }
+
+                        KitRow {
+                            name: "overflow, scroll, empty";
+
+                            MenuFrame {
+                                animate-in: false;
+                                height: Size.menu-item * 6;
+
+                                MenuList {
+                                    entries: KitData.menu-long;
+                                    highlighted: 0;
+                                }
+                            }
+
+                            MenuFrame {
+                                animate-in: false;
+                                height: self.preferred-height;
+
+                                MenuList {
+                                    entries: KitData.no-entries;
+                                    empty-text: "Nothing to show";
+                                }
+                            }
+                        }
+                    }
+
+                    KitSection {
+                        title: "Menu · MenuButton · ContextMenu";
+
+                        KitRow {
+                            name: "buttons";
+
+                            MenuButton {
+                                icon: Icons.ellipsis;
+                                accessible-label: "More";
+                                entries: KitData.menu;
+                                submenu(entry) => {
+                                    return KitData.submenu(entry);
+                                }
+                            }
+
+                            MenuButton {
+                                text: "Columns";
+                                variant: ButtonVariant.secondary;
+                                entries: KitData.menu-columns;
+                                keep-open-on-check: true;
+                                submenu(entry) => {
+                                    return KitData.submenu(entry);
+                                }
+                            }
+
+                            MenuButton {
+                                text: "End-aligned";
+                                variant: ButtonVariant.secondary;
+                                align: PopupAlign.end;
+                                entries: KitData.menu-long;
+                            }
+
+                            MenuButton {
+                                text: "Empty";
+                                variant: ButtonVariant.secondary;
+                                entries: KitData.no-entries;
+                                empty-text: "Nothing to show";
+                            }
+
+                            MenuButton {
+                                text: "Disabled";
+                                variant: ButtonVariant.secondary;
+                                enabled: false;
+                                entries: KitData.menu;
+                            }
+                        }
+
+                        KitRow {
+                            name: "right-click";
+
+                            ContextMenu {
+                                width: Size.side-panel;
+                                height: Size.control-lg * 3;
+                                requested(x, y) => {
+                                    area-menu.open-at(x, y);
+                                }
+
+                                Rectangle {
+                                    background: Theme.surface;
+                                    border-radius: Size.radius-panel;
+
+                                    Label {
+                                        text: "Right-click, Menu key or Shift+F10";
+                                        tone: InkTone.muted;
+                                    }
+                                }
+
+                                area-menu := Menu {
+                                    entries: KitData.menu;
+                                    submenu(entry) => {
+                                        return KitData.submenu(entry);
+                                    }
+                                }
                             }
                         }
                     }

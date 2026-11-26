@@ -21,5 +21,6 @@ fn main() -> Result<(), slint::PlatformError> {
         return diskdome_ui::kit::run();
     }
     let window = MainWindow::new()?;
+    diskdome_ui::design_system::install(&window);
     window.run()
 }

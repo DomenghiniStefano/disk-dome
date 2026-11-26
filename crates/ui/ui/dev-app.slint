@@ -17,3 +17,14 @@ export { KitSearch } from "design-system/kit/kit-parts.slint";
 // The run-time switches, so the Kit's headless test can read what the keyboard changed.
 export { Theme, Size, Type } from "design-system/index.slint";
 export { Nav } from "design-system/nav.slint";
+// The Menu's test window (`tests/menu_headless.rs`).
+export {
+    KitMenuHarness,
+    KitMenuProbe,
+} from "design-system/kit/kit-menu-harness.slint";
+// The popups' placement, for its unit tests.
+export {
+    Viewport,
+    Placement,
+    PopupAnchor,
+} from "design-system/primitives/placement.slint";

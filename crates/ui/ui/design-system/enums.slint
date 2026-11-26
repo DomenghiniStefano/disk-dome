@@ -25,8 +25,20 @@ export enum ToggleSize { small, normal }
 // pointer's and the keyboard's. Screens never set it; `live` is the real behaviour.
 export enum KitState { live, hover, pressed, focus }
 
-// What a menu entry is (§ 5.16): an item, a separator line, or a section's overline title.
-export enum MenuEntryKind { item, separator, section }
+// What a menu entry is (§ 5.16): a plain item, an item with a check box or a radio dot (a group runs between
+// separators or section titles), a separator line, or a section's overline title.
+export enum MenuEntryKind { item, checkbox, radio, separator, section }
 
 // `danger`: an item that cannot be undone, as «Delete permanently» (§ 6.3).
 export enum MenuItemVariant { normal, danger }
+
+// Which item a menu highlights when it opens: none (opened by the pointer), the first (↓, Enter, Space) or the last
+// (↑), as Windows does.
+export enum MenuStart { none, first, last }
+
+// Where a popup opens around its anchor (§ 3.11). The side flips when the content does not fit there.
+export enum PopupSide { bottom, top, right, left }
+
+// How a popup lines up with its anchor along the side it opens on: on the anchor's start edge, centred, or on its
+// end edge (the right edge for a button at the right of the window).
+export enum PopupAlign { start, center, end }

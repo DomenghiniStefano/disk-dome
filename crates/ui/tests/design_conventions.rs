@@ -168,10 +168,10 @@ const RULES: &[Rule] = &[
     Rule {
         name: "icon-label",
         check: |s| {
-            // An `IconButton` or a `ToggleButton` (always icon only, § 5.3), or a `Button` with an `icon` and no
-            // `text`. Blind spot: a `Button` whose text is bound to an empty string is not recognised.
+            // An `IconButton` or a `ToggleButton` (always icon only, § 5.3), or a `Button` or `MenuButton` with an
+            // `icon` and no `text`. Blind spot: a button whose text is bound to an empty string is not recognised.
             let mut found = vec![];
-            for m in Regex::new(r"\b(?:IconButton|ToggleButton|Button)\s*\{")
+            for m in Regex::new(r"\b(?:IconButton|ToggleButton|MenuButton|Button)\s*\{")
                 .expect("test data is valid")
                 .find_iter(&s.bare)
             {

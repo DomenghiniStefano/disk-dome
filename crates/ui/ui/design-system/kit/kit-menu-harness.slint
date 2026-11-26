@@ -1,0 +1,100 @@
+// The Menu's test window (`tests/menu_headless.rs`, § 5.16): a MenuButton in the top-left corner and one in the
+// bottom-right corner, where the menu must flip and shift, an area with a context menu, and what was chosen.
+// Kit only; texts are the Kit's own, not translated.
+
+import {
+    DesignWindow,
+    MenuButton,
+    ContextMenu,
+    Menu,
+    MenuEntry,
+    MenuEntryKind,
+    ButtonVariant,
+    Size,
+    Theme,
+} from "../index.slint";
+
+export global KitMenuProbe {
+    in-out property <string> chosen;
+    in-out property <int> closed;
+    out property <[MenuEntry]> entries: [
+        { id: "copy", label: "Copy", shortcut: "Ctrl+C" },
+        { id: "cut", label: "Cut", shortcut: "Ctrl+X" },
+        { id: "paste", label: "Paste", shortcut: "Ctrl+V" },
+        { kind: MenuEntryKind.separator },
+        { id: "sort", label: "Sort", submenu: true },
+        { id: "delete", label: "Delete", disabled: true, reason: "Nothing selected" },
+    ];
+    out property <[MenuEntry]> sort: [
+        { id: "by-size", kind: MenuEntryKind.radio, label: "By size", checked: true },
+        { id: "by-name", kind: MenuEntryKind.radio, label: "By name" },
+    ];
+}
+
+export component KitMenuHarness inherits DesignWindow {
+    preferred-width: Size.window-min-w;
+    preferred-height: Size.window-min-h;
+
+    // For the test: where things are and whether the menus are open.
+    out property <bool> corner-open: corner.is-open;
+    out property <bool> far-open: far.is-open;
+    out property <bool> area-open: area-menu.is-open;
+    out property <length> far-x: far.x;
+    out property <length> far-y: far.y;
+    out property <length> button-height: corner.height;
+    out property <length> area-y: area.y;
+
+    // The keyboard reaches the context area the way a focused table inside it would.
+    public function focus-area() {
+        area.focus();
+    }
+
+    corner := MenuButton {
+        x: 0;
+        y: 0;
+        text: "Corner";
+        variant: ButtonVariant.secondary;
+        entries: KitMenuProbe.entries;
+        submenu(entry) => {
+            return KitMenuProbe.sort;
+        }
+        activated(entry) => {
+            KitMenuProbe.chosen = entry.id;
+        }
+        closed => {
+            KitMenuProbe.closed += 1;
+        }
+    }
+
+    far := MenuButton {
+        x: parent.width - self.width;
+        y: parent.height - self.height;
+        text: "Far";
+        variant: ButtonVariant.secondary;
+        entries: KitMenuProbe.entries;
+        activated(entry) => {
+            KitMenuProbe.chosen = entry.id;
+        }
+    }
+
+    area := ContextMenu {
+        x: 0;
+        y: Size.toolbar * 2;
+        width: parent.width;
+        height: Size.toolbar * 4;
+        requested(x, y) => {
+            area-menu.open-at(x, y);
+        }
+
+        Rectangle {
+            background: Theme.surface;
+        }
+
+        area-menu := Menu {
+            entries: KitMenuProbe.entries;
+            activated(entry) => {
+                KitMenuProbe.chosen = entry.id;
+            }
+        }
+    }
+}

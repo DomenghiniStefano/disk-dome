@@ -1,0 +1,55 @@
+// MenuFrame (§ 5.16, § 3.8): the level-1 floating surface of menus, select lists and popovers: `raised`, a 1 px
+// `edge`, radius `panel`, the level-1 shadow, `menu-pad` inside. Free content: a `MenuList`, the map's options rows,
+// a header line. It appears with a fade and a rise from the side it opens on (§ 3.10).
+
+import { Size } from "../tokens/size.slint";
+import { Theme } from "../tokens/theme.slint";
+import { Motion } from "../tokens/motion.slint";
+import { PopupSide } from "../enums.slint";
+
+export component MenuFrame {
+    // The inner padding; 0 for content that brings its own (a search field at the top of a popover).
+    in property <length> inset: Size.menu-pad;
+    // The side the popup opened on: the rise comes from the anchor.
+    in property <PopupSide> side: PopupSide.bottom;
+    // False draws it at once, as the Kit does.
+    in property <bool> animate-in: true;
+
+    // Set once the frame exists, so the fade and the rise run from their start values.
+    property <bool> entered: !root.animate-in;
+    property <length> rise: root.entered ? 0 : Motion.rise;
+
+    init => {
+        root.entered = true;
+    }
+
+    min-width: content.min-width;
+    preferred-width: content.preferred-width;
+    min-height: content.min-height;
+    preferred-height: content.preferred-height;
+
+    surface := Rectangle {
+        x: root.side == PopupSide.right ? -root.rise : root.side == PopupSide.left ? root.rise : 0;
+        y: root.side == PopupSide.bottom ? -root.rise : root.side == PopupSide.top ? root.rise : 0;
+        width: root.width;
+        height: root.height;
+        opacity: root.entered ? 1 : 0;
+        background: Theme.raised;
+        border-width: Size.border-hairline;
+        border-color: Theme.edge;
+        border-radius: Size.radius-panel;
+        drop-shadow-color: Theme.shadow;
+        drop-shadow-offset-y: Size.shadow-1-y;
+        drop-shadow-blur: Size.shadow-1-blur;
+        animate opacity, x, y {
+            duration: Motion.base;
+            easing: Motion.ease-out;
+        }
+
+        content := VerticalLayout {
+            padding: root.inset + Size.border-hairline;
+
+            @children
+        }
+    }
+}
