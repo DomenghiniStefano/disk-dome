@@ -36,6 +36,7 @@ export component KitSection {
         visible: root.shown;
         spacing: Size.space-8;
         padding-bottom: Size.space-24;
+
         Label {
             text: root.title;
             step: TypeStep.overline;
@@ -59,7 +60,10 @@ export component KitRow inherits HorizontalLayout {
 
     spacing: Size.space-16;
     alignment: start;
-    KitCaption { text: root.name; }
+
+    KitCaption {
+        text: root.name;
+    }
 
     @children
 }
@@ -72,7 +76,11 @@ export component KitOnFill inherits Rectangle {
     HorizontalLayout {
         padding-left: Size.space-4;
         padding-right: Size.space-4;
-        Label { text: root.text; tone: root.tone; }
+
+        Label {
+            text: root.text;
+            tone: root.tone;
+        }
     }
 }
 
@@ -88,7 +96,12 @@ export component KitPane inherits Rectangle {
         padding: Size.card-pad;
         spacing: Size.space-8;
         alignment: start;
-        Label { text: root.title; step: TypeStep.overline; tone: InkTone.faint; }
+
+        Label {
+            text: root.title;
+            step: TypeStep.overline;
+            tone: InkTone.faint;
+        }
 
         @children
     }

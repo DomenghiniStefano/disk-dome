@@ -5,7 +5,13 @@ import { Size } from "../tokens/size.slint";
 import { Theme } from "../tokens/theme.slint";
 import { Motion } from "../tokens/motion.slint";
 import { TypeStep } from "../tokens/type.slint";
-import { ButtonVariant, ButtonSize, IconSize, InkTone, KitState } from "../enums.slint";
+import {
+    ButtonVariant,
+    ButtonSize,
+    IconSize,
+    InkTone,
+    KitState,
+} from "../enums.slint";
 import { Pressable } from "../primitives/pressable.slint";
 import { FocusRing } from "../primitives/focus-ring.slint";
 import { Label } from "label.slint";
@@ -94,6 +100,7 @@ export component Button {
 
         if root.has-icon: VerticalLayout {
             alignment: center;
+
             Icon {
                 source: root.icon;
                 size: root.hero ? IconSize.hero : IconSize.normal;

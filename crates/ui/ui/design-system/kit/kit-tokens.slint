@@ -3,8 +3,21 @@
 // shows at once. Texts are the Kit's own, not translated (rule `untranslated` exempts `kit/`).
 
 import {
-    Theme, Data, FileCategory, DataShade, AgeBucket, Size, Type, TypeStep, Motion, Icons, Label, Button,
-    InkTone, ButtonVariant, ButtonSize,
+    Theme,
+    Data,
+    FileCategory,
+    DataShade,
+    AgeBucket,
+    Size,
+    Type,
+    TypeStep,
+    Motion,
+    Icons,
+    Label,
+    Button,
+    InkTone,
+    ButtonVariant,
+    ButtonSize,
 } from "../index.slint";
 import { KitSection, KitRow } from "kit-parts.slint";
 
@@ -250,7 +263,11 @@ component KitSwatchGrid {
             border-radius: Size.radius-card;
         }
 
-        Label { text: item.name; step: TypeStep.caption; tone: InkTone.muted; }
+        Label {
+            text: item.name;
+            step: TypeStep.caption;
+            tone: InkTone.muted;
+        }
     }
 }
 
@@ -276,15 +293,29 @@ component KitCategoryGrid {
 
             HorizontalLayout {
                 padding-left: Size.space-6;
-                Label { text: item.name; tone: InkTone.on-data; category: item.category; }
+
+                Label {
+                    text: item.name;
+                    tone: InkTone.on-data;
+                    category: item.category;
+                }
             }
         }
 
         HorizontalLayout {
             height: Size.control-sm;
-            Rectangle { background: Data.colour(item.category, DataShade.lighter); }
-            Rectangle { background: Data.colour(item.category, DataShade.base); }
-            Rectangle { background: Data.colour(item.category, DataShade.darker); }
+
+            Rectangle {
+                background: Data.colour(item.category, DataShade.lighter);
+            }
+
+            Rectangle {
+                background: Data.colour(item.category, DataShade.base);
+            }
+
+            Rectangle {
+                background: Data.colour(item.category, DataShade.darker);
+            }
         }
     }
 }
@@ -296,9 +327,14 @@ component KitLengths inherits VerticalLayout {
     spacing: Size.space-2;
     for item in root.lengths: KitRow {
         name: item.name;
-        KitValue { text: item.value / Size.unit; }
+
+        KitValue {
+            text: item.value / Size.unit;
+        }
+
         VerticalLayout {
             alignment: center;
+
             Rectangle {
                 width: Math.min(item.value, Size.dialog-lg);
                 height: Size.bar-h;
@@ -317,7 +353,12 @@ component KitTile inherits VerticalLayout {
     width: KitGrid.pitch - KitGrid.gap;
 
     @children
-    Label { text: root.name; step: TypeStep.caption; tone: InkTone.muted; }
+
+    Label {
+        text: root.name;
+        step: TypeStep.caption;
+        tone: InkTone.muted;
+    }
 }
 
 // The durations: «Play» moves a block along each track with that duration and the easing of § 3.10.
@@ -325,8 +366,10 @@ component KitMotion inherits VerticalLayout {
     property <bool> moved;
 
     spacing: Size.space-4;
+
     KitRow {
         name: "ease-out";
+
         Button {
             text: root.moved ? "Back" : "Play";
             icon: Icons.play;
@@ -339,7 +382,11 @@ component KitMotion inherits VerticalLayout {
 
     for item in KitTokenData.durations: KitRow {
         name: item.name;
-        KitValue { text: item.value / Motion.unit; }
+
+        KitValue {
+            text: item.value / Motion.unit;
+        }
+
         Rectangle {
             width: Size.side-panel;
             height: Size.control-sm;
@@ -366,73 +413,112 @@ export component KitTokens inherits VerticalLayout {
 
     KitSection {
         title: "Colour · neutrals";
-        KitSwatchGrid { colours: KitTokenData.neutrals; }
+
+        KitSwatchGrid {
+            colours: KitTokenData.neutrals;
+        }
     }
 
     KitSection {
         title: "Colour · accent";
-        KitSwatchGrid { colours: KitTokenData.accent; }
+
+        KitSwatchGrid {
+            colours: KitTokenData.accent;
+        }
     }
 
     KitSection {
         title: "Colour · states";
-        KitSwatchGrid { colours: KitTokenData.states; }
+
+        KitSwatchGrid {
+            colours: KitTokenData.states;
+        }
     }
 
     KitSection {
         title: "Colour · others and charts";
-        KitSwatchGrid { colours: KitTokenData.others; }
+
+        KitSwatchGrid {
+            colours: KitTokenData.others;
+        }
     }
 
     KitSection {
         title: "Data · categories (lighter, base, darker)";
+
         KitCategoryGrid { }
     }
 
     KitSection {
         title: "Data · age";
-        KitSwatchGrid { colours: KitTokenData.ages; }
+
+        KitSwatchGrid {
+            colours: KitTokenData.ages;
+        }
     }
 
     KitSection {
         title: "Type · families";
+
         KitRow {
             name: "family";
-            Label { text: Type.family + " · 0123456789 · 310.4 GB"; }
+
+            Label {
+                text: Type.family + " · 0123456789 · 310.4 GB";
+            }
         }
+
         KitRow {
             name: "family-mono";
-            Label { text: Type.family-mono + " · C:\\Users\\Public"; step: TypeStep.mono; }
+
+            Label {
+                text: Type.family-mono + " · C:\\Users\\Public";
+                step: TypeStep.mono;
+            }
         }
     }
 
     KitSection {
         title: "Spacing · grid";
-        KitLengths { lengths: KitTokenData.spacing; }
+
+        KitLengths {
+            lengths: KitTokenData.spacing;
+        }
     }
 
     KitSection {
         title: "Spacing · roles";
-        KitLengths { lengths: KitTokenData.spacing-roles; }
+
+        KitLengths {
+            lengths: KitTokenData.spacing-roles;
+        }
     }
 
     KitSection {
         title: "Sizes · density";
-        KitLengths { lengths: KitTokenData.density; }
+
+        KitLengths {
+            lengths: KitTokenData.density;
+        }
     }
 
     KitSection {
         title: "Sizes · fixed";
-        KitLengths { lengths: KitTokenData.fixed; }
+
+        KitLengths {
+            lengths: KitTokenData.fixed;
+        }
     }
 
     KitSection {
         title: "Radii";
+
         HorizontalLayout {
             alignment: start;
             spacing: KitGrid.gap;
             for item in KitTokenData.radii: KitTile {
                 name: item.name + " · " + item.value / Size.unit;
+
                 Rectangle {
                     height: Size.control-lg;
                     background: Theme.raised;
@@ -446,11 +532,13 @@ export component KitTokens inherits VerticalLayout {
 
     KitSection {
         title: "Borders and focus";
+
         HorizontalLayout {
             alignment: start;
             spacing: KitGrid.gap;
             for item in KitTokenData.borders: KitTile {
                 name: item.name + " · " + item.value / Size.unit;
+
                 Rectangle {
                     height: Size.control-lg;
                     border-width: item.value;
@@ -463,12 +551,15 @@ export component KitTokens inherits VerticalLayout {
 
     KitSection {
         title: "Elevation";
+
         HorizontalLayout {
             alignment: start;
             padding-bottom: Size.shadow-2-y;
             spacing: Size.space-24;
+
             KitTile {
                 name: "level 1 · menus, popovers";
+
                 Rectangle {
                     height: Size.control-lg * 2;
                     background: Theme.raised;
@@ -478,8 +569,10 @@ export component KitTokens inherits VerticalLayout {
                     drop-shadow-color: Theme.shadow;
                 }
             }
+
             KitTile {
                 name: "level 2 · dialogs";
+
                 Rectangle {
                     height: Size.control-lg * 2;
                     background: Theme.raised;
@@ -494,16 +587,23 @@ export component KitTokens inherits VerticalLayout {
 
     KitSection {
         title: "Opacity";
+
         HorizontalLayout {
             alignment: start;
             spacing: KitGrid.gap;
             for item in KitTokenData.opacities: KitTile {
                 name: item.name + " · " + item.value;
+
                 Rectangle {
                     opacity: item.value;
+
                     HorizontalLayout {
                         alignment: start;
-                        Button { text: "Delete"; variant: ButtonVariant.danger; }
+
+                        Button {
+                            text: "Delete";
+                            variant: ButtonVariant.danger;
+                        }
                     }
                 }
             }
@@ -514,12 +614,16 @@ export component KitTokens inherits VerticalLayout {
         title: "Layers (z)";
         for item in KitTokenData.layers: KitRow {
             name: item.name;
-            KitValue { text: item.value; }
+
+            KitValue {
+                text: item.value;
+            }
         }
     }
 
     KitSection {
         title: "Motion";
+
         KitMotion { }
     }
 }

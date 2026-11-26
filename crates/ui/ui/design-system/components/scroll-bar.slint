@@ -60,7 +60,10 @@ export component ScrollBar {
         border-radius: self.thickness / 2;
         background: root.hovered || root.dragged ? Theme.scroll-thumb-hover : Theme.scroll-thumb;
         opacity: root.shown ? 1 : 0;
-        animate opacity, width { duration: Motion.base; easing: Motion.ease-out; }
+        animate opacity, width {
+            duration: Motion.base;
+            easing: Motion.ease-out;
+        }
     }
 
     // Dragging moves the content; a press outside the thumb jumps it there, centred under the pointer.

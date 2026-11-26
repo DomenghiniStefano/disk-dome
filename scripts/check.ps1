@@ -1,6 +1,6 @@
 # Runs every check the CI runs, in the same order. Usage, from the repo root:
 #   ./scripts/check.ps1
-# cargo-deny is optional locally (cargo install cargo-deny --locked); the CI always runs it.
+# cargo-deny and slint-lsp are optional locally (see slint-format.ps1); the CI always runs them.
 
 $ErrorActionPreference = 'Stop'
 
@@ -11,6 +11,11 @@ function Step($name, [scriptblock]$command) {
 }
 
 Step 'Format' { cargo fmt --all -- --check }
+if (Get-Command slint-lsp -ErrorAction SilentlyContinue) {
+    Step 'Slint format' { & (Join-Path $PSScriptRoot 'slint-format.ps1') -Check }
+} else {
+    Write-Host '==> Slint format: skipped (slint-lsp not installed, see scripts/slint-format.ps1)' -ForegroundColor Yellow
+}
 Step 'Clippy' { cargo clippy --workspace --all-targets --all-features -- -D warnings }
 Step 'Test' { cargo test --workspace --all-features }
 

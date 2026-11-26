@@ -9,7 +9,14 @@ import { Motion } from "../tokens/motion.slint";
 import { TypeStep } from "../tokens/type.slint";
 import { Nav } from "../nav.slint";
 import { Icons } from "../icons/icons.slint";
-import { IconSize, InkTone, ToggleSize, ButtonVariant, ButtonSize, KitState } from "../enums.slint";
+import {
+    IconSize,
+    InkTone,
+    ToggleSize,
+    ButtonVariant,
+    ButtonSize,
+    KitState,
+} from "../enums.slint";
 import { TextEntry } from "../primitives/text-entry.slint";
 import { FocusRing } from "../primitives/focus-ring.slint";
 import { Icon } from "icon.slint";
@@ -82,7 +89,12 @@ export component SearchField {
 
             VerticalLayout {
                 alignment: center;
-                Icon { source: Icons.search; size: IconSize.normal; tone: InkTone.faint; }
+
+                Icon {
+                    source: Icons.search;
+                    size: IconSize.normal;
+                    tone: InkTone.faint;
+                }
             }
 
             Rectangle {
@@ -114,6 +126,7 @@ export component SearchField {
 
             if root.text != "": VerticalLayout {
                 alignment: center;
+
                 Button {
                     icon: Icons.x;
                     variant: ButtonVariant.ghost;
@@ -129,6 +142,7 @@ export component SearchField {
 
             VerticalLayout {
                 alignment: center;
+
                 ToggleButton {
                     icon: Icons.case-sensitive;
                     size: ToggleSize.small;
@@ -143,6 +157,7 @@ export component SearchField {
 
             VerticalLayout {
                 alignment: center;
+
                 ToggleButton {
                     icon: Icons.regex;
                     size: ToggleSize.small;
