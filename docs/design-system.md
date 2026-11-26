@@ -444,7 +444,7 @@ No pills. Round only where the shape is round by nature: the live-state dot, the
 
 - **Focus ring**: 2 px `focus`, 1 px outside the control's edge, following its radius (+1). In a table the focus
   is the **cursor row**: a 1 px `focus` frame drawn inside the row, on top of the selection fill.
-- The ring shows only while the user moves with the keyboard (Windows' own rule): a `Nav.keyboard` flag, set by
+- The ring shows only while the user moves with the keyboard (Windows' own rule): a `InputMode.keyboard` flag, set by
   any navigation key and cleared by a pointer press, decides it.
 - Edges are 1 px `line` between panels and around fields (`line-strong` for checkbox and radio boxes, which
   need 3:1); popups and dialogs use `edge`.
@@ -1197,7 +1197,7 @@ pointer, without the fade and rise; with a `text` it draws the style's own light
 
 **Built (2026-11-26, library-grade, § 8.0).** Not on a `PopupWindow`: Slint gives every popup but its own tooltip
 the keyboard focus, so ours would take it from the control it describes and from a field being typed in. A
-`Tooltip` inside the control writes the window's one tooltip (`TooltipLayer`), and `DesignWindow` draws it as its
+`Tooltip` inside the control writes the window's one tooltip (`TooltipLayer`), and `DomeWindow` draws it as its
 last layer, over every content, with no pointer area. It opens after `delay` (`tooltip-delay`), at once on keyboard
 focus and at once again within `skip-delay` of another one closing (`tooltip-skip`, as Radix); it closes when the
 pointer leaves and the focus goes, on a press and with Esc; over a disabled control it watches the pointer itself,

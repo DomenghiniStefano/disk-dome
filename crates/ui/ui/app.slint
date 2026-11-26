@@ -2,12 +2,12 @@
 // The real screens arrive with step 4 of the plan, built only from the design system, `@dome-ui`.
 // User-visible text always goes through @tr() (English source, Italian translation).
 
-import { Size, DesignWindow } from "@dome-ui";
+import { Size, DomeWindow } from "@dome-ui";
 
 // Answered by Rust on every window (`src/design_system.rs`).
 export { MenuNav, SegmentedNav, SegmentedItem } from "@dome-ui";
 
-export component MainWindow inherits DesignWindow {
+export component MainWindow inherits DomeWindow {
     title: @tr("DiskDome");
     preferred-width: Size.window-w;
     preferred-height: Size.window-h;

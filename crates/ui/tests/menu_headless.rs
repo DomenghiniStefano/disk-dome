@@ -24,7 +24,7 @@ const ROW: f32 = 24.0;
 const FIRST_ROW: f32 = 9.0;
 /// A point inside the menu's rows, away from the frame's edge.
 const ROW_X: f32 = 40.0;
-/// The same window size `DesignWindow` tells the popups.
+/// The same window size `DomeWindow` tells the popups.
 const MARGIN: f32 = 8.0;
 const GAP: f32 = 4.0;
 /// Longer than `Motion.base`, 140 ms, with a margin.

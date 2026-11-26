@@ -19,7 +19,7 @@ import {
     SegmentedSize,
     SegmentedWidth,
 } from "../enums.slint";
-import { Nav } from "../nav.slint";
+import { InputMode } from "../input-mode.slint";
 import { Pressable } from "../primitives/pressable.slint";
 import { FocusTarget } from "../primitives/focus-target.slint";
 import { FocusRing } from "../primitives/focus-ring.slint";
@@ -106,7 +106,7 @@ export component SegmentedControl {
             } else {
                 return reject;
             }
-            Nav.keyboard = true;
+            InputMode.keyboard = true;
             return accept;
         }
     }

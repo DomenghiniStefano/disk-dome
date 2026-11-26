@@ -1,4 +1,4 @@
-// DesignWindow (§ 3.11): the window every screen and the Kit inherit. It gives the window its ground, tells the
+// DomeWindow (§ 3.11): the window every screen and the Kit inherit. It gives the window its ground, tells the
 // popups its size, so menus and popovers stay inside it and flip when there is no room, and draws the window's one
 // tooltip over all its content (`TooltipLayer`).
 
@@ -8,7 +8,7 @@ import { Viewport, Placement } from "../primitives/placement.slint";
 import { TooltipLayer } from "../primitives/tooltip-layer.slint";
 import { TooltipBubble } from "tooltip-bubble.slint";
 
-export component DesignWindow inherits Window {
+export component DomeWindow inherits Window {
     background: Theme.bg;
 
     init => {

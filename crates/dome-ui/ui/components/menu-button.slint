@@ -11,7 +11,7 @@ import {
     PopupSide,
     PopupAlign,
 } from "../enums.slint";
-import { Nav } from "../nav.slint";
+import { InputMode } from "../input-mode.slint";
 import { Button } from "button.slint";
 import { Menu } from "menu.slint";
 import { MenuEntry } from "menu-list.slint";
@@ -70,12 +70,12 @@ export component MenuButton {
         // ↓ and ↑ arrive here unused from the button.
         key-pressed(event) => {
             if (event.text == Key.DownArrow) {
-                Nav.keyboard = true;
+                InputMode.keyboard = true;
                 root.open(MenuStart.first);
                 return accept;
             }
             if (event.text == Key.UpArrow) {
-                Nav.keyboard = true;
+                InputMode.keyboard = true;
                 root.open(MenuStart.last);
                 return accept;
             }
@@ -91,7 +91,7 @@ export component MenuButton {
             kit-state: root.is-open ? KitState.pressed : root.kit-state;
             accessible-label: root.accessible-label;
             clicked => {
-                root.open(Nav.keyboard ? MenuStart.first : MenuStart.none);
+                root.open(InputMode.keyboard ? MenuStart.first : MenuStart.none);
             }
         }
     }

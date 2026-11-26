@@ -14,7 +14,7 @@ import {
     PopupAlign,
 } from "../enums.slint";
 import { Placement, PopupAnchor } from "../primitives/placement.slint";
-import { Nav } from "../nav.slint";
+import { InputMode } from "../input-mode.slint";
 import { MenuFrame } from "menu-frame.slint";
 import { MenuList, MenuEntry } from "menu-list.slint";
 
@@ -276,7 +276,7 @@ export component Menu {
         row-height: root.row-height;
         submenu-index: root.open-2;
         // A submenu opened from the keyboard starts on its first item.
-        start: Nav.keyboard ? MenuStart.first : MenuStart.none;
+        start: InputMode.keyboard ? MenuStart.first : MenuStart.none;
         focus-request: root.refocus-2;
 
         activated(entry, index) => {
@@ -309,7 +309,7 @@ export component Menu {
         wrap-around: root.wrap-around;
         row-height: root.row-height;
         // A submenu opened from the keyboard starts on its first item.
-        start: Nav.keyboard ? MenuStart.first : MenuStart.none;
+        start: InputMode.keyboard ? MenuStart.first : MenuStart.none;
 
         activated(entry, index) => {
             root.chosen(entry);

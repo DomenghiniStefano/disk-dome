@@ -17,7 +17,7 @@ import {
     InkTone,
     IconSize,
 } from "../enums.slint";
-import { Nav } from "../nav.slint";
+import { InputMode } from "../input-mode.slint";
 import { Label } from "label.slint";
 import { Icon } from "icon.slint";
 import { ScrollBar } from "scroll-bar.slint";
@@ -218,7 +218,7 @@ component MenuRow {
         }
         pointer-event(event) => {
             if (event.kind == PointerEventKind.down) {
-                Nav.keyboard = false;
+                InputMode.keyboard = false;
             }
         }
         clicked => {
@@ -314,12 +314,12 @@ export component MenuList {
             return accept;
         }
         if (event.text == Key.Return || (event.text == Key.Space && root.typed == "")) {
-            Nav.keyboard = true;
+            InputMode.keyboard = true;
             root.choose(root.highlighted-index, true);
             return accept;
         }
         if (event.text == Key.RightArrow && root.has-submenu(root.highlighted-index)) {
-            Nav.keyboard = true;
+            InputMode.keyboard = true;
             root.choose(root.highlighted-index, true);
             return accept;
         }
@@ -331,7 +331,7 @@ export component MenuList {
     }
 
     function go(index: int) {
-        Nav.keyboard = true;
+        InputMode.keyboard = true;
         if (index >= 0) {
             root.highlighted-index = index;
         }

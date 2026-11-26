@@ -4,7 +4,7 @@
 //
 // Not a component of the design system: screens never use it (it is not exported from `index.slint`).
 
-import { Nav } from "../nav.slint";
+import { InputMode } from "../input-mode.slint";
 import { KitState } from "../enums.slint";
 import { FocusTarget } from "focus-target.slint";
 
@@ -46,7 +46,7 @@ export component Pressable {
         enabled: root.enabled;
         pointer-event(event) => {
             if (event.kind == PointerEventKind.down) {
-                Nav.keyboard = false;
+                InputMode.keyboard = false;
             }
         }
         clicked => {

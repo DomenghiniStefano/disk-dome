@@ -8,7 +8,7 @@
 
 use std::path::PathBuf;
 
-use diskdome_ui::generated::{KitReview, KitSearch, Nav, Size, Theme, ThemeMode};
+use diskdome_ui::generated::{InputMode, KitReview, KitSearch, Size, Theme, ThemeMode};
 use diskdome_ui::headless::Headless;
 use diskdome_ui::kit;
 use slint::ComponentHandle;
@@ -45,7 +45,7 @@ fn kit_switches_work_by_keyboard_and_pointer() {
     // Tab reaches the theme switch and shows the keyboard focus; the arrow moves the choice.
     headless.press_key(Key::Tab);
     assert!(
-        kit.global::<Nav>().get_keyboard(),
+        kit.global::<InputMode>().get_keyboard(),
         "Tab turns the focus ring on"
     );
     headless.press_key(Key::RightArrow);
@@ -67,7 +67,7 @@ fn kit_switches_work_by_keyboard_and_pointer() {
     headless.click(DARK_SEGMENT.0, DARK_SEGMENT.1);
     assert_eq!(kit.global::<Theme>().get_mode(), ThemeMode::Dark);
     assert!(
-        !kit.global::<Nav>().get_keyboard(),
+        !kit.global::<InputMode>().get_keyboard(),
         "a pointer press hides the focus ring"
     );
 
