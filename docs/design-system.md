@@ -909,7 +909,7 @@ file's content. Kept: the last 30 and one per month (owner, 2026-11-24).
   «Undo». Deleting the compared scan moves the comparison to the scan before it; with no scan left the Timeline shows
   «From the next scan».
 
-**Memory.** Performance is the product, so every per-entry field is paid for 13.8 million entries. Done on
+**Memory.** Performance is the product, so every per-entry field is paid for 14 million entries. Done on
 2026-11-24 (card 4.T13, `docs/architecture.md`): size on disk as `u32` clusters (`alloc`), last modified as `u32`
 Unix seconds (`mtime`, equal to what File Explorer shows), attributes `u16` (`attrs`), the security descriptor's
 number `u16` (`security`, the owner resolved from it later), link and fragment flags in the existing `flags` byte.
@@ -2559,7 +2559,7 @@ the rest is checked in the Kit as the components are built.
 | 10 | **Map names** (placement done 2026-11-24: ≤ 0.05 ms; Slint's drawing of 700 names still to check) | placement in Rust on 50 000 rectangles at 1920 × 1080 with «All»; Slint draws 700 names over the image while the window is resized | placement ≤ 2 ms (release); resizing stays smooth (≥ 60 fps); otherwise «All» is dropped and «Many» capped lower |
 | 11 | **Windows' own tools** | each button of «Windows' space» (§ 4.5) on Windows 10 and 11, as a standard user | the right tool opens; DiskDome never elevates (a tool that needs it shows its own UAC prompt) |
 | 12 | **Dates and allocated sizes from the MFT** | step 3's reader: last-modified date, allocated size, compressed and sparse flags, link count for 1 000 sample files | equal to what Explorer's Properties shows; the age buckets and the «lost space» tiles add up to the drive's numbers |
-| 13 | **The new per-entry fields** (done 2026-11-24: 61.5 bytes per entry, peak 0.89 GB) | allocated size, modified time, attributes, owner and flags added to the model, `diskdome-cli` on the reference drive | ≤ 1.5 GB peak and the scan still ≤ 8 s; the numbers in the PR |
+| 13 | **The new per-entry fields** (done 2026-11-24: 61.5 bytes per entry, peak 0.89 GB) | allocated size, modified time, attributes, owner and flags added to the model, `diskdome-cli` on the reference drive | the targets of `docs/architecture.md` § Performance targets still met; the numbers in the PR |
 | 14 | **Saved summaries** | write and read a summary of the reference drive; compare two | ≤ 3 MB, written in < 200 ms after the scan, read in < 100 ms at launch |
 | 15 | **Narrator** | the Kit's components and the table, map and charts with Narrator on Windows 11; announcements of a finished scan and of an error | every element of § 7 read as written; announcements without moving the focus, or a fallback (a hidden live text) |
 | 16 | **Drive removed** | unplug a USB drive during an MFT scan, a folder walk and a move | the scan stops cleanly with the info bar of § 6.14, the model stays readable, no file action half-done without a report |

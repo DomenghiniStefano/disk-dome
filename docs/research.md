@@ -10,14 +10,18 @@ What was checked while defining the project (2026-11-24), with sources.
   `Vcl.Direct2D`.
 - Delphi's Win64 compiler is not LLVM-based: limited inlining, no auto-vectorisation.
 - Its speed comes from the approach (reading the `$MFT`), not from the language.
-- On the reference drive: 13,817,523 entries (11,974,106 files, 1,843,417 folders), 23.97 s, 6,240 MB of
-  memory (~473 bytes per entry). The `$MFT` is 13.7 GB, read at ~600 MB/s.
+- On the reference drive, first reading (2026-11-24, WizTree's own figures): 13,817,523 entries (11,974,106
+  files, 1,843,417 folders), 23.97 s, 6,240 MB of memory (~473 bytes per entry). The `$MFT` is 13.7 GB, so
+  23.97 s would mean ~600 MB/s. Not reproduced: timed from outside by `./scripts/proof.ps1` on 2026-11-26 (14.1
+  million entries, scan and folder export), WizTree took 182 s with a peak of 2.0 GB.
 - Also available for macOS (WizTreeMac) and Linux (WizTreeNix) since version 4.34 (2026-11-17).
 
 ## Reference drive
 
 KIOXIA XG8 KXG80ZNV1T02: NVMe PCIe Gen4, 1 TB, 7,000 MB/s sequential read on paper, 4–5.5 GB/s measured in
-laptops. Reading the `$MFT` alone takes 3–4 s on it: WizTree's other ~20 s are computation.
+laptops. The `$MFT` is not read at that speed: it is 14 GB in 64 extents, and `diskdome-cli mft-read` reads it in
+28–30 s (~470 MB/s, 32 threads, 4 MB chunks, on mains power, 2026-11-26). The 3–4 s written here earlier came
+from the sequential figure, never from a measurement.
 
 ## Rust tools that read the MFT
 

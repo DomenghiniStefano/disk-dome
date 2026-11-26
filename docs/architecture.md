@@ -148,12 +148,12 @@ Measured (cards 4.T4 and 4.T10, `cargo run -p diskdome-treemap --release --examp
 
 ## Technical proof (step 3): the go / no-go
 
-Targets: scan ≤ 8 s, memory ≤ 1.5 GB, folder totals equal to WizTree's. Alongside: a Slint table with 14
-million fake rows that scrolls smoothly. If the engine missed the target, the project would have stopped
+Targets at the time: scan ≤ 8 s, memory ≤ 1.5 GB, folder totals equal to WizTree's (replaced on 2026-11-26 by
+§ Performance targets below). Alongside: a Slint table with 14 million fake rows that scrolls smoothly. If the engine missed the target, the project would have stopped
 before the design work was spent.
 
 Result (2026-11-24, **go**), measured on the owner's desktop: Ryzen 7 9700X, C: on a Crucial P3 1 TB, 3.4
-million entries, a 4.3 GB `$MFT`; not repeated on the laptop with the KIOXIA drive (owner's choice).
+million entries, a 4.3 GB `$MFT`. Repeated on 2026-11-26 on the laptop with the KIOXIA drive (below).
 
 | | DiskDome | WizTree 4.31, same PC |
 | --- | --- | --- |
@@ -164,6 +164,25 @@ million entries, a 4.3 GB `$MFT`; not repeated on the laptop with the KIOXIA dri
 The Slint table (headless, software renderer): frames ≤ 2.6 ms at the 99th percentile on 14 million rows, sorts
 0.15–1.5 s on a worker thread. Open: Slint's f32 positions lose small scroll steps near the end of such a
 list, and the table widget is to be chosen; both go to the design sessions.
+
+## Performance targets
+
+Set on 2026-11-26, after the proof on the 14 million entry drive (`docs/decisions.md`). The `$MFT` is read at
+the drive's pace, which depends on the drive, its fragmentation and the PC, never on our code: an absolute time
+holds on one drive only. So the scan's target is what DiskDome adds to that read, plus the comparison with
+WizTree on the same PC.
+
+| Target | Desktop, 3.4 M entries (2026-11-24) | Laptop, 14.1 M entries (2026-11-26) |
+| --- | --- | --- |
+| scan ≤ `$MFT` read alone (`mft-read`) + 5 s, average of three runs | 7.0 s (read ~6.7 s) | 33.2 s (read 29.6 s, ~470 MB/s) |
+| scan ≥ 3× faster than WizTree on the same PC | 3.1–4.4× (22–31 s) | 5.2–5.9× (182 s) |
+| peak memory ≤ 1.5 GB on 14 million entries | 0.40 GB | 0.99 GB (model 773 MB, 57.7 bytes per entry) |
+| ≥ 99% of folder totals identical to WizTree's, whole drive within 0.1% | 99.1%, +0.04% | 99.8%, −0.03% |
+
+The folders that differ are mostly files changed between the two scans (WizTree runs minutes after ours) and
+size on disk of compressed or hard-linked files; the comparison lists them. Open: WizTree's own figure on the
+laptop (23.97 s, `docs/research.md`) implies it read the same `$MFT` at ~600 MB/s, so ours (~470 MB/s) may still
+gain from other thread counts and chunk sizes (`./scripts/proof.ps1 -Sweep`).
 
 `./scripts/proof.ps1` runs it on the PC it is launched on: it builds the CLI, asks for administrator rights
 once, reads the `$MFT` alone three times (`mft-read`), scans three times (`scan`), exports the folder totals,

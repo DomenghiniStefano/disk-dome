@@ -22,8 +22,10 @@ on the card.
 
 **DiskDome**: a fast, lightweight disk space analyzer for Windows (macOS after v1), written in Rust with a Slint
 interface. It reads the NTFS `$MFT` directly, shows where the space goes (tree, treemap, largest files,
-extensions) and lets the user act on it like a file manager. Targets on the reference drive (13.8 million
-entries, NVMe Gen4): scan ≤ 8 s and memory ≤ 1.5 GB, against WizTree's 24 s and 6.2 GB.
+extensions) and lets the user act on it like a file manager. Targets (`docs/architecture.md`
+§ Performance targets): the scan takes at most 5 s more than reading the `$MFT` alone, at least 3× faster than
+WizTree on the same PC, peak memory ≤ 1.5 GB on 14 million entries. The `$MFT` read runs at the drive's pace and
+no target can go below it.
 
 ## Language
 
@@ -103,8 +105,10 @@ and after, and the numbers go in the PR.
 - No hash map where an index works (the MFT record number is already a dense index).
 - The interface asks only for the visible rows (Slint `Model`); nothing copies the whole tree.
 - The treemap is redrawn only on resize or zoom.
-- Step 3's targets (met, 2026-11-24): scan ≤ 8 s, memory ≤ 1.5 GB, folder totals equal to WizTree's. Any engine
-  change is checked again with `./scripts/proof.ps1` (time, memory, `compare` against WizTree).
+- The targets (`docs/architecture.md` § Performance targets, met on both PCs, 2026-11-24 and 2026-11-26): scan ≤ `$MFT` read
+  alone + 5 s, ≥ 3× faster than WizTree on the same PC, peak ≤ 1.5 GB on 14 million entries, ≥ 99% of folder
+  totals identical to WizTree's. Any engine change is checked again with `./scripts/proof.ps1` (time, memory,
+  `compare` against WizTree).
 
 ## Project rules
 

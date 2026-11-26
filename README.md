@@ -11,13 +11,16 @@ than the tools it replaces while using a fraction of their memory.
 
 ## Goals
 
-Measured on a real drive (13.8 million files and folders, NVMe PCIe Gen4 SSD), against WizTree 4.31:
+Measured with `./scripts/proof.ps1` against WizTree 4.31 on the same PC and drive (2026-11-24 and 2026-11-26):
 
-| | WizTree 4.31 | DiskDome target |
-| --- | --- | --- |
-| Full scan | 24 s | ≤ 8 s |
-| Memory after the scan | 6.2 GB | ≤ 1.5 GB |
-| Memory per entry | ~473 bytes | 65–100 bytes |
+| Drive | Entries | Scan, WizTree → DiskDome | Peak memory, WizTree → DiskDome |
+| --- | --- | --- | --- |
+| Desktop, Crucial P3 | 3.4 million | 22–31 s → 7.0 s | 1.6 → 0.40 GB |
+| Laptop, KIOXIA XG8 | 14.1 million | 182 s → 31–35 s | 2.0 → 0.99 GB |
+
+The scan cannot be faster than the drive reads the `$MFT` (14 GB on the laptop, ~470 MB/s): DiskDome's goal is to
+add at most 5 s to that read, be at least 3× faster than WizTree and stay under 1.5 GB on 14 million entries
+([targets](docs/architecture.md#performance-targets)).
 
 Beyond speed:
 
