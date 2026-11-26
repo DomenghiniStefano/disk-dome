@@ -1143,15 +1143,18 @@ icon 16 (or empty slot, so labels align), label `body`, shortcut `caption` `ink-
 `danger` variant = `danger` text and icon; disabled = `disabled`. `MenuSeparator`: 1 px `line` with 4 px above
 and below. `MenuSection`: `overline` title.
 
-Slint's `ContextMenuArea` / `Menu` draw with the widget style, not our tokens ⟨to verify in the Kit⟩: if they
-cannot be styled, `Menu` is ours on a `PopupWindow`, with the same keyboard behaviour (arrows, Enter, Esc,
+Slint's `ContextMenuArea` / `Menu` draw with the widget style, not our tokens (test 8, 2026-11-26: the Fluent
+style's colours are fixed, the menu stays light in our dark theme, radius 7, at least 280 wide, items 32 tall; no
+shortcut text outside a menu bar, no `danger` item, no section title). Proposal for decision 11: `Menu` is ours on a `PopupWindow`, with the same keyboard behaviour (arrows, Enter, Esc,
 → / ← for submenus, the Menu key and Shift+F10 to open).
 
 ### 5.17 Tooltip
 
 `raised`, `edge`, radius `panel`, `tooltip-pad`, `caption` `ink`, max 320 wide, wraps. After 500 ms of rest
 with the mouse, at once on keyboard focus; never on rows of the table (they have the status bar) or on the treemap
-(it has its header). Slint 1.19's `Tooltip` element if it takes our tokens, else ours.
+(it has its header). Slint 1.19's `Tooltip` element takes our tokens when it is given our content instead of a
+`text` (test 8, 2026-11-26), but it shows on hover only (never on keyboard focus), after a fixed 500 ms, beside the
+pointer, without the fade and rise; with a `text` it draws the style's own light box.
 
 ### 5.18 Dialog
 
@@ -2554,7 +2557,7 @@ the rest is checked in the Kit as the components are built.
 | 5 | **Free space values** | `GetDiskFreeSpaceExW` on NTFS, exFAT, a network share with quotas | used + free = capacity within 1 %, the quota case explained in the tooltip |
 | 6 | **People test** | the mockup's «Map» and «Both» views, then Overview, Rings and «Colours: Age», shown to 3 people who never used a disk analyzer: «what takes the most space? where is it? what haven't you touched in years?» | they answer in < 30 s without help; the view and style they find clearest becomes the default |
 | 7 | **Text and digits** (done: software renderer 2026-11-25, Segoe UI 400 / 700 2026-11-26, § 3.3) | the Kit's «Text and digits» section at 12–13 px with Segoe UI and Segoe UI Variable, femtovg, Skia and software | digits tabular, text crisp (owner's eye) |
-| 8 | **Slint menus and tooltips** | `ContextMenuArea`, `Menu`, `Tooltip` with our tokens in the Kit | they take our colours, radii and sizes; otherwise ours (§ 5.16, § 5.17) |
+| 8 | **Slint menus and tooltips** (done 2026-11-26: the menu cannot take the tokens; the tooltip can, with our content, but not its keyboard behaviour; § 5.16, § 5.17) | `ContextMenuArea`, `Menu`, `Tooltip` with our tokens, off screen (`tests/menus_spike.rs`) | they take our colours, radii and sizes; otherwise ours (§ 5.16, § 5.17) |
 | 9 | **Contrast of every theme and palette** | the automatic test of § 10, extended to the Soft / Vivid palettes and the age ramp | every pair of § 7 passes |
 | 10 | **Map names** (placement done 2026-11-24: ≤ 0.05 ms; Slint's drawing of 700 names still to check) | placement in Rust on 50 000 rectangles at 1920 × 1080 with «All»; Slint draws 700 names over the image while the window is resized | placement ≤ 2 ms (release); resizing stays smooth (≥ 60 fps); otherwise «All» is dropped and «Many» capped lower |
 | 11 | **Windows' own tools** | each button of «Windows' space» (§ 4.5) on Windows 10 and 11, as a standard user | the right tool opens; DiskDome never elevates (a tool that needs it shows its own UAC prompt) |
