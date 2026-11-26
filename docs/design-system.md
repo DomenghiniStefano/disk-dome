@@ -478,7 +478,9 @@ does most of the work. No glass: Slint has no backdrop blur, and the dense inter
 | `tooltip-delay` | 500 ms | mouse rest before a tooltip (0 on keyboard focus) |
 
 - Easing: `ease-out` = `cubic-bezier(0.2, 0.8, 0.2, 1)` (EmuDome's) for everything that enters; leaving is a
-  plain fade at `fast`.
+  plain fade at `fast`. The 4 px rise is the exception, `linear` (`rise-easing`): Slint's software renderer puts
+  things on whole pixels, and eased the rise came in two jumps in the first frames (owner, 2026-11-26: «the open
+  must be as fluid as possible»); at an even pace it comes one pixel at a time under the fade.
 - What moves: hover and press colours (`fast`); menus, select lists and tooltips appear with a fade and 4 px of
   rise (`base`); dialogs fade and grow from 98 % (`slow`); the scan progress line eases to its new value
   (`base`).
@@ -1157,7 +1159,9 @@ repeated separators, elides long labels and scrolls; `Menu` is the popup, three 
 on a right click (where its content does not take the pointer itself), the Menu key and Shift+F10; `MenuButton`
 opens one under a button (↓ on the first item, ↑ on the last) and takes the focus back when it closes. Keys: ↑ ↓
 (skipping separators and titles, going round), Home, End, PgUp, PgDn, type-ahead, Enter and Space, → and ← for
-submenus, Esc (the top level only) and Tab; a disabled item is highlighted but not chosen, as in Windows. Still
+submenus, Esc (the top level only) and Tab; a disabled item is highlighted but not chosen, as in Windows. The menu
+never changes its entries: a screen keeps them with `entries = MenuNav.toggled(entries, entry.id)` in `activated`
+(a check box flips; a radio item is checked and the radio items next to it cleared), as every Kit menu does. Still
 open on the card: the tooltip with a disabled item's reason and a cut label's full text (Tooltip card), the exit
 fade (Slint closes a popup at once), touch long press.
 

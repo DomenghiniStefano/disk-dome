@@ -56,6 +56,10 @@ export global MenuNav {
     pure callback printable(text: string) -> bool;
     // Whether an entry is drawn: a separator is not at the start, at the end or after another separator.
     pure callback shown(entries: [MenuEntry], index: int) -> bool;
+    // The entries after the one with `id` was chosen: a check box flips, a radio item is checked and the rest of its
+    // group (the radio items next to it) cleared. A screen keeps its entries with `entries = MenuNav.toggled(...)`
+    // in `activated`; the menu never changes them itself.
+    pure callback toggled(entries: [MenuEntry], id: string) -> [MenuEntry];
 }
 
 global MenuLook {
@@ -263,6 +267,8 @@ export component MenuList {
     max-width: root.list-max-width;
     min-height: min(rows.preferred-height, root.row-height);
     preferred-height: root.empty ? root.row-height : rows.preferred-height;
+    // Not left to Slint: without rows it would take the height of the empty row layout, 0, and squash the list.
+    max-height: max(root.row-height, rows.max-height);
 
     forward-focus: scope;
     accessible-role: list;
