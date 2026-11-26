@@ -86,30 +86,38 @@ fn segmented_widths_keyboard_pointer_and_tooltips() {
 
     // The keyboard on the text segments: Table, Both (disabled), Map, Tree.
     headless.click(INSET + 4.0, harness.get_text_y() + INSET + 4.0);
-    assert_eq!(harness.get_text_current(), 0);
+    assert_eq!(harness.get_text_current_index(), 0);
     headless.press_key(Key::RightArrow);
     assert_eq!(
-        harness.get_text_current(),
+        harness.get_text_current_index(),
         2,
         "→ skips the disabled segment"
     );
     headless.press_key(Key::LeftArrow);
-    assert_eq!(harness.get_text_current(), 0, "← skips it too");
+    assert_eq!(harness.get_text_current_index(), 0, "← skips it too");
     headless.press_key(Key::LeftArrow);
-    assert_eq!(harness.get_text_current(), 3, "← on the first goes round");
+    assert_eq!(
+        harness.get_text_current_index(),
+        3,
+        "← on the first goes round"
+    );
     headless.press_key(Key::RightArrow);
-    assert_eq!(harness.get_text_current(), 0, "→ on the last goes round");
+    assert_eq!(
+        harness.get_text_current_index(),
+        0,
+        "→ on the last goes round"
+    );
     headless.press_key(Key::End);
-    assert_eq!(harness.get_text_current(), 3);
+    assert_eq!(harness.get_text_current_index(), 3);
     headless.press_key(Key::Home);
-    assert_eq!(harness.get_text_current(), 0);
+    assert_eq!(harness.get_text_current_index(), 0);
 
     // A click on the disabled icon segment chooses nothing.
     let icons_y = harness.get_icons_y() + INSET + 4.0;
     headless.click(icon_segment(1), icons_y);
     settle(&mut headless);
-    assert_eq!(harness.get_icons_current(), 0);
-    assert_eq!(harness.get_icons_changes(), 0);
+    assert_eq!(harness.get_icons_current_index(), 0);
+    assert_eq!(harness.get_icons_selections(), 0);
 
     // Resting on an icon-only segment shows its text.
     headless.hover(icon_segment(2), icons_y);
@@ -130,11 +138,11 @@ fn segmented_widths_keyboard_pointer_and_tooltips() {
     headless.press_key(Key::RightArrow);
     settle(&mut headless);
     assert_eq!(
-        harness.get_icons_current(),
+        harness.get_icons_current_index(),
         2,
         "→ skips the disabled segment"
     );
-    assert_eq!(harness.get_icons_changes(), 1);
+    assert_eq!(harness.get_icons_selections(), 1);
     assert_eq!(
         harness.get_icons_tooltip(),
         2,

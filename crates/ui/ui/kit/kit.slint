@@ -15,8 +15,8 @@ import {
     Icon,
     Button,
     SegmentedControl,
-    SegmentOption,
-    SegmentWidth,
+    SegmentedItem,
+    SegmentedWidth,
     InkTone,
     IconSize,
     ButtonVariant,
@@ -168,25 +168,25 @@ global KitData {
         { name: "triangle-alert", source: Icons.triangle-alert },
         { name: "x", source: Icons.x },
     ];
-    out property <[SegmentOption]> two-options: [{ text: "Extensions" }, { text: "Categories" }];
+    out property <[SegmentedItem]> two-options: [{ text: "Extensions" }, { text: "Categories" }];
     out property <[ToggleSize]> toggle-sizes: [ToggleSize.small, ToggleSize.normal];
     // The scroll bar at rest is hidden: `live` shows nothing until the content moves.
     out property <[KitState]> scroll-states: [KitState.live, KitState.focus, KitState.hover, KitState.pressed];
-    out property <[SegmentOption]> three-options: [{ text: "Dark" }, { text: "Light" }, { text: "System" }];
+    out property <[SegmentedItem]> three-options: [{ text: "Dark" }, { text: "Light" }, { text: "System" }];
     // Italian labels, longer than the English ones (§ 3.3): in a narrow box they are cut.
-    out property <[SegmentOption]> long-options: [{ text: "Estensioni per dimensione" }, { text: "Categorie per tipo" }];
-    out property <[SegmentOption]> theme-icons: [
+    out property <[SegmentedItem]> long-options: [{ text: "Estensioni per dimensione" }, { text: "Categorie per tipo" }];
+    out property <[SegmentedItem]> theme-icons: [
         { text: "Dark", icon: Icons.moon },
         { text: "Light", icon: Icons.sun },
         { text: "System", icon: Icons.monitor },
     ];
-    out property <[SegmentOption]> theme-icons-only: [
+    out property <[SegmentedItem]> theme-icons-only: [
         { text: "Dark", icon: Icons.moon, icon-only: true },
         { text: "Light", icon: Icons.sun, icon-only: true },
         { text: "System", icon: Icons.monitor, icon-only: true },
     ];
     // A segment that cannot be chosen yet says why.
-    out property <[SegmentOption]> with-disabled: [
+    out property <[SegmentedItem]> with-disabled: [
         { text: "Table" },
         { text: "Both" },
         { text: "Map", disabled: true, tooltip: "The map needs a finished scan" },
@@ -342,9 +342,9 @@ export component KitWindow inherits DesignWindow {
                     alignment: center;
 
                     SegmentedControl {
-                        options: [{ text: "Dark" }, { text: "Light" }];
-                        current: Theme.mode == ThemeMode.dark ? 0 : 1;
-                        changed(index) => {
+                        items: [{ text: "Dark" }, { text: "Light" }];
+                        current-index: Theme.mode == ThemeMode.dark ? 0 : 1;
+                        selected(index) => {
                             Theme.mode = index == 0 ? ThemeMode.dark : ThemeMode.light;
                         }
                         accessible-label: "Theme";
@@ -355,9 +355,9 @@ export component KitWindow inherits DesignWindow {
                     alignment: center;
 
                     SegmentedControl {
-                        options: [{ text: "Normal" }, { text: "Compact" }];
-                        current: Size.compact ? 1 : 0;
-                        changed(index) => {
+                        items: [{ text: "Normal" }, { text: "Compact" }];
+                        current-index: Size.compact ? 1 : 0;
+                        selected(index) => {
                             Size.compact = index == 1;
                         }
                         accessible-label: "Density";
@@ -643,7 +643,7 @@ export component KitWindow inherits DesignWindow {
                             name: state.name;
 
                             SegmentedControl {
-                                options: KitData.two-options;
+                                items: KitData.two-options;
                                 size: SegmentedSize.small;
                                 kit-state: state.state;
                                 enabled: state.enabled;
@@ -651,7 +651,7 @@ export component KitWindow inherits DesignWindow {
                             }
 
                             SegmentedControl {
-                                options: KitData.three-options;
+                                items: KitData.three-options;
                                 kit-state: state.state;
                                 enabled: state.enabled;
                                 accessible-label: "Theme";
@@ -664,7 +664,7 @@ export component KitWindow inherits DesignWindow {
                                 title: "Proposal";
 
                                 SegmentedControl {
-                                    options: KitData.three-options;
+                                    items: KitData.three-options;
                                     accessible-label: "Theme";
                                 }
                             }
@@ -678,12 +678,12 @@ export component KitWindow inherits DesignWindow {
                             name: "icon and text";
 
                             SegmentedControl {
-                                options: KitData.theme-icons;
+                                items: KitData.theme-icons;
                                 accessible-label: "Theme";
                             }
 
                             SegmentedControl {
-                                options: KitData.theme-icons;
+                                items: KitData.theme-icons;
                                 size: SegmentedSize.small;
                                 accessible-label: "Theme";
                             }
@@ -693,12 +693,12 @@ export component KitWindow inherits DesignWindow {
                             name: "icon only";
 
                             SegmentedControl {
-                                options: KitData.theme-icons-only;
+                                items: KitData.theme-icons-only;
                                 accessible-label: "Theme";
                             }
 
                             SegmentedControl {
-                                options: KitData.theme-icons-only;
+                                items: KitData.theme-icons-only;
                                 size: SegmentedSize.small;
                                 accessible-label: "Theme";
                             }
@@ -708,7 +708,7 @@ export component KitWindow inherits DesignWindow {
                             name: "disabled segment";
 
                             SegmentedControl {
-                                options: KitData.with-disabled;
+                                items: KitData.with-disabled;
                                 accessible-label: "View";
                             }
                         }
@@ -717,8 +717,8 @@ export component KitWindow inherits DesignWindow {
                             name: "nothing chosen";
 
                             SegmentedControl {
-                                options: KitData.three-options;
-                                current: -1;
+                                items: KitData.three-options;
+                                current-index: -1;
                                 accessible-label: "Theme";
                             }
                         }
@@ -735,7 +735,7 @@ export component KitWindow inherits DesignWindow {
                                 width: Size.segment-min-w * 3;
 
                                 SegmentedControl {
-                                    options: KitData.long-options;
+                                    items: KitData.long-options;
                                     accessible-label: "Side panel list";
                                 }
                             }
@@ -749,19 +749,19 @@ export component KitWindow inherits DesignWindow {
                                 spacing: Size.group-gap;
 
                                 SegmentedControl {
-                                    options: KitData.two-options;
+                                    items: KitData.two-options;
                                     accessible-label: "Side panel list";
                                 }
 
                                 SegmentedControl {
-                                    options: KitData.two-options;
-                                    width-mode: SegmentWidth.fill;
+                                    items: KitData.two-options;
+                                    width-mode: SegmentedWidth.fill;
                                     accessible-label: "Side panel list";
                                 }
 
                                 SegmentedControl {
-                                    options: KitData.theme-icons;
-                                    width-mode: SegmentWidth.fill;
+                                    items: KitData.theme-icons;
+                                    width-mode: SegmentedWidth.fill;
                                     size: SegmentedSize.small;
                                     accessible-label: "Theme";
                                 }

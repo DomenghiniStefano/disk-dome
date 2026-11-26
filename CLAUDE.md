@@ -206,7 +206,7 @@ Clean code, small components, one source of truth. They apply to Rust and Slint 
   - a property named like a built-in one cannot be declared (`row` in a layout child, `padding` on a component):
     pick another name (`inset`);
   - strings have no `contains`, prefix test or regex, and functions have no loops and no recursion: answer it in
-    Rust with a `pure callback` on a global, wired on every window (`MenuNav`: `dome_ui::menu`, wired by `menu_nav!`; `SegmentNav`: `dome_ui::segment`, by `segment_nav!`) and unit
+    Rust with a `pure callback` on a global, wired on every window (`MenuNav`: `dome_ui::menu`, wired by `menu_nav!`; `SegmentedNav`: `dome_ui::segmented`, by `segmented_nav!`) and unit
     tested in Rust;
   - a `PopupWindow` takes the keyboard focus when it shows and gives it back when it closes, and while it is open
     the next pointer move goes to the popup layer: never put something that must not take the focus (a tooltip,
