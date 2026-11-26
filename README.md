@@ -16,9 +16,9 @@ Measured with `./scripts/proof.ps1` against WizTree 4.31 on the same PC and driv
 | Drive | Entries | Scan, WizTree → DiskDome | Peak memory, WizTree → DiskDome |
 | --- | --- | --- | --- |
 | Desktop, Crucial P3 | 3.4 million | 22–31 s → 7.0 s | 1.6 → 0.40 GB |
-| Laptop, KIOXIA XG8 | 14.1 million | 182 s → 31–35 s | 2.0 → 0.99 GB |
+| Laptop, KIOXIA XG8 | 14.1 million | 182 s → 7.3–7.6 s | 2.0 → 0.90 GB |
 
-The scan cannot be faster than the drive reads the `$MFT` (14 GB on the laptop, ~470 MB/s): DiskDome's goal is to
+The scan cannot be faster than the drive reads the `$MFT` (14 GB on the laptop, read in ~5 s): DiskDome's goal is to
 add at most 5 s to that read, be at least 3× faster than WizTree and stay under 1.5 GB on 14 million entries
 ([targets](docs/architecture.md#performance-targets)).
 

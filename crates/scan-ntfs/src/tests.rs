@@ -2,7 +2,7 @@
 
 use diskdome_core::flag;
 
-use crate::pipeline::{Options, scan};
+use crate::pipeline::{DEFAULT_CHUNK_BYTES, DEFAULT_THREADS, Options, scan};
 use crate::record::{NS_DOS, NS_POSIX, NS_WIN32, NS_WIN32_AND_DOS};
 use crate::synthetic::{MemorySource, RecordSpec, SyntheticSource, write_record};
 
@@ -245,4 +245,17 @@ fn a_dump_scans_like_its_source() {
     let _ = std::fs::remove_file(&path);
     assert_eq!(a.size, b.size);
     assert_eq!(a.names, b.names);
+}
+
+/// More concurrent reads slow an NVMe drive down: the pool stays at eight threads whatever the
+/// cores, with 4 MB reads.
+#[test]
+fn default_options_use_eight_threads_and_4_mb_chunks() {
+    let o = Options::default();
+    assert_eq!(o.threads, 8);
+    assert_eq!(o.chunk_bytes, 4 * 1024 * 1024);
+    assert_eq!(
+        (o.threads, o.chunk_bytes),
+        (DEFAULT_THREADS, DEFAULT_CHUNK_BYTES)
+    );
 }

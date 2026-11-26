@@ -20,7 +20,8 @@ What was checked while defining the project (2026-11-24), with sources.
 
 KIOXIA XG8 KXG80ZNV1T02: NVMe PCIe Gen4, 1 TB, 7,000 MB/s sequential read on paper, 4–5.5 GB/s measured in
 laptops. The `$MFT` is not read at that speed: it is 14 GB in 64 extents, and `diskdome-cli mft-read` reads it in
-28–30 s (~470 MB/s, 32 threads, 4 MB chunks, on mains power, 2026-11-26). The 3–4 s written here earlier came
+4.5–5.5 s (2.6–3.1 GB/s) with eight threads and 4 MB chunks, 15–30 s with 32 threads (on mains power,
+2026-11-26): more concurrent reads slow this drive down. The 3–4 s written here earlier came
 from the sequential figure, never from a measurement.
 
 ## Rust tools that read the MFT
