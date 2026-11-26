@@ -16,7 +16,7 @@ use slint::platform::Key;
 
 const WIDTH: u32 = 1280;
 // Tall enough to show every section of the Kit, tokens included, in one shot.
-const HEIGHT: u32 = 7600;
+const HEIGHT: u32 = 8000;
 
 /// The theme switch's «Dark» segment, in the Kit's top bar (logical pixels).
 const DARK_SEGMENT: (f32, f32) = (125.0, 18.0);
@@ -50,8 +50,10 @@ fn kit_switches_work_by_keyboard_and_pointer() {
     );
     headless.press_key(Key::RightArrow);
     assert_eq!(kit.global::<Theme>().get_mode(), ThemeMode::Light);
-    // The arrow stops at the last option.
+    // The arrow goes round the ends (`wrap`, on by default as in Radix, § 5.6), and back.
     headless.press_key(Key::RightArrow);
+    assert_eq!(kit.global::<Theme>().get_mode(), ThemeMode::Dark);
+    headless.press_key(Key::LeftArrow);
     assert_eq!(kit.global::<Theme>().get_mode(), ThemeMode::Light);
 
     // The next stop is the density switch; End chooses its last option.
