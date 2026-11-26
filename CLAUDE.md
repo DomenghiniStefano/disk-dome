@@ -59,6 +59,7 @@ and the Trello board: https://trello.com/b/BrdLKkTt/diskdome (personal account, 
 cargo run -p diskdome-ui            # the desktop app (binary `diskdome`)
 cargo run -p diskdome-cli           # the command line (benchmarks, JSON export)
 cargo run -p diskdome-ui --features kit -- --kit   # the Kit window: every component, variant and state
+cargo run -p diskdome-ui --features spikes -- --spike-titlebar   # the throwaway proofs (also --proof-rows N)
 ./scripts/check.ps1                 # format, clippy, tests, licences: what the CI runs
 ./scripts/proof.ps1                 # step 3 go / no-go on this PC's C: (asks for admin once)
 cargo deny check                    # licences and advisories (cargo install cargo-deny --locked)
@@ -124,7 +125,7 @@ Clean code, small components, one source of truth. They apply to Rust and Slint 
 - **Comments say why**, not what the next line does. Every file opens with one line on its role and the spec
   section it implements (`§ 5.2`).
 - **Tests come with the change**: a behaviour gets a test, a bug fix starts with a failing one. UI tests run
-  off screen (`crates/ui/src/proof/headless.rs`), never in a window.
+  off screen (`crates/ui/src/headless.rs`), never in a window.
 - **Before «done»**: `./scripts/check.ps1` (format, clippy and tests with every feature, licences) passes.
 
 ### Slint

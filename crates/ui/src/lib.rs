@@ -12,7 +12,10 @@ pub mod generated {
     slint::include_modules!();
 }
 
+pub mod headless;
 #[cfg(feature = "kit")]
 pub mod kit;
+#[cfg(feature = "spikes")]
 pub mod proof;
+#[cfg(feature = "spikes")]
 pub mod spike;

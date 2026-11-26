@@ -21,11 +21,12 @@ diskdome-core.workspace = true
 diskdome-treemap.workspace = true
 slint = { workspace = true, features = ["raw-window-handle-06"] }
 diskdome-platform.workspace = true
-raw-window-handle.workspace = true
+# The title bar spike only, until the app's own title bar lands.
+raw-window-handle = { workspace = true, optional = true }
 # The Kit's search with regular expressions (MIT OR Apache-2.0); the app's own search will use it too.
 regex = { version = "1", optional = true }
 # Parallel sort and generation for the table proof (MIT OR Apache-2.0).
-rayon = "1.12"
+rayon = { version = "1.12", optional = true }
 
 [build-dependencies]
 slint-build.workspace = true
@@ -33,6 +34,13 @@ slint-build.workspace = true
 [features]
 # The Kit window of the design system (`docs/design-system.md` § 9): development only, never in a release.
 kit = ["dep:regex"]
+# The throwaway proofs, development only, never in a release: step 3's table over millions of rows (card 3c,
+# `--proof-rows`) and the title bar spike (card 4.T1, `--spike-titlebar`).
+spikes = ["dep:rayon", "dep:raw-window-handle"]
+
+[[example]]
+name = "proof_bench"
+required-features = ["spikes"]
 
 [lints]
 workspace = true

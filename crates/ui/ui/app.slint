@@ -4,12 +4,6 @@
 
 import { Size, Theme } from "design-system/index.slint";
 
-// The technical proof of step 3 (card 3c): a table over millions of fake rows.
-export { ProofRow, ProofTableWindow, ProofListWindow } from "proof.slint";
-
-// The title bar spike (card 4.T1): `diskdome --spike-titlebar`.
-export { SpikeTab, TitlebarSpike } from "spike/titlebar.slint";
-
 export component MainWindow inherits Window {
     title: @tr("DiskDome");
     preferred-width: Size.window-w;
