@@ -27,6 +27,7 @@ import {
     ToggleButton,
     ToggleSize,
     SearchField,
+    SearchFieldToggles,
     ScrollBar,
     DomeWindow,
     MenuFrame,
@@ -380,7 +381,7 @@ export component KitWindow inherits DomeWindow {
                         text <=> KitSearch.query;
                         match-case <=> KitSearch.match-case;
                         regex <=> KitSearch.regex;
-                        invalid: !KitSearch.valid(KitSearch.query, KitSearch.regex);
+                        error: KitSearch.valid(KitSearch.query, KitSearch.regex) ? "" : "Not a valid regular expression";
                         search-requested => {
                             flick.content-y = 0;
                         }
@@ -823,13 +824,13 @@ export component KitWindow inherits DomeWindow {
                         }
 
                         KitRow {
-                            name: "invalid";
+                            name: "error";
 
                             SearchField {
                                 placeholder: "Search names";
                                 text: "([a-z";
                                 regex: true;
-                                invalid: true;
+                                error: "Not a valid regular expression: a bracket is not closed";
                             }
                         }
 
@@ -848,6 +849,27 @@ export component KitWindow inherits DomeWindow {
                             SearchField {
                                 placeholder: "Search names";
                                 enabled: false;
+                            }
+
+                            SearchField {
+                                placeholder: "Search names";
+                                text: "node_modules";
+                                enabled: false;
+                            }
+                        }
+
+                        KitRow {
+                            name: "toggles";
+
+                            SearchField {
+                                placeholder: "Type a command";
+                                toggles: SearchFieldToggles.none;
+                            }
+
+                            SearchField {
+                                placeholder: "Search an action or a key";
+                                toggles: SearchFieldToggles.match-case;
+                                text: "Ctrl";
                             }
                         }
                     }

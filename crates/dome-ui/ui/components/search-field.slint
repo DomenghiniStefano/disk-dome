@@ -1,7 +1,7 @@
-// SearchField (§ 5.4): the `search` icon, the text, a clear `x` when not empty, and two ToggleButtons inside on the
-// right, match case (`case-sensitive`) and regular expression (`regex`). Typing applies after `Motion.search-rest`
-// of quiet, Enter at once; Esc clears, a second Esc leaves the field. An invalid pattern turns the edge `danger`.
-// Blind spot: the reason of an invalid pattern goes in a tooltip, which waits for the Tooltip component (§ 5.17).
+// SearchField (§ 5.4): the `search` icon, the text, a clear `x` when not empty, and up to two ToggleButtons inside on
+// the right, match case (`case-sensitive`) and regular expression (`regex`). Typing applies after `rest-delay` of
+// quiet, Enter at once; Esc clears, a second Esc leaves the field. An invalid pattern turns the edge `danger` and its
+// reason shows in a tooltip under the field: at once while the field has the focus, after the delay on hover.
 
 import { Size } from "../tokens/size.slint";
 import { Theme } from "../tokens/theme.slint";
@@ -16,6 +16,9 @@ import {
     ButtonVariant,
     ButtonSize,
     KitState,
+    PopupSide,
+    PopupAlign,
+    SearchFieldToggles,
 } from "../enums.slint";
 import { TextEntry } from "../primitives/text-entry.slint";
 import { FocusRing } from "../primitives/focus-ring.slint";
@@ -23,25 +26,41 @@ import { Icon } from "icon.slint";
 import { Label } from "label.slint";
 import { Button } from "button.slint";
 import { ToggleButton } from "toggle-button.slint";
+import { Tooltip } from "tooltip.slint";
 
 export component SearchField {
+    // Written by the user typing and by the screen (to fill or clear the search): both sides write.
     in-out property <string> text;
+    // Written by the toggles and by the screen (a remembered choice): both sides write.
     in-out property <bool> match-case;
     in-out property <bool> regex;
     in property <string> placeholder;
-    // Set by the owner of the search when the pattern does not compile.
-    in property <bool> invalid;
+    // Its name for screen readers; the placeholder when empty.
+    in property <string> label;
+    // Why the pattern is not valid, set by the owner of the search; empty when it is. A reason is mandatory: the
+    // field never turns red without saying why (§ 5.4).
+    in property <string> error;
+    in property <SearchFieldToggles> toggles: SearchFieldToggles.match-case-and-regex;
+    // How long the typing must rest before the search applies.
+    in property <duration> rest-delay: Motion.search-rest;
     in property <bool> enabled: true;
     // The Kit window only (§ 9): `focus` shows the focused edge and the ring.
     in property <KitState> kit-state: KitState.live;
+
+    out property <bool> has-focus: entry.has-focus;
+    // Whether the error's tooltip shows (the tests read it).
+    out property <bool> error-shown: tip.shown;
 
     // The search to apply: after the typing rests, on Enter, on a toggle, on clearing.
     callback search-requested(text: string);
 
     property <bool> focused: root.kit-state == KitState.focus
         || (root.kit-state == KitState.live && entry.has-focus);
+    property <bool> has-case: root.toggles != SearchFieldToggles.none;
+    property <bool> has-regex: root.toggles == SearchFieldToggles.match-case-and-regex;
 
-    // 320 in the toolbar, down to 200 in a narrow window, up to 400 when there is room (§ 2.1, § 5.4).
+    // 320 in the toolbar, down to 200 in a narrow window, up to 400 when there is room (§ 2.1, § 5.4); a screen
+    // sets its own widths where the field has another place (a dialog, the command palette).
     min-width: Size.search-w-min;
     preferred-width: Size.search-w;
     max-width: Size.search-w-max;
@@ -51,11 +70,18 @@ export component SearchField {
 
     forward-focus: entry;
     accessible-role: AccessibleRole.search;
-    accessible-label: root.placeholder;
+    accessible-label: root.label != "" ? root.label : root.placeholder;
+    accessible-description: root.error;
+    accessible-enabled: root.enabled;
 
     function apply() {
         rest.running = false;
         root.search-requested(root.text);
+    }
+
+    function clear() {
+        root.text = "";
+        root.apply();
     }
 
     // Esc clears; on an empty field it hands the focus back.
@@ -67,8 +93,7 @@ export component SearchField {
                 return reject;
             }
             if (root.text != "") {
-                root.text = "";
-                root.apply();
+                root.clear();
             } else {
                 entry.clear-focus();
             }
@@ -78,53 +103,68 @@ export component SearchField {
         Rectangle {
             background: Theme.field;
             border-width: Size.border-hairline;
-            border-color: root.invalid ? Theme.danger : root.focused ? Theme.focus : Theme.line;
+            border-color: root.error != "" ? Theme.danger : root.focused ? Theme.focus : Theme.line;
             border-radius: Size.radius-control;
         }
 
         HorizontalLayout {
-            padding-left: Size.field-pad-x;
             padding-right: Size.segment-inset;
             spacing: Size.space-4;
 
-            VerticalLayout {
-                alignment: center;
-
-                Icon {
-                    source: Icons.search;
-                    size: IconSize.normal;
-                    tone: InkTone.faint;
-                }
-            }
-
-            Rectangle {
+            // The icon and the text: a click anywhere here, the icon too, puts the focus in the text; the pointer
+            // over it asks for the error's tooltip.
+            pointer := TouchArea {
                 horizontal-stretch: 1;
-                if root.text == "": Label {
-                    width: parent.width;
-                    height: parent.height;
-                    text: root.placeholder;
-                    tone: InkTone.faint;
-                    accessible-role: none;
+                enabled: root.enabled;
+                mouse-cursor: MouseCursor.text;
+                clicked => {
+                    entry.focus();
                 }
-                entry := TextEntry {
-                    width: parent.width;
-                    height: parent.height;
-                    text <=> root.text;
-                    // A regular expression is read in the mono step (§ 5.4).
-                    step: root.regex ? TypeStep.mono : TypeStep.body;
-                    enabled: root.enabled;
-                    label: root.placeholder;
-                    edited => {
-                        rest.running = false;
-                        rest.running = true;
+
+                HorizontalLayout {
+                    padding-left: Size.field-pad-x;
+                    spacing: Size.space-4;
+
+                    VerticalLayout {
+                        alignment: center;
+
+                        Icon {
+                            source: Icons.search;
+                            size: IconSize.normal;
+                            tone: InkTone.faint;
+                        }
                     }
-                    accepted => {
-                        root.apply();
+
+                    Rectangle {
+                        horizontal-stretch: 1;
+                        if root.text == "": Label {
+                            width: parent.width;
+                            height: parent.height;
+                            text: root.placeholder;
+                            tone: InkTone.faint;
+                            accessible-role: none;
+                        }
+                        entry := TextEntry {
+                            width: parent.width;
+                            height: parent.height;
+                            text <=> root.text;
+                            // A regular expression is read in the mono step (§ 5.4).
+                            step: root.has-regex && root.regex ? TypeStep.mono : TypeStep.body;
+                            enabled: root.enabled;
+                            label: root.accessible-label;
+                            edited => {
+                                rest.running = false;
+                                rest.running = true;
+                            }
+                            accepted => {
+                                root.apply();
+                            }
+                        }
                     }
                 }
             }
 
-            if root.text != "": VerticalLayout {
+            if root.text != "" && root.enabled: VerticalLayout {
                 alignment: center;
 
                 Button {
@@ -132,15 +172,15 @@ export component SearchField {
                     variant: ButtonVariant.ghost;
                     size: ButtonSize.small;
                     accessible-label: @tr("Clear the search");
+                    tooltip-shortcut: @tr("Esc");
                     clicked => {
-                        root.text = "";
-                        root.apply();
+                        root.clear();
                         entry.focus();
                     }
                 }
             }
 
-            VerticalLayout {
+            if root.has-case: VerticalLayout {
                 alignment: center;
 
                 ToggleButton {
@@ -155,7 +195,7 @@ export component SearchField {
                 }
             }
 
-            VerticalLayout {
+            if root.has-regex: VerticalLayout {
                 alignment: center;
 
                 ToggleButton {
@@ -176,8 +216,17 @@ export component SearchField {
         radius: Size.radius-control;
     }
 
+    // Under the field, lined up with its start, as § 6.6 draws the error's bubble.
+    tip := Tooltip {
+        text: root.error;
+        side: PopupSide.bottom;
+        align: PopupAlign.start;
+        hovered: root.kit-state == KitState.live && pointer.has-hover;
+        focused: root.kit-state == KitState.live && entry.has-focus;
+    }
+
     rest := Timer {
-        interval: Motion.search-rest;
+        interval: root.rest-delay;
         running: false;
         triggered => {
             root.apply();

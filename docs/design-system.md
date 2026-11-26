@@ -984,6 +984,21 @@ and the search's `Aa` / `.*`. Accessible as a toggle (`accessible-checked`).
   150 ms of rest. Esc clears, a second Esc leaves the field.
 - `mono` step for the field's text while regex is on.
 
+| SearchField | |
+| --- | --- |
+| Interface | `text`, `match-case`, `regex` (written by both the field and the screen), `placeholder`, `label` (the accessible name; the placeholder when empty), `error`, `toggles`, `rest-delay` (default `search-rest`, 150 ms), `enabled`; `has-focus` out; `search-requested(text)` after the rest, on Enter, on a toggle and on clearing |
+| Toggles `SearchFieldToggles` | `match-case-and-regex` (default: the files' search), `match-case`, `none` (the command palette, the shortcuts dialog, § 6.19) |
+| Error | `error` is the reason, never empty when the pattern is wrong: the edge turns `danger` and the reason shows in a tooltip under the field, aligned to its start (§ 6.6), at once while the field has the focus and after the delay on hover over the text; screen readers read it as the description |
+| Pointer | a click anywhere on the icon or the text puts the focus in the text (text cursor over both) |
+| Clear | the `x` shows with text on an enabled field; its tooltip says «Clear the search» with the key «Esc» |
+| Width | 200 / 320 / 400 (`search-w-min`, `search-w`, `search-w-max`); a screen sets other widths where the field has another place |
+
+**Reviewed (2026-11-26, library-grade, § 8.0).** Against shadcn's Input and Command input: the error's reason, the
+optional toggles, the accessible name, the rest delay as a parameter, the focus readable from outside and the click
+on the icon were added. Not here, each with its own card: the suggestions list and the chips of written filters
+(§ 6.6: a combobox, with the parsing in the app), a history of searches (not in the spec), a busy state (it needs a
+design).
+
 ### 5.5 Select and DrivePicker
 
 - `Select`: looks like a `secondary` button with a `chevron-down` on the right; opens a level-1 list
