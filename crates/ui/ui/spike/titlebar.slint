@@ -2,7 +2,13 @@
 // Throwaway: removed once the test decides where the tabs go. Exempt from the source rules like the step-3 proof,
 // but it draws only with the design system's tokens.
 
-import { Size, Theme, ThemeMode, Type, TypeStep } from "../design-system/index.slint";
+import {
+    Size,
+    Theme,
+    ThemeMode,
+    Type,
+    TypeStep,
+} from "../design-system/index.slint";
 
 export struct SpikeTab {
     letter: string,
@@ -66,6 +72,7 @@ component Tab inherits Rectangle {
         padding-left: Size.space-10;
         padding-right: Size.space-10;
         spacing: Size.label-gap;
+
         Text {
             text: root.letter;
             vertical-alignment: center;
@@ -133,6 +140,7 @@ export component TitlebarSpike inherits Window {
 
                 Rectangle {
                     width: Size.icon + Size.space-8;
+
                     Image {
                         source: @image-url("../assets/brand/favicon.svg");
                         width: Size.icon;
@@ -152,7 +160,9 @@ export component TitlebarSpike inherits Window {
                 plus := Rectangle {
                     width: Size.titlebar;
                     background: plus-touch.has-hover ? Theme.control-pressed : transparent;
+
                     plus-touch := TouchArea { }
+
                     Glyph {
                         commands: "M 5 1 L 5 9 M 1 5 L 9 5";
                         stroke: Theme.ink-muted;
@@ -197,6 +207,7 @@ export component TitlebarSpike inherits Window {
 
         Rectangle {
             background: Theme.bg;
+
             VerticalLayout {
                 padding: Size.space-16;
                 spacing: Size.space-8;
@@ -216,11 +227,13 @@ export component TitlebarSpike inherits Window {
                         height: Size.control;
                         background: theme-touch.has-hover ? Theme.control-hover : Theme.control;
                         border-radius: Size.radius-button;
+
                         theme-touch := TouchArea {
                             clicked => {
                                 Theme.mode = Theme.dark ? ThemeMode.light : ThemeMode.dark;
                             }
                         }
+
                         Text {
                             text: Theme.dark ? @tr("Switch to the light theme") : @tr("Switch to the dark theme");
                             color: Theme.ink;

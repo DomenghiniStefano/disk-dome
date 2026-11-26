@@ -22,8 +22,8 @@ component ProofStatus inherits Text {
     text: root.sorting
         ? @tr("{} rows, sorting…", root.row-count)
         : root.last-sort-ms >= 0
-            ? @tr("{} rows, sorted in {} ms", root.row-count, root.last-sort-ms)
-            : @tr("{} rows", root.row-count);
+        ? @tr("{} rows, sorted in {} ms", root.row-count, root.last-sort-ms)
+        : @tr("{} rows", root.row-count);
 }
 
 // Variant A: Slint's StandardTableView. Sorting comes from its column headers,

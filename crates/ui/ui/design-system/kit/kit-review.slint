@@ -69,16 +69,30 @@ export component KitIssue inherits Rectangle {
         HorizontalLayout {
             spacing: Size.space-8;
             alignment: start;
+
             Label {
                 text: KitStatusLook.name(root.issue.status);
                 step: TypeStep.overline;
                 tone: KitStatusLook.tone(root.issue.status);
             }
-            Label { text: root.issue.title; step: TypeStep.body-strong; }
-            Label { text: root.issue.spec; step: TypeStep.caption; tone: InkTone.faint; }
+
+            Label {
+                text: root.issue.title;
+                step: TypeStep.body-strong;
+            }
+
+            Label {
+                text: root.issue.spec;
+                step: TypeStep.caption;
+                tone: InkTone.faint;
+            }
         }
 
-        Label { text: root.issue.note; tone: InkTone.muted; wrap: true; }
+        Label {
+            text: root.issue.note;
+            tone: InkTone.muted;
+            wrap: true;
+        }
 
         HorizontalLayout {
             spacing: Size.space-16;

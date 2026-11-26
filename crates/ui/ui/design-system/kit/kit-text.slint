@@ -44,17 +44,48 @@ component KitSizeLine inherits HorizontalLayout {
     in property <TypeStep> figure-step;
 
     spacing: Size.space-12;
-    Label { text: root.entry.name; step: root.name-step; width: Size.bar-w * 2; }
-    Label { text: root.entry.size; step: root.figure-step; align: TextHorizontalAlignment.right; width: Size.bar-w * 1.5; }
-    Label { text: root.entry.share; step: root.figure-step; align: TextHorizontalAlignment.right; width: Size.bar-w; }
-    Label { text: root.entry.files; step: root.figure-step; align: TextHorizontalAlignment.right; width: Size.bar-w * 1.5; }
+
+    Label {
+        text: root.entry.name;
+        step: root.name-step;
+        width: Size.bar-w * 2;
+    }
+
+    Label {
+        text: root.entry.size;
+        step: root.figure-step;
+        align: TextHorizontalAlignment.right;
+        width: Size.bar-w * 1.5;
+    }
+
+    Label {
+        text: root.entry.share;
+        step: root.figure-step;
+        align: TextHorizontalAlignment.right;
+        width: Size.bar-w;
+    }
+
+    Label {
+        text: root.entry.files;
+        step: root.figure-step;
+        align: TextHorizontalAlignment.right;
+        width: Size.bar-w * 1.5;
+    }
 }
 
 // A small tree table whose total row is strong: its figures must line up with the rows above (decision 8).
 component KitSizeTable inherits VerticalLayout {
 
-    for row in KitTextData.rows: KitSizeLine { entry: row; name-step: TypeStep.body; figure-step: TypeStep.body; }
-    Rectangle { height: Size.border-hairline; background: Theme.line; }
+    for row in KitTextData.rows: KitSizeLine {
+        entry: row;
+        name-step: TypeStep.body;
+        figure-step: TypeStep.body;
+    }
+    Rectangle {
+        height: Size.border-hairline;
+        background: Theme.line;
+    }
+
     KitSizeLine {
         entry: KitTextData.total;
         name-step: TypeStep.body-strong;
@@ -70,16 +101,34 @@ component KitTextStep inherits HorizontalLayout {
 
     spacing: Size.space-16;
     alignment: start;
-    KitCaption { text: root.name; }
 
-    KitFigures { step: root.step; }
+    KitCaption {
+        text: root.name;
+    }
+
+    KitFigures {
+        step: root.step;
+    }
 
     VerticalLayout {
         alignment: start;
         spacing: Size.space-4;
-        Label { text: KitTextData.sentence-en; step: root.step; }
-        Label { text: KitTextData.sentence-it; step: root.step; }
-        Label { text: KitTextData.wide-digits + " · " + KitTextData.narrow-digits; step: root.step; }
+
+        Label {
+            text: KitTextData.sentence-en;
+            step: root.step;
+        }
+
+        Label {
+            text: KitTextData.sentence-it;
+            step: root.step;
+        }
+
+        Label {
+            text: KitTextData.wide-digits + " · " + KitTextData.narrow-digits;
+            step: root.step;
+        }
+
         Label {
             text: root.tabular ? "digits tabular" : "digits proportional: columns will not line up";
             step: TypeStep.caption;
@@ -91,8 +140,16 @@ component KitTextStep inherits HorizontalLayout {
     Rectangle {
         width: 0;
         visible: false;
-        narrow := Label { text: KitTextData.narrow-digits; step: root.step; }
-        wide := Label { text: KitTextData.wide-digits; step: root.step; }
+
+        narrow := Label {
+            text: KitTextData.narrow-digits;
+            step: root.step;
+        }
+
+        wide := Label {
+            text: KitTextData.wide-digits;
+            step: root.step;
+        }
     }
 }
 
@@ -102,16 +159,39 @@ export component KitText inherits KitSection {
     out property <bool> strong-tabular: caption-strong.tabular && body-strong.tabular;
 
     title: "Text and digits · 12–13 px (test 7)";
+
     KitRow {
         name: "font";
-        Label { text: Type.family; step: TypeStep.body-strong; }
+
+        Label {
+            text: Type.family;
+            step: TypeStep.body-strong;
+        }
     }
+
     KitRow {
         name: "tree total";
+
         KitSizeTable { }
     }
-    caption := KitTextStep { name: "caption 12"; step: TypeStep.caption; }
-    caption-strong := KitTextStep { name: "caption-strong 12"; step: TypeStep.caption-strong; }
-    body := KitTextStep { name: "body 13"; step: TypeStep.body; }
-    body-strong := KitTextStep { name: "body-strong 13"; step: TypeStep.body-strong; }
+
+    caption := KitTextStep {
+        name: "caption 12";
+        step: TypeStep.caption;
+    }
+
+    caption-strong := KitTextStep {
+        name: "caption-strong 12";
+        step: TypeStep.caption-strong;
+    }
+
+    body := KitTextStep {
+        name: "body 13";
+        step: TypeStep.body;
+    }
+
+    body-strong := KitTextStep {
+        name: "body-strong 13";
+        step: TypeStep.body-strong;
+    }
 }

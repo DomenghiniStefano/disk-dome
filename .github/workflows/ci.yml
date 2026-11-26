@@ -36,6 +36,19 @@ jobs:
       - name: Test
         run: cargo test --workspace --all-features
 
+  slint-format:
+    name: Slint format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      # Caches ~/.cargo/bin too, so the formatter is built once.
+      - uses: Swatinem/rust-cache@v2
+      - name: Install the formatter (the version of Slint, no live preview)
+        run: cargo install slint-lsp --version 1.19.1 --locked --no-default-features
+      - name: Check
+        shell: pwsh
+        run: ./scripts/slint-format.ps1 -Check
+
   licenses:
     name: Licences and advisories
     runs-on: ubuntu-latest

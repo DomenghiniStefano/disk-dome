@@ -5,11 +5,34 @@
 // Texts here are the Kit's own, in English and not translated (rule `untranslated` exempts `kit/`).
 
 import {
-    Theme, ThemeMode, Size, Type, TypeStep, Icons, Label, Icon, Button, SegmentedControl,
-    InkTone, IconSize, ButtonVariant, ButtonSize, SegmentedSize, KitState, ToggleButton, ToggleSize,
-    SearchField, ScrollBar,
+    Theme,
+    ThemeMode,
+    Size,
+    Type,
+    TypeStep,
+    Icons,
+    Label,
+    Icon,
+    Button,
+    SegmentedControl,
+    InkTone,
+    IconSize,
+    ButtonVariant,
+    ButtonSize,
+    SegmentedSize,
+    KitState,
+    ToggleButton,
+    ToggleSize,
+    SearchField,
+    ScrollBar,
 } from "../index.slint";
-import { KitSection, KitRow, KitOnFill, KitPane, KitSearch } from "kit-parts.slint";
+import {
+    KitSection,
+    KitRow,
+    KitOnFill,
+    KitPane,
+    KitSearch,
+} from "kit-parts.slint";
 import { KitTokens } from "kit-tokens.slint";
 import { KitText } from "kit-text.slint";
 import { KitReview, KitIssue, KitReviewCount } from "kit-review.slint";
@@ -66,69 +89,69 @@ global KitData {
     ];
     // Every icon of `Icons` (checked by `tests/design_icons.rs`).
     out property <[KitIcon]> icons: [
-            { name: "app-window", source: Icons.app-window },
-            { name: "arrow-down", source: Icons.arrow-down },
-            { name: "arrow-up", source: Icons.arrow-up },
-            { name: "bookmark", source: Icons.bookmark },
-            { name: "braces", source: Icons.braces },
-            { name: "bug", source: Icons.bug },
-            { name: "case-sensitive", source: Icons.case-sensitive },
-            { name: "check", source: Icons.check },
-            { name: "chevron-down", source: Icons.chevron-down },
-            { name: "chevron-right", source: Icons.chevron-right },
-            { name: "circle-alert", source: Icons.circle-alert },
-            { name: "circle-help", source: Icons.circle-help },
-            { name: "clipboard-list", source: Icons.clipboard-list },
-            { name: "command", source: Icons.command },
-            { name: "copy", source: Icons.copy },
-            { name: "corner-left-up", source: Icons.corner-left-up },
-            { name: "cpu", source: Icons.cpu },
-            { name: "database", source: Icons.database },
-            { name: "ellipsis", source: Icons.ellipsis },
-            { name: "external-link", source: Icons.external-link },
-            { name: "file", source: Icons.file },
-            { name: "file-archive", source: Icons.file-archive },
-            { name: "file-audio", source: Icons.file-audio },
-            { name: "file-code", source: Icons.file-code },
-            { name: "file-image", source: Icons.file-image },
-            { name: "file-question", source: Icons.file-question },
-            { name: "file-text", source: Icons.file-text },
-            { name: "file-video", source: Icons.file-video },
-            { name: "filter", source: Icons.filter },
-            { name: "folder", source: Icons.folder },
-            { name: "folder-input", source: Icons.folder-input },
-            { name: "folder-open", source: Icons.folder-open },
-            { name: "folder-search", source: Icons.folder-search },
-            { name: "gamepad-2", source: Icons.gamepad-2 },
-            { name: "hard-drive", source: Icons.hard-drive },
-            { name: "history", source: Icons.history },
-            { name: "house", source: Icons.house },
-            { name: "image", source: Icons.image },
-            { name: "info", source: Icons.info },
-            { name: "keyboard", source: Icons.keyboard },
-            { name: "layers", source: Icons.layers },
-            { name: "layout-dashboard", source: Icons.layout-dashboard },
-            { name: "link", source: Icons.link },
-            { name: "monitor", source: Icons.monitor },
-            { name: "moon", source: Icons.moon },
-            { name: "package", source: Icons.package },
-            { name: "panel-right", source: Icons.panel-right },
-            { name: "pencil", source: Icons.pencil },
-            { name: "play", source: Icons.play },
-            { name: "recycle", source: Icons.recycle },
-            { name: "refresh-cw", source: Icons.refresh-cw },
-            { name: "regex", source: Icons.regex },
-            { name: "search", source: Icons.search },
-            { name: "settings", source: Icons.settings },
-            { name: "share", source: Icons.share },
-            { name: "sheet", source: Icons.sheet },
-            { name: "shield-alert", source: Icons.shield-alert },
-            { name: "square", source: Icons.square },
-            { name: "sun", source: Icons.sun },
-            { name: "terminal", source: Icons.terminal },
-            { name: "trash-2", source: Icons.trash-2 },
-            { name: "triangle-alert", source: Icons.triangle-alert },
-            { name: "x", source: Icons.x },
+        { name: "app-window", source: Icons.app-window },
+        { name: "arrow-down", source: Icons.arrow-down },
+        { name: "arrow-up", source: Icons.arrow-up },
+        { name: "bookmark", source: Icons.bookmark },
+        { name: "braces", source: Icons.braces },
+        { name: "bug", source: Icons.bug },
+        { name: "case-sensitive", source: Icons.case-sensitive },
+        { name: "check", source: Icons.check },
+        { name: "chevron-down", source: Icons.chevron-down },
+        { name: "chevron-right", source: Icons.chevron-right },
+        { name: "circle-alert", source: Icons.circle-alert },
+        { name: "circle-help", source: Icons.circle-help },
+        { name: "clipboard-list", source: Icons.clipboard-list },
+        { name: "command", source: Icons.command },
+        { name: "copy", source: Icons.copy },
+        { name: "corner-left-up", source: Icons.corner-left-up },
+        { name: "cpu", source: Icons.cpu },
+        { name: "database", source: Icons.database },
+        { name: "ellipsis", source: Icons.ellipsis },
+        { name: "external-link", source: Icons.external-link },
+        { name: "file", source: Icons.file },
+        { name: "file-archive", source: Icons.file-archive },
+        { name: "file-audio", source: Icons.file-audio },
+        { name: "file-code", source: Icons.file-code },
+        { name: "file-image", source: Icons.file-image },
+        { name: "file-question", source: Icons.file-question },
+        { name: "file-text", source: Icons.file-text },
+        { name: "file-video", source: Icons.file-video },
+        { name: "filter", source: Icons.filter },
+        { name: "folder", source: Icons.folder },
+        { name: "folder-input", source: Icons.folder-input },
+        { name: "folder-open", source: Icons.folder-open },
+        { name: "folder-search", source: Icons.folder-search },
+        { name: "gamepad-2", source: Icons.gamepad-2 },
+        { name: "hard-drive", source: Icons.hard-drive },
+        { name: "history", source: Icons.history },
+        { name: "house", source: Icons.house },
+        { name: "image", source: Icons.image },
+        { name: "info", source: Icons.info },
+        { name: "keyboard", source: Icons.keyboard },
+        { name: "layers", source: Icons.layers },
+        { name: "layout-dashboard", source: Icons.layout-dashboard },
+        { name: "link", source: Icons.link },
+        { name: "monitor", source: Icons.monitor },
+        { name: "moon", source: Icons.moon },
+        { name: "package", source: Icons.package },
+        { name: "panel-right", source: Icons.panel-right },
+        { name: "pencil", source: Icons.pencil },
+        { name: "play", source: Icons.play },
+        { name: "recycle", source: Icons.recycle },
+        { name: "refresh-cw", source: Icons.refresh-cw },
+        { name: "regex", source: Icons.regex },
+        { name: "search", source: Icons.search },
+        { name: "settings", source: Icons.settings },
+        { name: "share", source: Icons.share },
+        { name: "sheet", source: Icons.sheet },
+        { name: "shield-alert", source: Icons.shield-alert },
+        { name: "square", source: Icons.square },
+        { name: "sun", source: Icons.sun },
+        { name: "terminal", source: Icons.terminal },
+        { name: "trash-2", source: Icons.trash-2 },
+        { name: "triangle-alert", source: Icons.triangle-alert },
+        { name: "x", source: Icons.x },
     ];
     out property <[string]> two-options: ["Extensions", "Categories"];
     out property <[ToggleSize]> toggle-sizes: [ToggleSize.small, ToggleSize.normal];
@@ -182,11 +205,16 @@ export component KitWindow inherits Window {
 
                 VerticalLayout {
                     alignment: center;
-                    Label { text: "DiskDome Kit"; step: TypeStep.body-strong; }
+
+                    Label {
+                        text: "DiskDome Kit";
+                        step: TypeStep.body-strong;
+                    }
                 }
 
                 VerticalLayout {
                     alignment: center;
+
                     SegmentedControl {
                         options: ["Dark", "Light"];
                         current: Theme.mode == ThemeMode.dark ? 0 : 1;
@@ -199,6 +227,7 @@ export component KitWindow inherits Window {
 
                 VerticalLayout {
                     alignment: center;
+
                     SegmentedControl {
                         options: ["Normal", "Compact"];
                         current: Size.compact ? 1 : 0;
@@ -211,6 +240,7 @@ export component KitWindow inherits Window {
 
                 VerticalLayout {
                     alignment: center;
+
                     KitReviewCount { }
                 }
 
@@ -218,6 +248,7 @@ export component KitWindow inherits Window {
                 VerticalLayout {
                     alignment: center;
                     horizontal-stretch: 1;
+
                     SearchField {
                         placeholder: "Search sections";
                         text <=> KitSearch.query;
@@ -233,240 +264,337 @@ export component KitWindow inherits Window {
         }
 
         Rectangle {
-        flick := Flickable {
-            width: parent.width;
-            height: parent.height;
-            content-height: sections.preferred-height;
+            flick := Flickable {
+                width: parent.width;
+                height: parent.height;
+                content-height: sections.preferred-height;
 
-            sections := VerticalLayout {
-                padding: Size.space-16;
-                alignment: start;
+                sections := VerticalLayout {
+                    padding: Size.space-16;
+                    alignment: start;
 
-                text := KitText { }
+                    text := KitText { }
 
-                KitTokens { }
+                    KitTokens { }
 
-                KitSection {
-                    title: "Review · title bar";
-                    KitIssue {
-                        issue: KitReview.issues[2];
-                        KitPane {
-                            title: "Proposal";
-                            HorizontalLayout {
-                                Rectangle {
-                                    width: Size.caption-button-w * 3;
-                                    height: Size.titlebar;
-                                    background: Theme.frame;
-                                }
-                                Rectangle {
-                                    width: Size.caption-button-w;
-                                    height: Size.titlebar;
-                                    background: Theme.caption-close;
-                                }
-                            }
-                        }
-                    }
-                }
+                    KitSection {
+                        title: "Review · title bar";
 
-                KitSection {
-                    title: "Label · steps";
-                    for item in KitData.steps: KitRow {
-                        name: item.name;
-                        Label { text: KitData.sample-text; step: item.step; }
-                    }
-                }
+                        KitIssue {
+                            issue: KitReview.issues[2];
 
-                KitSection {
-                    title: "Label · tones";
-                    KitRow {
-                        name: "tones";
-                        for item in KitData.tones: Label { text: item.name; tone: item.tone; }
-                        KitOnFill { text: "on-accent"; tone: InkTone.on-accent; background: Theme.accent; }
-                        KitOnFill { text: "on-danger"; tone: InkTone.on-danger; background: Theme.danger; }
-                    }
-                }
+                            KitPane {
+                                title: "Proposal";
 
-                KitSection {
-                    title: "Icon";
-                    KitRow {
-                        name: "all";
-                        KitIconGrid { }
-                    }
-                    KitRow {
-                        name: "sizes";
-                        Icon { source: Icons.folder; size: IconSize.small; }
-                        Icon { source: Icons.folder; size: IconSize.normal; }
-                        Icon { source: Icons.folder; size: IconSize.hero; }
-                    }
-                    KitRow {
-                        name: "tones";
-                        for item in KitData.tones: Icon { source: Icons.hard-drive; tone: item.tone; }
-                    }
-                }
+                                HorizontalLayout {
+                                    Rectangle {
+                                        width: Size.caption-button-w * 3;
+                                        height: Size.titlebar;
+                                        background: Theme.frame;
+                                    }
 
-                KitSection {
-                    title: "Button · variants × states";
-                    for row in KitData.variants: KitRow {
-                        name: row.name;
-                        for state in KitData.states: Button {
-                            text: state.name;
-                            variant: row.variant;
-                            kit-state: state.state;
-                            enabled: state.enabled;
-                        }
-                    }
-                }
-
-                KitSection {
-                    title: "Button · content and sizes";
-                    for row in KitData.variants: KitRow {
-                        name: row.name;
-                        Button { text: "Scan"; icon: Icons.play; variant: row.variant; }
-                        Button { icon: Icons.refresh-cw; variant: row.variant; accessible-label: "Rescan"; }
-                        Button { text: KitData.long-label; variant: row.variant; }
-                        for size in KitData.button-sizes: Button {
-                            text: size.name;
-                            variant: row.variant;
-                            size: size.size;
-                        }
-                    }
-                    KitRow {
-                        name: "hero";
-                        Button {
-                            text: "Scan C:";
-                            icon: Icons.hard-drive;
-                            variant: ButtonVariant.primary;
-                            size: ButtonSize.hero;
-                        }
-                    }
-                    KitIssue {
-                        issue: KitReview.issues[0];
-                        KitPane {
-                            title: "Proposal";
-                            HorizontalLayout {
-                                spacing: Size.space-8;
-                                for state in KitData.states: Button {
-                                    text: state.name;
-                                    variant: ButtonVariant.danger;
-                                    kit-state: state.state;
-                                    enabled: state.enabled;
+                                    Rectangle {
+                                        width: Size.caption-button-w;
+                                        height: Size.titlebar;
+                                        background: Theme.caption-close;
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-                KitSection {
-                    title: "SegmentedControl · sizes × states";
-                    for state in KitData.states: KitRow {
-                        name: state.name;
-                        SegmentedControl {
-                            options: KitData.two-options;
-                            size: SegmentedSize.small;
-                            kit-state: state.state;
-                            enabled: state.enabled;
-                            accessible-label: "Side panel list";
-                        }
-                        SegmentedControl {
-                            options: KitData.three-options;
-                            kit-state: state.state;
-                            enabled: state.enabled;
-                            accessible-label: "Theme";
+                    KitSection {
+                        title: "Label · steps";
+                        for item in KitData.steps: KitRow {
+                            name: item.name;
+
+                            Label {
+                                text: KitData.sample-text;
+                                step: item.step;
+                            }
                         }
                     }
-                    KitIssue {
-                        issue: KitReview.issues[1];
-                        KitPane {
-                            title: "Proposal";
+
+                    KitSection {
+                        title: "Label · tones";
+
+                        KitRow {
+                            name: "tones";
+                            for item in KitData.tones: Label {
+                                text: item.name;
+                                tone: item.tone;
+                            }
+                            KitOnFill {
+                                text: "on-accent";
+                                tone: InkTone.on-accent;
+                                background: Theme.accent;
+                            }
+
+                            KitOnFill {
+                                text: "on-danger";
+                                tone: InkTone.on-danger;
+                                background: Theme.danger;
+                            }
+                        }
+                    }
+
+                    KitSection {
+                        title: "Icon";
+
+                        KitRow {
+                            name: "all";
+
+                            KitIconGrid { }
+                        }
+
+                        KitRow {
+                            name: "sizes";
+
+                            Icon {
+                                source: Icons.folder;
+                                size: IconSize.small;
+                            }
+
+                            Icon {
+                                source: Icons.folder;
+                                size: IconSize.normal;
+                            }
+
+                            Icon {
+                                source: Icons.folder;
+                                size: IconSize.hero;
+                            }
+                        }
+
+                        KitRow {
+                            name: "tones";
+                            for item in KitData.tones: Icon {
+                                source: Icons.hard-drive;
+                                tone: item.tone;
+                            }
+                        }
+                    }
+
+                    KitSection {
+                        title: "Button · variants × states";
+                        for row in KitData.variants: KitRow {
+                            name: row.name;
+                            for state in KitData.states: Button {
+                                text: state.name;
+                                variant: row.variant;
+                                kit-state: state.state;
+                                enabled: state.enabled;
+                            }
+                        }
+                    }
+
+                    KitSection {
+                        title: "Button · content and sizes";
+                        for row in KitData.variants: KitRow {
+                            name: row.name;
+
+                            Button {
+                                text: "Scan";
+                                icon: Icons.play;
+                                variant: row.variant;
+                            }
+
+                            Button {
+                                icon: Icons.refresh-cw;
+                                variant: row.variant;
+                                accessible-label: "Rescan";
+                            }
+
+                            Button {
+                                text: KitData.long-label;
+                                variant: row.variant;
+                            }
+
+                            for size in KitData.button-sizes: Button {
+                                text: size.name;
+                                variant: row.variant;
+                                size: size.size;
+                            }
+                        }
+                        KitRow {
+                            name: "hero";
+
+                            Button {
+                                text: "Scan C:";
+                                icon: Icons.hard-drive;
+                                variant: ButtonVariant.primary;
+                                size: ButtonSize.hero;
+                            }
+                        }
+
+                        KitIssue {
+                            issue: KitReview.issues[0];
+
+                            KitPane {
+                                title: "Proposal";
+
+                                HorizontalLayout {
+                                    spacing: Size.space-8;
+                                    for state in KitData.states: Button {
+                                        text: state.name;
+                                        variant: ButtonVariant.danger;
+                                        kit-state: state.state;
+                                        enabled: state.enabled;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    KitSection {
+                        title: "SegmentedControl · sizes × states";
+                        for state in KitData.states: KitRow {
+                            name: state.name;
+
+                            SegmentedControl {
+                                options: KitData.two-options;
+                                size: SegmentedSize.small;
+                                kit-state: state.state;
+                                enabled: state.enabled;
+                                accessible-label: "Side panel list";
+                            }
+
                             SegmentedControl {
                                 options: KitData.three-options;
+                                kit-state: state.state;
+                                enabled: state.enabled;
                                 accessible-label: "Theme";
                             }
                         }
-                    }
-                }
+                        KitIssue {
+                            issue: KitReview.issues[1];
 
-                KitSection {
-                    title: "ToggleButton · sizes × states";
-                    for state in KitData.states: KitRow {
-                        name: state.name;
-                        for size in KitData.toggle-sizes: ToggleButton {
-                            icon: Icons.panel-right;
-                            size: size;
-                            kit-state: state.state;
-                            enabled: state.enabled;
-                            accessible-label: "Side panel";
-                        }
-                        for size in KitData.toggle-sizes: ToggleButton {
-                            icon: Icons.panel-right;
-                            size: size;
-                            checked: true;
-                            kit-state: state.state;
-                            enabled: state.enabled;
-                            accessible-label: "Side panel";
+                            KitPane {
+                                title: "Proposal";
+
+                                SegmentedControl {
+                                    options: KitData.three-options;
+                                    accessible-label: "Theme";
+                                }
+                            }
                         }
                     }
-                }
 
-                KitSection {
-                    title: "SearchField · states";
-                    KitRow {
-                        name: "empty";
-                        SearchField { placeholder: "Search names"; }
+                    KitSection {
+                        title: "ToggleButton · sizes × states";
+                        for state in KitData.states: KitRow {
+                            name: state.name;
+                            for size in KitData.toggle-sizes: ToggleButton {
+                                icon: Icons.panel-right;
+                                size: size;
+                                kit-state: state.state;
+                                enabled: state.enabled;
+                                accessible-label: "Side panel";
+                            }
+                            for size in KitData.toggle-sizes: ToggleButton {
+                                icon: Icons.panel-right;
+                                size: size;
+                                checked: true;
+                                kit-state: state.state;
+                                enabled: state.enabled;
+                                accessible-label: "Side panel";
+                            }
+                        }
                     }
-                    KitRow {
-                        name: "text";
-                        SearchField { placeholder: "Search names"; text: "node_modules"; }
-                    }
-                    KitRow {
-                        name: "case and regex";
-                        SearchField { placeholder: "Search names"; text: "^Cache.*\\.tmp$"; match-case: true; regex: true; }
-                    }
-                    KitRow {
-                        name: "invalid";
-                        SearchField { placeholder: "Search names"; text: "([a-z"; regex: true; invalid: true; }
-                    }
-                    KitRow {
-                        name: "focus";
-                        SearchField { placeholder: "Search names"; kit-state: KitState.focus; }
-                    }
-                    KitRow {
-                        name: "disabled";
-                        SearchField { placeholder: "Search names"; enabled: false; }
-                    }
-                }
 
-                KitSection {
-                    title: "ScrollBar · states";
-                    KitRow {
-                        name: "rest, shown, hover, drag";
-                        for state in KitData.scroll-states: Rectangle {
-                            width: Size.bar-w * 2;
-                            height: Size.control-lg * 3;
-                            background: Theme.surface;
-                            border-radius: Size.radius-panel;
+                    KitSection {
+                        title: "SearchField · states";
 
-                            ScrollBar {
-                                x: parent.width - self.width;
-                                height: parent.height;
-                                value: -Size.control-lg * 3;
-                                content-length: Size.control-lg * 12;
-                                visible-length: Size.control-lg * 3;
-                                kit-state: state;
+                        KitRow {
+                            name: "empty";
+
+                            SearchField {
+                                placeholder: "Search names";
+                            }
+                        }
+
+                        KitRow {
+                            name: "text";
+
+                            SearchField {
+                                placeholder: "Search names";
+                                text: "node_modules";
+                            }
+                        }
+
+                        KitRow {
+                            name: "case and regex";
+
+                            SearchField {
+                                placeholder: "Search names";
+                                text: "^Cache.*\\.tmp$";
+                                match-case: true;
+                                regex: true;
+                            }
+                        }
+
+                        KitRow {
+                            name: "invalid";
+
+                            SearchField {
+                                placeholder: "Search names";
+                                text: "([a-z";
+                                regex: true;
+                                invalid: true;
+                            }
+                        }
+
+                        KitRow {
+                            name: "focus";
+
+                            SearchField {
+                                placeholder: "Search names";
+                                kit-state: KitState.focus;
+                            }
+                        }
+
+                        KitRow {
+                            name: "disabled";
+
+                            SearchField {
+                                placeholder: "Search names";
+                                enabled: false;
+                            }
+                        }
+                    }
+
+                    KitSection {
+                        title: "ScrollBar · states";
+
+                        KitRow {
+                            name: "rest, shown, hover, drag";
+                            for state in KitData.scroll-states: Rectangle {
+                                width: Size.bar-w * 2;
+                                height: Size.control-lg * 3;
+                                background: Theme.surface;
+                                border-radius: Size.radius-panel;
+
+                                ScrollBar {
+                                    x: parent.width - self.width;
+                                    height: parent.height;
+                                    value: -Size.control-lg * 3;
+                                    content-length: Size.control-lg * 12;
+                                    visible-length: Size.control-lg * 3;
+                                    kit-state: state;
+                                }
                             }
                         }
                     }
                 }
             }
-        }
 
-        ScrollBar {
-            x: parent.width - self.width;
-            height: parent.height;
-            value <=> flick.content-y;
-            content-length: flick.content-height;
-            visible-length: flick.height;
-        }
+            ScrollBar {
+                x: parent.width - self.width;
+                height: parent.height;
+                value <=> flick.content-y;
+                content-length: flick.content-height;
+                visible-length: flick.height;
+            }
         }
     }
 }
