@@ -52,9 +52,10 @@ identical (`docs/decisions.md`). The engine and the CLI are in place; the Slint 
 interface questions (row virtualisation, table widget). Step 4, the design, is complete (2026-11-25): every v1
 feature is specified in `docs/design-system.md` and drawn on the canvas
 (https://claude.ai/artifact/9uEkqjsB82zrQAAr9x97CD), and the logos and icons are in `crates/ui/ui/assets/brand/`.
-The Slint tokens (`crates/ui/ui/design-system/tokens/`) and the source checks of `docs/design-system.md` § 10 are in
+The design system is its own crate, Dome UI (`crates/dome-ui`, imported by the app as the Slint library `@dome-ui`,
+name provisional, card https://trello.com/c/9yiz5cgx). Its tokens (`crates/dome-ui/ui/tokens/`) and the source checks of `docs/design-system.md` § 10 are in
 place (`crates/ui/tests/design_conventions.rs`, `design_tokens.rs`). The first components (Label, Icon with the Lucide
-set, Button, SegmentedControl, ToggleButton, SearchField, ScrollBar) are in `crates/ui/ui/design-system/components/`; the Kit window shows every token,
+set, Button, SegmentedControl, ToggleButton, SearchField, ScrollBar) are in `crates/dome-ui/ui/components/`; the Kit window shows every token,
 every component and the review board (cards 4.2, 4.3), and checks text and digits (card 4.T7). Slint draws with
 its software renderer only (decision 9); Segoe UI at 400 and 700 only (decision 8). Menus and tooltips are ours (decision 11,
 2026-11-26, after test 8). The menu is built (`Menu`, `MenuList`,
@@ -87,7 +88,8 @@ Full description: `docs/architecture.md`.
 | `crates/scan-ntfs` | `diskdome-scan-ntfs` | Windows: reads the `$MFT`; empty on other platforms |
 | `crates/scan-fs` | `diskdome-scan-fs` | directory walk: other drives, folders, network paths, no-admin mode, macOS |
 | `crates/treemap` | `diskdome-treemap` | squarified layout, rendered by the CPU into a pixel buffer |
-| `crates/ui` | `diskdome-ui` | the Slint app (binary `diskdome`) |
+| `crates/ui` | `diskdome-ui` | the Slint app (binary `diskdome`): screens, the Kit |
+| `crates/dome-ui` | `dome-ui` | the design system, Dome UI: a Slint library (`ui/`, imported as `@dome-ui`) and its Rust half; nothing specific to DiskDome |
 | `crates/cli` | `diskdome-cli` | benchmarks and export |
 | `crates/platform` | `diskdome-platform` | OS services outside the scanners (process memory, the own title bar; later the shell actions) |
 
@@ -162,8 +164,9 @@ Clean code, small components, one source of truth. They apply to Rust and Slint 
 ### Slint
 
 - **Layers**: `tokens/` → `primitives/` → `components/` → screens. Each layer imports only the ones below it;
-  screens and `app.slint` import only `design-system/index.slint`.
-- **Components**: one per file in `design-system/components/`, exported from `index.slint`, with its variants
+  screens and `app.slint` import only `@dome-ui` (the library's `index.slint`; its project file makes every other file
+  private). Dome UI holds nothing specific to DiskDome: it is the design system of every Dome app.
+- **Components**: one per file in `crates/dome-ui/ui/components/`, exported from `index.slint`, with its variants
   and sizes as enums in `enums.slint`. The look for each variant comes from one pure-function global in the
   file (as `ButtonLook`), not from ternaries scattered over the elements.
 - **Properties**: `in` by default; `out` only for what the component computes; `in-out` and two-way bindings
@@ -203,7 +206,7 @@ Clean code, small components, one source of truth. They apply to Rust and Slint 
   - a property named like a built-in one cannot be declared (`row` in a layout child, `padding` on a component):
     pick another name (`inset`);
   - strings have no `contains`, prefix test or regex, and functions have no loops and no recursion: answer it in
-    Rust with a `pure callback` on a global, wired on every window (`MenuNav`, `design_system::install`) and unit
+    Rust with a `pure callback` on a global, wired on every window (`MenuNav`: `dome_ui::menu`, wired by `menu_nav!`) and unit
     tested in Rust;
   - a `PopupWindow` takes the keyboard focus when it shows and gives it back when it closes, and while it is open
     the next pointer move goes to the popup layer: never put something that must not take the focus (a tooltip,
@@ -235,7 +238,7 @@ Clean code, small components, one source of truth. They apply to Rust and Slint 
 - **Design is decided with the owner, in dedicated sessions.** Do not invent or restyle interface on your own:
   until a design exists, a screen stays a functional placeholder (correct, translated, keyboard-usable). A
   visual problem you notice goes on Trello for the owner, not into the code.
-- Every visual value is a token; no `px` and no colour written by hand outside `design-system/tokens/`; a new
+- Every visual value is a token; no `px` and no colour written by hand outside Dome UI's `tokens/`; a new
   component or variant appears in the Kit window first; screens never restyle a component (how: «Implementation
   rules › Slint» above).
 

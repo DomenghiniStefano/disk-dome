@@ -17,7 +17,17 @@ fn entry() -> &'static str {
 /// Slint picks the one matching the OS locale and falls back to the English source.
 const TRANSLATIONS: &str = "lang";
 
+/// The design system's Slint library, imported as `@dome-ui`: its project file names `index.slint` as the only file
+/// an app may import (`docs/design-system.md` § 10, rule `boundary`).
+const DOME_UI: &str = "../dome-ui/ui/slint-project.json";
+
 fn main() {
-    let config = slint_build::CompilerConfiguration::new().with_bundled_translations(TRANSLATIONS);
+    let library = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(DOME_UI);
+    let config = slint_build::CompilerConfiguration::new()
+        .with_bundled_translations(TRANSLATIONS)
+        .with_library_paths(std::collections::HashMap::from([(
+            "dome-ui".to_owned(),
+            library,
+        )]));
     slint_build::compile_with_config(entry(), config).expect("the Slint interface must compile");
 }

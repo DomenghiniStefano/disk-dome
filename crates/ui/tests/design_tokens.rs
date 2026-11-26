@@ -1,4 +1,4 @@
-//! The token values in `ui/design-system/tokens/` against the tables of `docs/design-system.md` (§ 3, § 4.7):
+//! The token values in `crates/dome-ui/ui/tokens/` against the tables of `docs/design-system.md` (§ 3, § 4.7):
 //! every colour, length, opacity and duration the spec gives a token name exists with the same value.
 //!
 //! Blind spot: the type steps (`Type`, § 3.3) are pure functions and are checked in the Kit, not here.
@@ -14,7 +14,7 @@ fn read(rel: &str) -> String {
 }
 
 fn token(rel: &str) -> String {
-    read(&format!("ui/design-system/tokens/{rel}"))
+    read(&format!("../dome-ui/ui/tokens/{rel}"))
 }
 
 /// The table rows of the spec's § 3 plus the chart colours of § 4.7, as cells without backticks.

@@ -142,7 +142,7 @@ changes with the size: the same regions, more rows and a larger map.
 ### 3.1 How tokens work in Slint
 
 - Tokens are Slint globals, typed: `length`, `color`, `brush`, `duration`, `int`. A wrong token does not compile.
-- Families, one file each in `crates/ui/ui/design-system/tokens/`:
+- Families, one file each in `crates/dome-ui/ui/tokens/`:
   `theme.slint` (`global Theme`: colours per theme), `data.slint` (`global Data`: file-category colours),
   `size.slint` (`global Size`: spacing, sizes, radii, borders; density), `type.slint` (`global Type`: font and
   the type steps), `motion.slint` (`global Motion`: durations and the easing).
@@ -529,7 +529,7 @@ Checked on the screens by a test (§ 10, overlap check) in every state where two
 ### 3.12 Icons
 
 - **Lucide** (ISC licence, compatible with GPL-3.0-or-later; listed in `THIRD_PARTY.md` with the first icon),
-  the same set as EmuDome and NoteDome. SVG files in `design-system/icons/`, exposed as `global Icons { out
+  the same set as EmuDome and NoteDome. SVG files in `crates/dome-ui/ui/icons/`, exposed as `global Icons { out
   property <image> folder: @image-url("folder.svg"); … }`, drawn by one `Icon` component that sets the size and
   tints with `colorize` (the colour role is a property, default `ink-muted`).
 - Sizes: `icon` (16 / 14), `icon-sm` 12 (inside badges and chips). Lucide's 2 px stroke at 24 px renders 1.33 px
@@ -921,8 +921,8 @@ entry index, never a hash map.
 
 ## 5. Components
 
-Every component is one `.slint` file in `crates/ui/ui/design-system/components/`, exported through
-`design-system/index.slint`. Variants and sizes are enums. Each one appears in the Kit window in every variant ×
+Every component is one `.slint` file in `crates/dome-ui/ui/components/`, exported through
+`index.slint`, the only file of the `@dome-ui` library an app can import. Variants and sizes are enums. Each one appears in the Kit window in every variant ×
 state × theme × density before a screen uses it. Screens never restyle a component: a missing look is a new
 variant, decided with the owner.
 
@@ -2366,7 +2366,7 @@ The full path and Windows' message go to the log, never into the sentence (§ 6.
 
 ### 8.0 Library-grade components
 
-Owner, 2026-11-26: every component in `design-system/` is as solid as a shadcn / Radix one, not the minimum one
+Owner, 2026-11-26: every component of the design system is as solid as a shadcn / Radix one, not the minimum one
 screen needs. It has its full behaviour (pointer, keyboard, focus return, every state); it handles every placement,
 alignment, collision and overflow case (window edges, long and translated text, empty, many items, scrolling); it is
 accessible; it is customised through properties whose defaults are tokens. It holds nothing specific to DiskDome, so
@@ -2376,18 +2376,28 @@ element that cannot follow the design is replaced by ours, without waiting for t
 
 ### 8.1 Folders
 
+The design system is its own crate, **Dome UI** (owner, 2026-11-26: a library of components for every Dome app, as
+shadcn is for React; card https://trello.com/c/9yiz5cgx). Its Slint half is a Slint library: `slint-project.json`
+names `index.slint` as its main file, so an app imports `@dome-ui` and the compiler refuses any other file of it.
+The app maps the name in its `build.rs` (`with_library_paths`). It moves to its own repository with the second Dome
+app that uses it; the name is provisional.
+
 ```
-crates/ui/ui/
-  app.slint                      MainWindow: composes the screens
-  design-system/
-    README.md                    the map (this document's short version)
-    index.slint                  the only file screens import from
+crates/dome-ui/                  the design system (package `dome-ui`)
+  README.md                      the map (this document's short version)
+  src/                           the Rust half: pure functions (menu.rs) and the macro that wires them (menu_nav!)
+  ui/
+    slint-project.json           the library: main file index.slint
+    index.slint                  the only file apps import, as `@dome-ui`
     tokens/
       theme.slint  data.slint  size.slint  type.slint  motion.slint
-    enums.slint                  ButtonVariant, ButtonSize, TypeStep, InkTone, BadgeVariant, DialogSize…
+    enums.slint                  ButtonVariant, ButtonSize, InkTone, MenuEntryKind…
     icons/                       Lucide SVGs + icons.slint (global Icons)
+    primitives/                  behaviour shared by components, never used by apps
     components/                  one file per component (§ 5)
-    kit/kit.slint                KitWindow (§ 9)
+crates/ui/ui/                    the app
+  app.slint                      MainWindow: composes the screens
+  kit/kit.slint                  KitWindow (§ 9), with the components' test windows
   screens/
     main/  empty/  dialogs/  settings/
 ```
@@ -2494,15 +2504,15 @@ spots written beside it:
 
 | Rule | Forbids | Where it applies |
 | --- | --- | --- |
-| `literal-colour` | `#rgb`, `#rrggbb(aa)`, `rgb(`, `rgba(`, `hsl(`, `Colors.` | everywhere outside `design-system/tokens/` |
-| `literal-length` | a number with `px`, `phx`, `rem`, `pt`, `cm`, `mm`, `in` (`0` and `%` allowed) | everywhere outside `design-system/tokens/` |
-| `literal-duration` | a number with `ms` or `s` | outside `design-system/tokens/` |
+| `literal-colour` | `#rgb`, `#rrggbb(aa)`, `rgb(`, `rgba(`, `hsl(`, `Colors.` | everywhere outside Dome UI's `tokens/` |
+| `literal-length` | a number with `px`, `phx`, `rem`, `pt`, `cm`, `mm`, `in` (`0` and `%` allowed) | everywhere outside Dome UI's `tokens/` |
+| `literal-duration` | a number with `ms` or `s` | outside Dome UI's `tokens/` |
 | `font-literal` | `font-size`, `font-weight`, `font-family`, `letter-spacing` | outside `components/label.slint`, `primitives/text-entry.slint` (the editable text) and the tokens |
-| `std-widgets` | `import … from "std-widgets.slint"` | outside `design-system/components/` |
-| `boundary` | an import of a file under `design-system/` other than `index.slint` | in `screens/` and `app.slint` |
+| `std-widgets` | `import … from "std-widgets.slint"` | outside Dome UI's `components/` |
+| `boundary` | an import of a Dome UI file other than the library itself (`@dome-ui/…`, or a path into `dome-ui`); the compiler refuses it too | in `screens/` and `app.slint` |
 | `raw-element` | `Text`, `TextInput`, `TouchArea`, `FocusScope`, `Image`, `PopupWindow`, `Flickable` | in `screens/` and `app.slint` |
-| `untranslated` | `text: "…"` with a non-empty literal not in `@tr()` | outside `design-system/kit/` |
-| `kit-coverage` | an exported component of `design-system/components/` missing from `kit.slint` | — |
+| `untranslated` | `text: "…"` with a non-empty literal not in `@tr()` | outside `kit/` |
+| `kit-coverage` | an exported component of Dome UI's `components/` missing from `kit.slint` | — |
 | `icon-label` | an icon-only `IconButton` or `Button`, or a `ToggleButton`, without `accessible-label` (Narrator would read nothing) | everywhere |
 | `binary-units` | a literal «GiB», «MiB», «TiB» in a string: sizes go through the unit formatter (§ 4.1) | outside `design-system/tokens/` and the units setting |
 

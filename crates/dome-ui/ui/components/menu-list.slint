@@ -4,7 +4,7 @@
 // where a list behaves like a menu (the command palette).
 //
 // Slint functions have no loops and strings no prefix test, so the walk over the entries and the type-ahead are
-// answered by Rust through `MenuNav` (`src/design_system.rs`, installed on every window).
+// answered by Rust through `MenuNav` (`crates/dome-ui/src/menu.rs`, wired by `menu_nav!` on every window).
 
 import { Size } from "../tokens/size.slint";
 import { Theme } from "../tokens/theme.slint";
@@ -42,7 +42,7 @@ export struct MenuEntry {
     submenu: bool,
 }
 
-// The answers Slint cannot compute (`src/design_system.rs`).
+// The answers Slint cannot compute (`crates/dome-ui/src/menu.rs`).
 export global MenuNav {
     // The next item from `from` going `step` entries (±1, or a page), skipping separators and titles; `wrap` goes
     // round the ends. With no item at all, -1.

@@ -2,7 +2,10 @@
 //!
 //! Every rule runs on the real sources and on its fixtures in `tests/fixtures/conventions/`: each `bad_<rule>.slint`
 //! must break that rule, `good.slint` must break none. The fixtures are checked as if they sat at the path written in
-//! their first line (`// as: <path relative to crates/ui/ui>`), so the rules' «where» is tested too.
+//! their first line (`// as: <path>`), so the rules' «where» is tested too.
+//!
+//! Paths: the app's files relative to `crates/ui/ui`; the design system's (Dome UI) as `dome-ui/` plus their path in
+//! `crates/dome-ui/ui`.
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -18,7 +21,7 @@ struct Rule {
 }
 
 struct Source {
-    /// Path relative to `crates/ui/ui`, with `/`.
+    /// `crates/ui/ui/<path>` or, for the design system, `dome-ui/<path in crates/dome-ui/ui>`, with `/`.
     path: String,
     /// The text with comments blanked out.
     code: String,
@@ -40,7 +43,7 @@ impl Source {
         }
     }
     fn in_tokens(&self) -> bool {
-        self.path.starts_with("design-system/tokens/")
+        self.path.starts_with("dome-ui/tokens/")
     }
     fn is_screen(&self) -> bool {
         self.path.starts_with("screens/") || self.path == "app.slint"
@@ -112,8 +115,8 @@ const RULES: &[Rule] = &[
         check: |s| {
             // `Label` draws every text, `TextEntry` every editable one.
             if s.in_tokens()
-                || s.path == "design-system/components/label.slint"
-                || s.path == "design-system/primitives/text-entry.slint"
+                || s.path == "dome-ui/components/label.slint"
+                || s.path == "dome-ui/primitives/text-entry.slint"
             {
                 return vec![];
             }
@@ -126,7 +129,7 @@ const RULES: &[Rule] = &[
     Rule {
         name: "std-widgets",
         check: |s| {
-            if s.path.starts_with("design-system/components/") {
+            if s.path.starts_with("dome-ui/components/") {
                 return vec![];
             }
             hits(r#"from\s+"std-widgets\.slint""#, &s.code)
@@ -138,10 +141,8 @@ const RULES: &[Rule] = &[
             if !s.is_screen() {
                 return vec![];
             }
-            hits(r#"from\s+"[^"]*design-system/[^"]*""#, &s.code)
-                .into_iter()
-                .filter(|h| !h.ends_with("design-system/index.slint\""))
-                .collect()
+            // Only the library itself, `@dome-ui`: never one of its files, by the library or by a relative path.
+            hits(r#"from\s+"(?:@dome-ui/[^"]*|[^"@]*dome-ui[^"]*)""#, &s.code)
         },
     },
     Rule {
@@ -159,7 +160,7 @@ const RULES: &[Rule] = &[
     Rule {
         name: "untranslated",
         check: |s| {
-            if s.path.starts_with("design-system/kit/") {
+            if s.path.starts_with("kit/") {
                 return vec![];
             }
             hits(r#"\btext\s*:\s*"(?:[^"\\]|\\.)+""#, &s.code)
@@ -226,8 +227,13 @@ fn block_after(text: &str, start: usize) -> &str {
     &text[start..]
 }
 
-fn ui_dir() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("ui")
+/// The two roots of the sources and the prefix their paths get.
+fn roots() -> [(PathBuf, &'static str); 2] {
+    let manifest = Path::new(env!("CARGO_MANIFEST_DIR"));
+    [
+        (manifest.join("ui"), ""),
+        (manifest.join("../dome-ui/ui"), "dome-ui/"),
+    ]
 }
 
 fn slint_files(dir: &Path, out: &mut Vec<PathBuf>) {
@@ -254,26 +260,29 @@ fn violations(source: &Source) -> Vec<String> {
 
 #[test]
 fn sources_follow_the_rules() {
-    let root = ui_dir();
-    let mut files = vec![];
-    slint_files(&root, &mut files);
     let mut found = vec![];
     let mut sources = vec![];
-    for file in files {
-        let rel = file
-            .strip_prefix(&root)
-            .expect("test data is valid")
-            .to_string_lossy()
-            .replace('\\', "/");
-        if EXEMPT.contains(&rel.as_str()) {
-            continue;
+    for (root, prefix) in roots() {
+        let mut files = vec![];
+        slint_files(&root, &mut files);
+        for file in files {
+            let rel = format!(
+                "{prefix}{}",
+                file.strip_prefix(&root)
+                    .expect("test data is valid")
+                    .to_string_lossy()
+                    .replace('\\', "/")
+            );
+            if EXEMPT.contains(&rel.as_str()) {
+                continue;
+            }
+            let source = Source::new(
+                &rel,
+                &fs::read_to_string(&file).expect("test data is valid"),
+            );
+            found.extend(violations(&source));
+            sources.push(source);
         }
-        let source = Source::new(
-            &rel,
-            &fs::read_to_string(&file).expect("test data is valid"),
-        );
-        found.extend(violations(&source));
-        sources.push(source);
     }
     found.extend(kit_coverage(&sources));
     assert!(
@@ -283,15 +292,13 @@ fn sources_follow_the_rules() {
     );
 }
 
-/// `kit-coverage`: every component exported by `design-system/components/` appears in `kit/kit.slint`.
+/// `kit-coverage`: every component exported by `dome-ui/components/` appears in `kit/kit.slint`.
 fn kit_coverage(sources: &[Source]) -> Vec<String> {
-    let kit = sources
-        .iter()
-        .find(|s| s.path == "design-system/kit/kit.slint");
+    let kit = sources.iter().find(|s| s.path == "kit/kit.slint");
     let export = Regex::new(r"export\s+component\s+([A-Za-z][\w-]*)").expect("test data is valid");
     sources
         .iter()
-        .filter(|s| s.path.starts_with("design-system/components/"))
+        .filter(|s| s.path.starts_with("dome-ui/components/"))
         .flat_map(|s| {
             export
                 .captures_iter(&s.code)
@@ -305,7 +312,7 @@ fn kit_coverage(sources: &[Source]) -> Vec<String> {
                     .is_match(&k.code)
             })
         })
-        .map(|name| format!("design-system/kit/kit.slint: kit-coverage `{name}` missing"))
+        .map(|name| format!("kit/kit.slint: kit-coverage `{name}` missing"))
         .collect()
 }
 
@@ -341,12 +348,9 @@ fn the_good_fixture_breaks_no_rule() {
 
 #[test]
 fn kit_coverage_catches_a_missing_component() {
-    let component = Source::new(
-        "design-system/components/chip.slint",
-        "export component Chip {}",
-    );
+    let component = Source::new("dome-ui/components/chip.slint", "export component Chip {}");
     let kit = Source::new(
-        "design-system/kit/kit.slint",
+        "kit/kit.slint",
         "export component KitWindow { Rectangle {} }",
     );
     assert_eq!(kit_coverage(&[component, kit]).len(), 1);

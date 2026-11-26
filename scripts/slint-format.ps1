@@ -9,8 +9,9 @@ param([switch]$Check)
 
 $ErrorActionPreference = 'Stop'
 
-$ui = (Resolve-Path (Join-Path $PSScriptRoot '..\crates\ui\ui')).Path
-$files = Get-ChildItem -Path $ui -Recurse -Filter *.slint | ForEach-Object { $_.FullName }
+# The app's interface and the design system (Dome UI); paths in messages are relative to the crates folder.
+$ui = (Resolve-Path (Join-Path $PSScriptRoot '..\crates')).Path
+$files = Get-ChildItem -Path (Join-Path $ui 'ui\ui'), (Join-Path $ui 'dome-ui\ui') -Recurse -Filter *.slint | ForEach-Object { $_.FullName }
 
 if (-not $Check) {
     & slint-lsp format -i @files

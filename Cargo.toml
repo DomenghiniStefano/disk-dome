@@ -11,6 +11,7 @@ publish = false
 
 [workspace.dependencies]
 diskdome-core = { path = "crates/core" }
+dome-ui = { path = "crates/dome-ui" }
 diskdome-scan-ntfs = { path = "crates/scan-ntfs" }
 diskdome-scan-fs = { path = "crates/scan-fs" }
 diskdome-treemap = { path = "crates/treemap" }
