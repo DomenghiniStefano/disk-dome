@@ -381,7 +381,7 @@ export component KitWindow inherits DomeWindow {
                         match-case <=> KitSearch.match-case;
                         regex <=> KitSearch.regex;
                         invalid: !KitSearch.valid(KitSearch.query, KitSearch.regex);
-                        search => {
+                        search-requested => {
                             flick.content-y = 0;
                         }
                     }

@@ -36,7 +36,7 @@ export component SearchField {
     in property <KitState> kit-state: KitState.live;
 
     // The search to apply: after the typing rests, on Enter, on a toggle, on clearing.
-    callback search(text: string);
+    callback search-requested(text: string);
 
     property <bool> focused: root.kit-state == KitState.focus
         || (root.kit-state == KitState.live && entry.has-focus);
@@ -55,7 +55,7 @@ export component SearchField {
 
     function apply() {
         rest.running = false;
-        root.search(root.text);
+        root.search-requested(root.text);
     }
 
     // Esc clears; on an empty field it hands the focus back.
