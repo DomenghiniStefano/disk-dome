@@ -995,6 +995,19 @@ and the search's `Aa` / `.*`. Accessible as a toggle (`accessible-checked`).
 `raised` fill with `ink`, the others `ink-muted`. Arrow keys move the choice. Used for «Extensions | Categories»,
 and in the settings (theme, density, units).
 
+| | |
+| --- | --- |
+| Segments `SegmentOption` | `text` (always the accessible name), `icon`, `icon-only`, `tooltip`, `disabled` |
+| Content | text; icon + text (icon 16, `label-gap`, the icon's side padded `button-pad-x-icon`); icon only (square, its text said by the tooltip and screen readers) |
+| Disabled segment | faded (`disabled` opacity), not clickable, skipped by the keyboard; its `tooltip` says why |
+| Keyboard | one Tab stop; ← ↑ / → ↓ choose the previous / next enabled segment, Home / End the first / last; `wrap` (default on, as Radix) goes round the ends; Esc puts the tooltip away |
+| Tooltip | a segment's `tooltip`, or the text of an icon-only one; on hover, and at once for the chosen segment under keyboard focus |
+| Nothing chosen | `current` out of range: no segment is chosen; an arrow chooses the first (→) or last (←) enabled one |
+
+**Reviewed (2026-11-26, library-grade, § 8.0).** Against Radix's ToggleGroup (single) and RadioGroup: icon segments,
+per-segment tooltips, disabled segments and `wrap` were added. Not here, until a second use asks: a vertical
+orientation, multiple choice (that is a row of `ToggleButton`s).
+
 ### 5.7 Tabs
 
 Text tabs (`body`, `ink-muted`) in the tab bar; the active one `ink` with a 2 px `accent` underline drawn
@@ -2390,7 +2403,7 @@ app that uses it; the name is provisional.
 ```
 crates/dome-ui/                  the design system (package `dome-ui`)
   README.md                      the map (this document's short version)
-  src/                           the Rust half: pure functions (menu.rs) and the macro that wires them (menu_nav!)
+  src/                           the Rust half: pure functions (menu.rs, segment.rs) and the macros that wire them (menu_nav!, segment_nav!)
   ui/
     slint-project.json           the library: main file index.slint
     index.slint                  the only file apps import, as `@dome-ui`

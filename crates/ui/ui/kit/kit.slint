@@ -15,6 +15,7 @@ import {
     Icon,
     Button,
     SegmentedControl,
+    SegmentOption,
     InkTone,
     IconSize,
     ButtonVariant,
@@ -166,11 +167,27 @@ global KitData {
         { name: "triangle-alert", source: Icons.triangle-alert },
         { name: "x", source: Icons.x },
     ];
-    out property <[string]> two-options: ["Extensions", "Categories"];
+    out property <[SegmentOption]> two-options: [{ text: "Extensions" }, { text: "Categories" }];
     out property <[ToggleSize]> toggle-sizes: [ToggleSize.small, ToggleSize.normal];
     // The scroll bar at rest is hidden: `live` shows nothing until the content moves.
     out property <[KitState]> scroll-states: [KitState.live, KitState.focus, KitState.hover, KitState.pressed];
-    out property <[string]> three-options: ["Dark", "Light", "System"];
+    out property <[SegmentOption]> three-options: [{ text: "Dark" }, { text: "Light" }, { text: "System" }];
+    out property <[SegmentOption]> theme-icons: [
+        { text: "Dark", icon: Icons.moon },
+        { text: "Light", icon: Icons.sun },
+        { text: "System", icon: Icons.monitor },
+    ];
+    out property <[SegmentOption]> theme-icons-only: [
+        { text: "Dark", icon: Icons.moon, icon-only: true },
+        { text: "Light", icon: Icons.sun, icon-only: true },
+        { text: "System", icon: Icons.monitor, icon-only: true },
+    ];
+    // A segment that cannot be chosen yet says why.
+    out property <[SegmentOption]> with-disabled: [
+        { text: "Table" },
+        { text: "Both" },
+        { text: "Map", disabled: true, tooltip: "The map needs a finished scan" },
+    ];
     // An Italian label, ~25 % longer than English (§ 3.3): buttons must grow with it.
     out property <string> long-label: "Sposta nel Cestino";
     out property <string> sample-text: "Users 310.4 GB · 46.4 % · 3,789,066 files";
@@ -322,7 +339,7 @@ export component KitWindow inherits DesignWindow {
                     alignment: center;
 
                     SegmentedControl {
-                        options: ["Dark", "Light"];
+                        options: [{ text: "Dark" }, { text: "Light" }];
                         current: Theme.mode == ThemeMode.dark ? 0 : 1;
                         changed(index) => {
                             Theme.mode = index == 0 ? ThemeMode.dark : ThemeMode.light;
@@ -335,7 +352,7 @@ export component KitWindow inherits DesignWindow {
                     alignment: center;
 
                     SegmentedControl {
-                        options: ["Normal", "Compact"];
+                        options: [{ text: "Normal" }, { text: "Compact" }];
                         current: Size.compact ? 1 : 0;
                         changed(index) => {
                             Size.compact = index == 1;
@@ -647,6 +664,59 @@ export component KitWindow inherits DesignWindow {
                                     options: KitData.three-options;
                                     accessible-label: "Theme";
                                 }
+                            }
+                        }
+                    }
+
+                    KitSection {
+                        title: "SegmentedControl · content";
+
+                        KitRow {
+                            name: "icon and text";
+
+                            SegmentedControl {
+                                options: KitData.theme-icons;
+                                accessible-label: "Theme";
+                            }
+
+                            SegmentedControl {
+                                options: KitData.theme-icons;
+                                size: SegmentedSize.small;
+                                accessible-label: "Theme";
+                            }
+                        }
+
+                        KitRow {
+                            name: "icon only";
+
+                            SegmentedControl {
+                                options: KitData.theme-icons-only;
+                                accessible-label: "Theme";
+                            }
+
+                            SegmentedControl {
+                                options: KitData.theme-icons-only;
+                                size: SegmentedSize.small;
+                                accessible-label: "Theme";
+                            }
+                        }
+
+                        KitRow {
+                            name: "disabled segment";
+
+                            SegmentedControl {
+                                options: KitData.with-disabled;
+                                accessible-label: "View";
+                            }
+                        }
+
+                        KitRow {
+                            name: "nothing chosen";
+
+                            SegmentedControl {
+                                options: KitData.three-options;
+                                current: -1;
+                                accessible-label: "Theme";
                             }
                         }
                     }

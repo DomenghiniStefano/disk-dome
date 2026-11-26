@@ -1,0 +1,59 @@
+// The SegmentedControl's test window (`tests/segmented_headless.rs`, § 5.6): text segments with a disabled one the
+// arrow keys skip, and icon-only segments (square, their text in the tooltip) with a disabled one. Kit only; texts
+// are the Kit's own, not translated.
+
+import {
+    DesignWindow,
+    SegmentedControl,
+    SegmentOption,
+    Icons,
+    Size,
+} from "@dome-ui";
+
+export component KitSegmentedHarness inherits DesignWindow {
+    preferred-width: Size.window-min-w;
+    preferred-height: Size.window-min-h;
+
+    out property <int> text-current: text.current;
+    out property <length> text-y: text-row.y;
+    out property <int> icons-current: icons.current;
+    out property <length> icons-y: icons-row.y;
+    out property <int> icons-tooltip: icons.tooltip-index;
+    // How many times `changed` was called on the icon-only control.
+    out property <int> icons-changes;
+
+    VerticalLayout {
+        alignment: start;
+        spacing: Size.group-gap;
+
+        text-row := HorizontalLayout {
+            alignment: start;
+
+            text := SegmentedControl {
+                options: [
+                    { text: "Table" },
+                    { text: "Both", disabled: true, tooltip: "Not now" },
+                    { text: "Map" },
+                    { text: "Tree" },
+                ];
+                accessible-label: "View";
+            }
+        }
+
+        icons-row := HorizontalLayout {
+            alignment: start;
+
+            icons := SegmentedControl {
+                options: [
+                    { text: "Dark", icon: Icons.moon, icon-only: true },
+                    { text: "Light", icon: Icons.sun, icon-only: true, disabled: true, tooltip: "Not now" },
+                    { text: "System", icon: Icons.monitor, icon-only: true },
+                ];
+                accessible-label: "Theme";
+                changed => {
+                    root.icons-changes += 1;
+                }
+            }
+        }
+    }
+}
