@@ -141,6 +141,16 @@ Clean code, small components, one source of truth. They apply to Rust and Slint 
 - **Components**: one per file in `design-system/components/`, exported from `index.slint`, with its variants
   and sizes as enums in `enums.slint`. The look for each variant comes from one pure-function global in the
   file (as `ButtonLook`), not from ternaries scattered over the elements.
+- **Properties**: `in` by default; `out` only for what the component computes; `in-out` and two-way bindings
+  (`<=>`) only when both sides really write, with a comment saying why. Everything that is not the component's
+  interface is a private `property` (no direction).
+- **Screens talk to Rust through globals**: one `export global` per area (`ScanApi`, `TreeApi`…) with
+  properties and callbacks, re-exported by the build entry; one Rust adapter module per area wires it. Screens
+  never get data through properties of the `Window`, so the Kit can show them with fake data.
+- **Models are lazy**: a list or table implements `slint::Model` over `core` and builds only the rows asked
+  for; no `VecModel` copy of the tree. Small fixed lists (tabs, menu items) may be a `VecModel`.
+- **From another thread to the interface** only through `Weak::upgrade_in_event_loop` or
+  `slint::invoke_from_event_loop`; their error (the event loop has ended) is logged, never dropped with `let _`.
 - **Behaviour is never rewritten**: clicks, hover, press, Enter / Space and the focus ring come from
   `primitives/` (`Pressable`, `FocusTarget`, `FocusRing`); the ring shows only when `Nav.keyboard` is set.
   Disabled is one `opacity: Size.disabled` on the component's root.
@@ -154,7 +164,8 @@ Clean code, small components, one source of truth. They apply to Rust and Slint 
 - **The Kit is the proof**: every component, variant and state appears in `kit/kit.slint` (test
   `kit-coverage`); states are shown with `kit-state`, which screens never set. A visual change is looked at
   in the off-screen shots before it is called done:
-  `DISKDOME_KIT_SHOTS=<folder> cargo test -p diskdome-ui --features kit --test kit_headless`.
+  `DISKDOME_KIT_SHOTS=<folder> cargo test -p diskdome-ui --features kit --test kit_headless`. The shots are
+  a local look only: never committed, never compared by a test.
 - **Slint 1.19 traps**:
   - an element inside a component without a layout is centred at its preferred size, so an overlay sets
     `width: 100%; height: 100%`;

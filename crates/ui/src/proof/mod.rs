@@ -270,11 +270,14 @@ fn start_sort(window: &ProofWindow, column: i32, descending: bool, background: b
     std::thread::spawn(move || {
         let start = Instant::now();
         let order = tree.sorted_order(column, descending);
-        let _ = slint::invoke_from_event_loop(move || {
+        let applied = slint::invoke_from_event_loop(move || {
             if let Some(window) = weak.upgrade() {
                 apply_sort(&window, order, start);
             }
         });
+        if let Err(error) = applied {
+            eprintln!("proof: sort not applied, the event loop has ended: {error}");
+        }
     });
 }
 

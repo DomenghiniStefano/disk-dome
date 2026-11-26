@@ -93,7 +93,7 @@ fn install(weak: slint::Weak<TitlebarSpike>, attempt: u32) {
                 Box::new(move |event| {
                     let events = events.clone();
                     // Windows calls back from inside its window procedure: apply on the next turn of the event loop.
-                    let _ = slint::invoke_from_event_loop(move || {
+                    let applied = slint::invoke_from_event_loop(move || {
                         if let Some(w) = events.upgrade() {
                             match event {
                                 Event::MaximizeHover(on) => w.set_max_hovered(on),
@@ -102,6 +102,11 @@ fn install(weak: slint::Weak<TitlebarSpike>, attempt: u32) {
                             }
                         }
                     });
+                    if let Err(error) = applied {
+                        eprintln!(
+                            "titlebar spike: event dropped, the event loop has ended: {error}"
+                        );
+                    }
                 }),
             );
             if installed {
