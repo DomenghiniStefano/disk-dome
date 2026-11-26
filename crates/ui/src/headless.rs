@@ -83,6 +83,25 @@ impl Headless {
             .dispatch_event(WindowEvent::PointerReleased { position, button });
     }
 
+    /// Moves the pointer to a point, without pressing.
+    pub fn hover(&self, x: f32, y: f32) {
+        let position = LogicalPosition::new(x, y);
+        self.window
+            .dispatch_event(WindowEvent::PointerMoved { position });
+    }
+
+    /// A right click at a point: what opens a context menu.
+    pub fn right_click(&self, x: f32, y: f32) {
+        let position = LogicalPosition::new(x, y);
+        let button = slint::platform::PointerEventButton::Right;
+        self.window
+            .dispatch_event(WindowEvent::PointerMoved { position });
+        self.window
+            .dispatch_event(WindowEvent::PointerPressed { position, button });
+        self.window
+            .dispatch_event(WindowEvent::PointerReleased { position, button });
+    }
+
     /// A mouse wheel or touchpad event at a point; a negative `delta_y` scrolls down.
     pub fn wheel(&self, x: f32, y: f32, delta_y: f32) {
         let position = LogicalPosition::new(x, y);
