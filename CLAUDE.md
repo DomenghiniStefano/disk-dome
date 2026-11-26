@@ -152,6 +152,8 @@ Clean code, small components, one source of truth. They apply to Rust and Slint 
 - **Before building on a Slint element, read its source** in `~/.cargo/registry/src/*/i-slint-*-1.19.1/`
   (`builtin_elements.rs`, `widgets/`, `i-slint-core/window.rs`): what it draws, what it takes (focus, the pointer),
   what can be set. Two days of guessing are one `grep`.
+- **The Kit works, not only shows**: every interactive component in the Kit is wired so that using it does what it
+  would in a screen (a check box in a menu flips, a choice is shown), and the owner checks it by hand there.
 - **The Kit shot covers the whole Kit**: a new section raises `HEIGHT` in `tests/kit_headless.rs` until the last
   section is in the shot; a cut shot hides the new work silently.
 - **Expected values come from the spec**: compute them before running; a failing test is first read as a bug in the
@@ -218,6 +220,10 @@ Clean code, small components, one source of truth. They apply to Rust and Slint 
     explicit `x` / `y`;
   - a `Timer` or a `changed` handler that opens or closes a popup is seen one frame later: headless tests let two
     frames run (`settle`) and wait with a margin over every delay;
+  - Slint animates a change only from a value it has already read: a property first read when drawn (an
+    `opacity`) and changed in `init` appears at once. Read the start value in `init` before changing it
+    (`PopupSurface`), and test an animation by reading pixels over frames (`Headless::pixel`), not by a shot;
+  - the software renderer puts things on whole pixels: a move of a few pixels runs `linear`, or eased it jumps;
   - off-screen shots do not advance time: animations and `Timer`s stay where they started, so a colour caught
     mid-animation in a shot is not a bug;
   - Segoe UI Semibold (600) has proportional digits; 400 and 700 are tabular, so the design uses only those (§ 3.3).

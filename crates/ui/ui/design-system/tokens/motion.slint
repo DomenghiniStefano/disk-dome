@@ -24,5 +24,7 @@ export global Motion {
     out property <easing> ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
     // Menus and tooltips rise this much while they fade in; dialogs grow from this scale.
     out property <length> rise: 4px;
+    // The rise moves at an even pace: on whole pixels, an eased 4 px jumps (§ 3.10).
+    out property <easing> rise-easing: linear;
     out property <float> dialog-scale-from: 0.98;
 }

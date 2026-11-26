@@ -5,6 +5,8 @@
 import {
     DesignWindow,
     MenuButton,
+    MenuFrame,
+    MenuList,
     ContextMenu,
     Menu,
     MenuEntry,
@@ -43,10 +45,24 @@ export component KitMenuHarness inherits DesignWindow {
     out property <length> far-y: far.y;
     out property <length> button-height: corner.height;
     out property <length> area-y: area.y;
+    // A menu with no entries keeps one row for its «empty» text.
+    out property <length> empty-height: empty-frame.preferred-height;
 
     // The keyboard reaches the context area the way a focused table inside it would.
     public function focus-area() {
         area.focus();
+    }
+
+    // Out of the way of the menus, at the bottom-left corner.
+    empty-frame := MenuFrame {
+        x: 0;
+        y: parent.height - self.height;
+        animate-in: false;
+        height: self.preferred-height;
+
+        MenuList {
+            empty-text: "Nothing to show";
+        }
     }
 
     corner := MenuButton {

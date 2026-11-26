@@ -29,6 +29,7 @@ import {
     MenuFrame,
     MenuList,
     MenuEntry,
+    MenuNav,
     Menu,
     ContextMenu,
     MenuButton,
@@ -173,7 +174,7 @@ global KitData {
     out property <string> long-label: "Sposta nel Cestino";
     out property <string> sample-text: "Users 310.4 GB · 46.4 % · 3,789,066 files";
     // Every kind of entry, variant and state of § 5.16, with repeated and trailing separators that must not show.
-    out property <[MenuEntry]> menu: [
+    in-out property <[MenuEntry]> menu: [
         { id: "open", label: "Open", icon: Icons.folder-open, shortcut: "Enter" },
         {
             id: "explorer",
@@ -209,7 +210,7 @@ global KitData {
         },
         { kind: MenuEntryKind.separator },
     ];
-    out property <[MenuEntry]> menu-columns: [
+    in-out property <[MenuEntry]> menu-columns: [
         {
             id: "col-name",
             kind: MenuEntryKind.checkbox,
@@ -224,7 +225,7 @@ global KitData {
         { kind: MenuEntryKind.separator },
         { id: "col-more", label: "More columns", submenu: true },
     ];
-    out property <[MenuEntry]> menu-more: [
+    in-out property <[MenuEntry]> menu-more: [
         { id: "col-created", kind: MenuEntryKind.checkbox, label: "Created" },
         { id: "col-attributes", kind: MenuEntryKind.checkbox, label: "Attributes" },
     ];
@@ -251,6 +252,17 @@ global KitData {
         { id: "h", label: "Hotel" },
     ];
     out property <[MenuEntry]> no-entries: [];
+
+    // The last item chosen in any Kit menu, shown next to them.
+    in-out property <string> chosen: "nothing yet";
+
+    // Every Kit menu works: a choice flips its check box or radio item, wherever that entry lives.
+    public function choose(entry: MenuEntry) {
+        root.menu = MenuNav.toggled(root.menu, entry.id);
+        root.menu-columns = MenuNav.toggled(root.menu-columns, entry.id);
+        root.menu-more = MenuNav.toggled(root.menu-more, entry.id);
+        root.chosen = entry.label;
+    }
 
     public pure function submenu(entry: MenuEntry) -> [MenuEntry] {
         return entry.id == "columns" ? menu-columns : entry.id == "col-more" ? menu-more : no-entries;
@@ -669,6 +681,9 @@ export component KitWindow inherits DesignWindow {
                                 MenuList {
                                     entries: KitData.menu;
                                     highlighted: 1;
+                                    activated(entry, index) => {
+                                        KitData.choose(entry);
+                                    }
                                 }
                             }
 
@@ -679,6 +694,9 @@ export component KitWindow inherits DesignWindow {
                                 MenuList {
                                     entries: KitData.menu-columns;
                                     highlighted: 1;
+                                    activated(entry, index) => {
+                                        KitData.choose(entry);
+                                    }
                                 }
                             }
                         }
@@ -693,6 +711,9 @@ export component KitWindow inherits DesignWindow {
                                 MenuList {
                                     entries: KitData.menu-long;
                                     highlighted: 0;
+                                    activated(entry, index) => {
+                                        KitData.choose(entry);
+                                    }
                                 }
                             }
 
@@ -718,6 +739,9 @@ export component KitWindow inherits DesignWindow {
                                 icon: Icons.ellipsis;
                                 accessible-label: "More";
                                 entries: KitData.menu;
+                                activated(entry) => {
+                                    KitData.choose(entry);
+                                }
                                 submenu(entry) => {
                                     return KitData.submenu(entry);
                                 }
@@ -727,6 +751,9 @@ export component KitWindow inherits DesignWindow {
                                 text: "Columns";
                                 variant: ButtonVariant.secondary;
                                 entries: KitData.menu-columns;
+                                activated(entry) => {
+                                    KitData.choose(entry);
+                                }
                                 keep-open-on-check: true;
                                 submenu(entry) => {
                                     return KitData.submenu(entry);
@@ -738,12 +765,18 @@ export component KitWindow inherits DesignWindow {
                                 variant: ButtonVariant.secondary;
                                 align: PopupAlign.end;
                                 entries: KitData.menu-long;
+                                activated(entry) => {
+                                    KitData.choose(entry);
+                                }
                             }
 
                             MenuButton {
                                 text: "Empty";
                                 variant: ButtonVariant.secondary;
                                 entries: KitData.no-entries;
+                                activated(entry) => {
+                                    KitData.choose(entry);
+                                }
                                 empty-text: "Nothing to show";
                             }
 
@@ -752,6 +785,18 @@ export component KitWindow inherits DesignWindow {
                                 variant: ButtonVariant.secondary;
                                 enabled: false;
                                 entries: KitData.menu;
+                                activated(entry) => {
+                                    KitData.choose(entry);
+                                }
+                            }
+                        }
+
+                        KitRow {
+                            name: "last chosen";
+
+                            Label {
+                                text: KitData.chosen;
+                                tone: InkTone.muted;
                             }
                         }
 
@@ -777,6 +822,9 @@ export component KitWindow inherits DesignWindow {
 
                                 area-menu := Menu {
                                     entries: KitData.menu;
+                                    activated(entry) => {
+                                        KitData.choose(entry);
+                                    }
                                     submenu(entry) => {
                                         return KitData.submenu(entry);
                                     }

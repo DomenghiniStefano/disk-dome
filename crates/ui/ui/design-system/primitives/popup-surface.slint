@@ -21,8 +21,14 @@ export component PopupSurface {
     // Set once the surface exists, so the fade and the rise run from their start values.
     property <bool> entered: !root.animate-in;
     property <length> rise: root.entered ? 0 : Motion.rise;
+    // Slint animates a change only from a value it has already read; the opacity is first read when drawn, after
+    // `init`, so it would appear at once. Reading the start values here makes the change below a transition.
+    property <float> start-opacity;
+    property <length> start-offset;
 
     init => {
+        root.start-opacity = surface.opacity;
+        root.start-offset = surface.x + surface.y;
         root.entered = true;
     }
 
@@ -31,7 +37,7 @@ export component PopupSurface {
     min-height: content.min-height;
     preferred-height: content.preferred-height;
 
-    Rectangle {
+    surface := Rectangle {
         x: root.side == PopupSide.right ? -root.rise : root.side == PopupSide.left ? root.rise : 0;
         y: root.side == PopupSide.bottom ? -root.rise : root.side == PopupSide.top ? root.rise : 0;
         width: root.width;
@@ -44,9 +50,15 @@ export component PopupSurface {
         drop-shadow-color: Theme.shadow;
         drop-shadow-offset-y: Size.shadow-1-y;
         drop-shadow-blur: Size.shadow-1-blur;
-        animate opacity, x, y {
+        animate opacity {
             duration: Motion.base;
             easing: Motion.ease-out;
+        }
+        // The software renderer puts things on whole pixels: eased, the 4 px of rise would come in two jumps in the
+        // first frames; at an even pace they come one pixel at a time over the whole fade.
+        animate x, y {
+            duration: Motion.base;
+            easing: Motion.rise-easing;
         }
 
         content := VerticalLayout {

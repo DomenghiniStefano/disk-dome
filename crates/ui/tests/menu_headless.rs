@@ -27,6 +27,8 @@ const ROW_X: f32 = 40.0;
 /// The same window size `DesignWindow` tells the popups.
 const MARGIN: f32 = 8.0;
 const GAP: f32 = 4.0;
+/// Longer than `Motion.base`, 140 ms, with a margin.
+const FADE: std::time::Duration = std::time::Duration::from_millis(250);
 
 fn save_shot(headless: &Headless, name: &str) {
     let Some(folder) = std::env::var_os("DISKDOME_KIT_SHOTS") else {
@@ -49,6 +51,12 @@ fn anchor(x: f32, y: f32, width: f32, height: f32) -> PopupAnchor {
     }
 }
 
+/// A pixel as red, green, blue, without the alpha.
+fn rgb(headless: &Headless, x: f32, y: f32) -> [u8; 3] {
+    let [r, g, b, _] = headless.pixel(x as usize, y as usize);
+    [r, g, b]
+}
+
 /// One test: the headless platform is installed once per thread.
 #[test]
 fn menu_works_by_pointer_and_keyboard() {
@@ -60,9 +68,23 @@ fn menu_works_by_pointer_and_keyboard() {
     let button = harness.get_button_height();
     let row = |index: f32| button + FIRST_ROW + ROW * index + ROW / 2.0;
 
-    // Pointer: the button opens the menu, a click on an item chooses it and closes the menu.
+    // An empty menu keeps one row for its text: a row, the frame's 1 px edges and its 4 px padding.
+    assert_eq!(harness.get_empty_height(), ROW + 2.0 * (1.0 + 4.0));
+
+    // Pointer: the button opens the menu, a click on an item chooses it and closes the menu. It fades in (§ 3.10):
+    // the first frame is not yet the menu's final colour, the frame after the fade is.
+    let inside = (ROW_X, row(2.0));
+    let before = rgb(&headless, inside.0, inside.1);
     headless.click(ROW_X, button / 2.0);
     headless.frame();
+    let first = rgb(&headless, inside.0, inside.1);
+    std::thread::sleep(FADE);
+    headless.frame();
+    let last = rgb(&headless, inside.0, inside.1);
+    assert!(
+        first != last && first != before,
+        "the menu fades in: {before:?} → {first:?} → {last:?}"
+    );
     assert!(harness.get_corner_open(), "a click opens the menu");
     save_shot(&headless, "corner");
     headless.click(ROW_X, row(1.0));

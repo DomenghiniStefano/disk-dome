@@ -2,7 +2,7 @@
 //! loops and its strings no prefix test, so a menu's walk over its entries and its type-ahead are answered here.
 //! `install` wires them on a window; every window that shows a menu calls it once.
 
-use slint::{ComponentHandle, Global, Model, ModelRc, SharedString};
+use slint::{ComponentHandle, Global, Model, ModelRc, SharedString, VecModel};
 
 use crate::generated::{MenuEntry, MenuEntryKind, MenuNav};
 
@@ -18,6 +18,7 @@ where
     nav.on_typeahead(|entries, from, typed| typeahead(&collect(&entries), from, &typed));
     nav.on_printable(|text| printable(&text));
     nav.on_shown(|entries, index| shown(&collect(&entries), index));
+    nav.on_toggled(|entries, id| ModelRc::new(VecModel::from(toggled(&collect(&entries), &id))));
 }
 
 fn collect(entries: &ModelRc<MenuEntry>) -> Vec<MenuEntry> {
@@ -142,9 +143,62 @@ pub fn shown(entries: &[MenuEntry], index: i32) -> bool {
     after_something && before_something
 }
 
+/// The entries after the one with `id` was chosen: an enabled check box flips; an enabled radio item is checked and
+/// the other radio items of its group are cleared. A group is the run of radio items the chosen one sits in, between
+/// anything that is not a radio item (a separator, a title, a plain item). Any other entry, or an unknown `id`, leaves
+/// the entries as they were.
+pub fn toggled(entries: &[MenuEntry], id: &str) -> Vec<MenuEntry> {
+    let chosen = entries
+        .iter()
+        .position(|entry| entry.id == id && !entry.disabled);
+    let Some(chosen) = chosen else {
+        return entries.to_vec();
+    };
+    match entries[chosen].kind {
+        MenuEntryKind::Checkbox => entries
+            .iter()
+            .enumerate()
+            .map(|(index, entry)| MenuEntry {
+                checked: entry.checked != (index == chosen),
+                ..entry.clone()
+            })
+            .collect(),
+        MenuEntryKind::Radio => {
+            let group = radio_group(entries, chosen);
+            entries
+                .iter()
+                .enumerate()
+                .map(|(index, entry)| MenuEntry {
+                    checked: if group.contains(&index) {
+                        index == chosen
+                    } else {
+                        entry.checked
+                    },
+                    ..entry.clone()
+                })
+                .collect()
+        }
+        MenuEntryKind::Item | MenuEntryKind::Separator | MenuEntryKind::Section => entries.to_vec(),
+    }
+}
+
+/// The indices of the run of radio items around `index`.
+fn radio_group(entries: &[MenuEntry], index: usize) -> std::ops::Range<usize> {
+    let radio = |entry: &MenuEntry| matches!(entry.kind, MenuEntryKind::Radio);
+    let start = entries[..index]
+        .iter()
+        .rposition(|entry| !radio(entry))
+        .map_or(0, |before| before + 1);
+    let end = entries[index..]
+        .iter()
+        .position(|entry| !radio(entry))
+        .map_or(entries.len(), |after| index + after);
+    start..end
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{edge, printable, shown, step, typeahead};
+    use super::{edge, printable, shown, step, toggled, typeahead};
     use crate::generated::{MenuEntry, MenuEntryKind};
 
     fn entry(kind: MenuEntryKind, label: &str) -> MenuEntry {
@@ -274,5 +328,60 @@ mod tests {
         ];
         let drawn: Vec<bool> = (0..6).map(|i| shown(&m, i)).collect();
         assert_eq!(drawn, [false, true, true, false, true, false]);
+    }
+
+    fn choice(kind: MenuEntryKind, id: &str, checked: bool) -> MenuEntry {
+        MenuEntry {
+            kind,
+            id: id.into(),
+            label: id.into(),
+            checked,
+            ..MenuEntry::default()
+        }
+    }
+
+    fn checked(entries: &[MenuEntry]) -> Vec<bool> {
+        entries.iter().map(|entry| entry.checked).collect()
+    }
+
+    #[test]
+    fn a_check_box_flips_and_nothing_else_changes() {
+        let m = vec![
+            choice(MenuEntryKind::Checkbox, "a", false),
+            choice(MenuEntryKind::Checkbox, "b", true),
+        ];
+        assert_eq!(checked(&toggled(&m, "a")), [true, true]);
+        assert_eq!(checked(&toggled(&m, "b")), [false, false]);
+    }
+
+    #[test]
+    fn a_radio_item_clears_only_its_own_group() {
+        // Two groups split by a separator: «size» / «name», then «asc» / «desc».
+        let m = vec![
+            choice(MenuEntryKind::Radio, "size", true),
+            choice(MenuEntryKind::Radio, "name", false),
+            separator(),
+            choice(MenuEntryKind::Radio, "asc", true),
+            choice(MenuEntryKind::Radio, "desc", false),
+        ];
+        assert_eq!(
+            checked(&toggled(&m, "name")),
+            [false, true, false, true, false]
+        );
+        assert_eq!(
+            checked(&toggled(&m, "size")),
+            [true, false, false, true, false],
+            "choosing the checked radio keeps it checked"
+        );
+    }
+
+    #[test]
+    fn disabled_plain_and_unknown_entries_change_nothing() {
+        let mut locked = choice(MenuEntryKind::Checkbox, "locked", true);
+        locked.disabled = true;
+        let m = vec![locked, choice(MenuEntryKind::Item, "open", false)];
+        assert_eq!(checked(&toggled(&m, "locked")), [true, false]);
+        assert_eq!(checked(&toggled(&m, "open")), [true, false]);
+        assert_eq!(checked(&toggled(&m, "nope")), [true, false]);
     }
 }

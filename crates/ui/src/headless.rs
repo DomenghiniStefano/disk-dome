@@ -139,6 +139,16 @@ impl Headless {
         (self.width, self.height)
     }
 
+    /// One pixel of the last frame as red, green, blue and alpha (premultiplied); transparent outside the window.
+    pub fn pixel(&self, x: usize, y: usize) -> [u8; 4] {
+        let pixel = if x < self.width && y < self.height {
+            self.pixels[y * self.width + x]
+        } else {
+            PremultipliedRgbaColor::default()
+        };
+        [pixel.red, pixel.green, pixel.blue, pixel.alpha]
+    }
+
     /// The last frame as 24-bit BMP bytes (bottom-up rows, BGR), for a look at what was drawn.
     pub fn bmp(&self) -> Vec<u8> {
         let row_bytes = (self.width * 3).div_ceil(4) * 4;
