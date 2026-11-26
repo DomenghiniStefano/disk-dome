@@ -58,7 +58,7 @@ place (`crates/ui/tests/design_conventions.rs`, `design_tokens.rs`). The first c
 set, Button, SegmentedControl, ToggleButton, SearchField, ScrollBar) are in `crates/dome-ui/ui/components/`; the Kit window shows every token,
 every component and the review board (cards 4.2, 4.3), and checks text and digits (card 4.T7). Slint draws with
 its software renderer only (decision 9); Segoe UI at 400 and 700 only (decision 8). Menus and tooltips are ours (decision 11,
-2026-11-26, after test 8). The menu is built (`Menu`, `MenuList`,
+after test 8). The menu is built (`Menu`, `MenuList`,
 `MenuFrame`, `ContextMenu`, `MenuButton`, § 5.16) with `DomeWindow`, which every window inherits, and
 `design_system::install`, which every window calls; the tooltip too (`Tooltip`, drawn by `DomeWindow`, § 5.17).
 Both wait for the owner's look in the Kit. The plan and its status: https://claude.ai/artifact/6b7K1hVhjpupdAURw4CfFP

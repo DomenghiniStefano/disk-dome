@@ -136,7 +136,7 @@ Measured (cards 4.T4 and 4.T10, `cargo run -p diskdome-treemap --release --examp
 - Live preview while developing: the VS Code extension, and inside the running app with
   `SLINT_LIVE_PREVIEW=1` and the `slint/live-preview` feature.
 - Text through `@tr()`.
-- Renderer: Slint's software renderer, the only one compiled in (workspace `Cargo.toml`, decision of 2026-11-25):
+- Renderer: Slint's software renderer, the only one compiled in (workspace `Cargo.toml`, decision 9):
   no GPU or driver involved, the lightest in memory. femtovg and Skia were compared in the Kit
   (`docs/design-system.md` § 12 test 7).
 
