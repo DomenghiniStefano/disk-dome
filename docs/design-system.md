@@ -310,7 +310,7 @@ without the legend and in grey-scale; the same colours in every theme, like the 
 **Font: Segoe UI** (Windows' system font; nothing bundled, nothing to license). Its default figures are
 tabular (all digits the same width), which matters because Slint's `Text` has no OpenType feature switch
 (no `tnum`): the font's default figures are what the columns get. **The design uses 400 and 700 only**
-(decision 8, owner 2026-11-26). Measured in the Kit and in the font files (test 7): Segoe UI 400 and 700 have
+(decision 8). Measured in the Kit and in the font files (test 7): Segoe UI 400 and 700 have
 tabular digits, Semibold 600 does not (its «1» is 28 % narrower), so a bold total in 600 would not line up with
 the rows above it. Segoe UI Variable is out: its «1» is narrow at every weight, and Slint 1.19 does not apply its
 «Text» and «Small» optical sizes.
@@ -343,7 +343,7 @@ defaults; decided when the macOS port starts.
 - **Italian is ~25 % longer than English**: no fixed widths for text; buttons hug their label with a minimum
   width (§ 5.2); columns are resizable.
 - Text rendering: grey-scale anti-aliasing (Slint does not do ClearType), drawn by Slint's **software renderer**
-  (decided 2026-11-25, test 7). Compared in the Kit with femtovg and Skia: Skia draws light text on dark fuller,
+  (decision 9, test 7). Compared in the Kit with femtovg and Skia: Skia draws light text on dark fuller,
   femtovg and software alike draw it thinner; software uses a fraction of the memory (15 MB private against
   femtovg's 104 and Skia's 453, debug builds) and no GPU.
 
@@ -479,8 +479,8 @@ does most of the work. No glass: Slint has no backdrop blur, and the dense inter
 
 - Easing: `ease-out` = `cubic-bezier(0.2, 0.8, 0.2, 1)` (EmuDome's) for everything that enters; leaving is a
   plain fade at `fast`. The 4 px rise is the exception, `linear` (`rise-easing`): Slint's software renderer puts
-  things on whole pixels, and eased the rise came in two jumps in the first frames (owner, 2026-11-26: «the open
-  must be as fluid as possible»); at an even pace it comes one pixel at a time under the fade.
+  things on whole pixels, and eased the rise came in two jumps in the first frames, where the opening must be as
+  fluid as possible; at an even pace it comes one pixel at a time under the fade.
 - What moves: hover and press colours (`fast`); menus, select lists and tooltips appear with a fade and 4 px of
   rise (`base`); dialogs fade and grow from 98 % (`slow`); the scan progress line eases to its new value
   (`base`).
@@ -962,10 +962,9 @@ paths (Slint elides only at the end) and passed in ready.
 | Rules | one `primary` per view; destructive actions never icon-only; a dialog's quiet way out («Cancel») is `secondary` |
 | Keyboard | Enter and Space activate; the dialog's default button takes Enter from anywhere in the dialog |
 
-**Reviewed (2026-11-26, library-grade, § 8.0).** Against shadcn's Button: the overflow (shrink, cut, full text in
-the tooltip), the full width and the trailing icon were added; the tooltip and the disabled reason were already
-there (§ 5.17). Not here: a `loading` state (it needs a design: a spinner and whether the label stays), proposed on
-the card; the dialog's default button comes with the Dialog (§ 5.18).
+**Library-grade (§ 8.0).** Like shadcn's Button, with the overflow (shrink, cut, full text in the tooltip), the full
+width, the trailing icon, the tooltip and the disabled reason (§ 5.17). Not here: a `loading` state (it needs a
+design: a spinner and whether the label stays); the dialog's default button comes with the Dialog (§ 5.18).
 
 ### 5.3 ToggleButton
 
@@ -993,11 +992,10 @@ and the search's `Aa` / `.*`. Accessible as a toggle (`accessible-checked`).
 | Clear | the `x` shows with text on an enabled field; its tooltip says «Clear the search» with the key «Esc» |
 | Width | 200 / 320 / 400 (`search-w-min`, `search-w`, `search-w-max`); a screen sets other widths where the field has another place |
 
-**Reviewed (2026-11-26, library-grade, § 8.0).** Against shadcn's Input and Command input: the error's reason, the
-optional toggles, the accessible name, the rest delay as a parameter, the focus readable from outside and the click
-on the icon were added. Not here, each with its own card: the suggestions list and the chips of written filters
-(§ 6.6: a combobox, with the parsing in the app), a history of searches (not in the spec), a busy state (it needs a
-design).
+**Library-grade (§ 8.0).** Like shadcn's Input and Command input, with the error's reason, optional toggles, an
+accessible name, the rest delay as a parameter, the focus readable from outside and the click on the icon. Not here,
+each with its own card: the suggestions list and the chips of written filters (§ 6.6: a combobox, with the parsing
+in the app), a history of searches (not in the spec), a busy state (it needs a design).
 
 ### 5.5 Select and DrivePicker
 
@@ -1025,10 +1023,10 @@ and in the settings (theme, density, units).
 | Tooltip | a segment's `tooltip`, or the text of an icon-only or cut one; on hover, and at once for the chosen segment under keyboard focus |
 | Nothing chosen | `current-index` out of range: no segment is chosen; an arrow chooses the first (→) or last (←) enabled one |
 
-**Reviewed (2026-11-26, library-grade, § 8.0).** Against Radix's ToggleGroup (single) and RadioGroup: icon segments,
-per-segment tooltips, disabled segments, `wrap-around`, the full width and the overflow were added. Not here, until a
-second use asks: a vertical orientation, multiple choice (that is a row of `ToggleButton`s), equal widths without
-filling (as wide as the widest segment).
+**Library-grade (§ 8.0).** Like Radix's ToggleGroup (single) and RadioGroup, with icon segments, per-segment
+tooltips, disabled segments, `wrap-around`, the full width and the overflow. Not here, until a second use asks: a
+vertical orientation, multiple choice (that is a row of `ToggleButton`s), equal widths without filling (as wide as
+the widest segment).
 
 ### 5.7 Tabs
 
@@ -1185,12 +1183,12 @@ icon 16 (or empty slot, so labels align), label `body`, shortcut `caption` `ink-
 `danger` variant = `danger` text and icon; disabled = `disabled`. `MenuSeparator`: 1 px `line` with 4 px above
 and below. `MenuSection`: `overline` title.
 
-Slint's `ContextMenuArea` / `Menu` draw with the widget style, not our tokens (test 8, 2026-11-26: the Fluent
+Slint's `ContextMenuArea` / `Menu` draw with the widget style, not our tokens (test 8: the Fluent
 style's colours are fixed, the menu stays light in our dark theme, radius 7, at least 280 wide, items 32 tall; no
-shortcut text outside a menu bar, no `danger` item, no section title). Decision 11 (owner, 2026-11-26): `Menu` is ours on a `PopupWindow`, with the same keyboard behaviour (arrows, Enter, Esc,
+shortcut text outside a menu bar, no `danger` item, no section title). Decision 11: `Menu` is ours on a `PopupWindow`, with the same keyboard behaviour (arrows, Enter, Esc,
 → / ← for submenus, the Menu key and Shift+F10 to open).
 
-**Built (2026-11-26, library-grade, § 8.0).** `MenuFrame` is the level-1 surface with free content (the map's
+**Library-grade (§ 8.0).** `MenuFrame` is the level-1 surface with free content (the map's
 options, the DrivePicker); `MenuList` draws `[MenuEntry]` (`kind`: item, checkbox, radio, separator, section; `icon`,
 `hint`, `shortcut`, `variant`, `disabled` with its `reason`, `checked`, `submenu`), hides leading, trailing and
 repeated separators, elides long labels and scrolls; `Menu` is the popup, three levels deep, placed by `Placement`
@@ -1210,11 +1208,11 @@ fade (Slint closes a popup at once), touch long press.
 `raised`, `edge`, radius `panel`, `tooltip-pad`, `caption` `ink`, max 320 wide, wraps. After 500 ms of rest
 with the mouse, at once on keyboard focus; never on rows of the table (they have the status bar) or on the treemap
 (it has its header). Slint 1.19's `Tooltip` element takes our tokens when it is given our content instead of a
-`text` (test 8, 2026-11-26), but it shows on hover only (never on keyboard focus), after a fixed 500 ms, beside the
-pointer, without the fade and rise; with a `text` it draws the style's own light box. Decision 11 (owner,
-2026-11-26): the tooltip is ours, with the keyboard behaviour above.
+`text` (test 8), but it shows on hover only (never on keyboard focus), after a fixed 500 ms, beside the
+pointer, without the fade and rise; with a `text` it draws the style's own light box. Decision 11: the tooltip is
+ours, with the keyboard behaviour above.
 
-**Built (2026-11-26, library-grade, § 8.0).** Not on a `PopupWindow`: Slint gives every popup but its own tooltip
+**Library-grade (§ 8.0).** Not on a `PopupWindow`: Slint gives every popup but its own tooltip
 the keyboard focus, so ours would take it from the control it describes and from a field being typed in. A
 `Tooltip` inside the control writes the window's one tooltip (`TooltipLayer`), and `DomeWindow` draws it as its
 last layer, over every content, with no pointer area. It opens after `delay` (`tooltip-delay`), at once on keyboard
@@ -2406,21 +2404,21 @@ The full path and Windows' message go to the log, never into the sentence (§ 6.
 
 ### 8.0 Library-grade components
 
-Owner, 2026-11-26: every component of the design system is as solid as a shadcn / Radix one, not the minimum one
-screen needs. It has its full behaviour (pointer, keyboard, focus return, every state); it handles every placement,
-alignment, collision and overflow case (window edges, long and translated text, empty, many items, scrolling); it is
-accessible; it is customised through properties whose defaults are tokens. It holds nothing specific to DiskDome, so
-the same component serves future Slint projects. Before a component is built, its behaviour is listed against its
-Radix / shadcn counterpart on its card; the Kit shows every case and the headless tests prove it. A Slint built-in
-element that cannot follow the design is replaced by ours, without waiting for the owner.
+Every component of the design system is as solid as a shadcn / Radix one, not the minimum one screen needs. It has
+its full behaviour (pointer, keyboard, focus return, every state); it handles every placement, alignment, collision
+and overflow case (window edges, long and translated text, empty, many items, scrolling); it is accessible; it is
+customised through properties whose defaults are tokens. It holds nothing specific to DiskDome, so the same
+component serves future Slint projects. Before a component is built, its behaviour is listed against its Radix /
+shadcn counterpart on its card; the Kit shows every case and the headless tests prove it. A Slint built-in element
+that cannot follow the design is replaced by ours, without waiting for the owner.
 
 ### 8.1 Folders
 
-The design system is its own crate, **Dome UI** (owner, 2026-11-26: a library of components for every Dome app, as
-shadcn is for React; card https://trello.com/c/9yiz5cgx). Its Slint half is a Slint library: `slint-project.json`
-names `index.slint` as its main file, so an app imports `@dome-ui` and the compiler refuses any other file of it.
-The app maps the name in its `build.rs` (`with_library_paths`). It moves to its own repository with the second Dome
-app that uses it; the name is provisional.
+The design system is its own crate, **Dome UI** (a library of components for every Dome app, as shadcn is for React;
+card https://trello.com/c/9yiz5cgx). Its Slint half is a Slint library: `slint-project.json` names `index.slint` as
+its main file, so an app imports `@dome-ui` and the compiler refuses any other file of it. The app maps the name in
+its `build.rs` (`with_library_paths`). It moves to its own repository with the second Dome app that uses it; the
+name is provisional.
 
 ```
 crates/dome-ui/                  the design system (package `dome-ui`)
@@ -2518,8 +2516,7 @@ can be fully set by our tokens (or not at all: for behaviour such as `TextInput`
 
 ### 8.4 Names
 
-Decided 2026-11-26, after a review of every public name with a developer's eyes. A name says what a thing holds or
-does, and the same idea has the same name in every component.
+A name says what a thing holds or does, and the same idea has the same name in every component.
 
 - **Components** are nouns in PascalCase, with every word capitalised: `ScrollBar`, `StatusBar`, `ToolBar`,
   `ProgressBar` (`Checkbox` stays one word, as in shadcn and WinUI). The base window is `DomeWindow`.
