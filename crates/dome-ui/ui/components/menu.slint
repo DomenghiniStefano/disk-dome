@@ -33,7 +33,7 @@ component MenuLevel {
     in property <bool> wrap-around;
     in property <length> row-height;
     in property <string> empty-text;
-    in property <int> submenu-open: -1;
+    in property <int> submenu-index: -1;
     // The item highlighted on opening.
     in property <MenuStart> start;
     // Raised to move the keyboard focus back into this level's list (a submenu closed with ← or Esc).
@@ -44,7 +44,7 @@ component MenuLevel {
     callback activated(entry: MenuEntry, index: int);
     callback submenu-requested(entry: MenuEntry, index: int, anchor: PopupAnchor);
     callback submenu-left();
-    callback key-unused(event: KeyEvent) -> EventResult;
+    callback unhandled-key(event: KeyEvent) -> EventResult;
 
     public function open() {
         popup.show();
@@ -80,7 +80,7 @@ component MenuLevel {
                 list-min-width: root.match-anchor-width ? max(root.list-min-width, root.anchor.width) : root.list-min-width;
                 list-max-width: root.list-max-width;
                 empty-text: root.empty-text;
-                submenu-open: root.submenu-open;
+                submenu-index: root.submenu-index;
                 focus-request: root.focus-request;
 
                 init => {
@@ -104,8 +104,8 @@ component MenuLevel {
                 submenu-left => {
                     root.submenu-left();
                 }
-                key-unused(event) => {
-                    return root.key-unused(event);
+                unhandled-key(event) => {
+                    return root.unhandled-key(event);
                 }
             }
         }
@@ -239,7 +239,7 @@ export component Menu {
         wrap-around: root.wrap-around;
         row-height: root.row-height;
         empty-text: root.empty-text;
-        submenu-open: root.open-1;
+        submenu-index: root.open-1;
         start: root.start;
         focus-request: root.refocus-1;
 
@@ -256,7 +256,7 @@ export component Menu {
         submenu-left => {
             root.close-from(2);
         }
-        key-unused(event) => {
+        unhandled-key(event) => {
             return root.unused-key(1, event);
         }
     }
@@ -274,7 +274,7 @@ export component Menu {
         list-max-width: root.list-max-width;
         wrap-around: root.wrap-around;
         row-height: root.row-height;
-        submenu-open: root.open-2;
+        submenu-index: root.open-2;
         // A submenu opened from the keyboard starts on its first item.
         start: Nav.keyboard ? MenuStart.first : MenuStart.none;
         focus-request: root.refocus-2;
@@ -292,7 +292,7 @@ export component Menu {
         submenu-left => {
             root.close-from(3);
         }
-        key-unused(event) => {
+        unhandled-key(event) => {
             return root.unused-key(2, event);
         }
     }
@@ -314,7 +314,7 @@ export component Menu {
         activated(entry, index) => {
             root.chosen(entry);
         }
-        key-unused(event) => {
+        unhandled-key(event) => {
             return root.unused-key(3, event);
         }
     }

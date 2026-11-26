@@ -864,7 +864,7 @@ export component KitWindow inherits DesignWindow {
 
                                 MenuList {
                                     entries: KitData.menu;
-                                    highlighted: 1;
+                                    highlighted-index: 1;
                                     activated(entry, index) => {
                                         KitData.choose(entry);
                                     }
@@ -877,7 +877,7 @@ export component KitWindow inherits DesignWindow {
 
                                 MenuList {
                                     entries: KitData.menu-columns;
-                                    highlighted: 1;
+                                    highlighted-index: 1;
                                     activated(entry, index) => {
                                         KitData.choose(entry);
                                     }
@@ -894,7 +894,7 @@ export component KitWindow inherits DesignWindow {
 
                                 MenuList {
                                     entries: KitData.menu-long;
-                                    highlighted: 0;
+                                    highlighted-index: 0;
                                     activated(entry, index) => {
                                         KitData.choose(entry);
                                     }
