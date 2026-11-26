@@ -16,6 +16,10 @@ msgid "Clear the search"
 msgstr "Cancella la ricerca"
 
 msgctxt "SearchField"
+msgid "Esc"
+msgstr "Esc"
+
+msgctxt "SearchField"
 msgid "Match case"
 msgstr "Maiuscole e minuscole"
 

@@ -26,6 +26,10 @@ export enum SegmentedSize { small, normal }
 // labels cut by «…»), or `fill` the width its layout gives it, split equally between the segments.
 export enum SegmentedWidth { hug, fill }
 
+// Which toggles a search field holds on its right (§ 5.4): none (the command palette, the shortcuts dialog), match
+// case only, or match case and regular expression (the files' search).
+export enum SearchFieldToggles { none, match-case, match-case-and-regex }
+
 // `small` sits inside a field (the search's `Aa` / `.*`), `normal` in a toolbar (§ 5.3).
 export enum ToggleSize { small, normal }
 

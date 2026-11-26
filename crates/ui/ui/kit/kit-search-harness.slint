@@ -1,0 +1,53 @@
+// The SearchField's test window (`tests/search_headless.rs`, § 5.4): a field whose error the test sets and whose
+// searches it counts, and a disabled one. Kit only; texts are the Kit's own, not translated.
+
+import { DomeWindow, SearchField, Size } from "@dome-ui";
+
+export component KitSearchHarness inherits DomeWindow {
+    preferred-width: Size.window-min-w;
+    preferred-height: Size.window-min-h;
+
+    // Set by the test, as the owner of a search does when the pattern does not compile.
+    in property <string> error-text;
+
+    out property <length> field-y: field-row.y;
+    out property <length> field-width: field.width;
+    out property <string> field-text: field.text;
+    out property <bool> field-focus: field.has-focus;
+    out property <bool> field-regex: field.regex;
+    out property <bool> error-shown: field.error-shown;
+    // The searches the field asked for, and the last text.
+    out property <int> requests;
+    out property <string> last-request;
+
+    out property <length> off-y: off-row.y;
+    out property <string> off-text: off.text;
+
+    VerticalLayout {
+        alignment: start;
+        spacing: Size.group-gap;
+
+        field-row := HorizontalLayout {
+            alignment: start;
+
+            field := SearchField {
+                placeholder: "Search names";
+                error: root.error-text;
+                search-requested(text) => {
+                    root.requests += 1;
+                    root.last-request = text;
+                }
+            }
+        }
+
+        off-row := HorizontalLayout {
+            alignment: start;
+
+            off := SearchField {
+                placeholder: "Search names";
+                text: "kept";
+                enabled: false;
+            }
+        }
+    }
+}
