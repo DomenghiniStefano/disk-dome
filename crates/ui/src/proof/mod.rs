@@ -1,11 +1,10 @@
 //! Technical proof of step 3 (Trello card 3c): a Slint table over millions of fake rows.
 //!
 //! `diskdome --proof-rows 14000000 [--proof-view table|list]` opens it in a window;
-//! `cargo run -p diskdome-ui --release --example proof_bench` measures it headless.
+//! `cargo run -p diskdome-ui --release --features spikes --example proof_bench` measures it headless.
 
 pub mod data;
 pub mod format;
-pub mod headless;
 pub mod model;
 
 use std::rc::Rc;

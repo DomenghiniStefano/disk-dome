@@ -9,8 +9,8 @@
 use std::path::PathBuf;
 
 use diskdome_ui::generated::{KitReview, KitSearch, Nav, Size, Theme, ThemeMode};
+use diskdome_ui::headless::Headless;
 use diskdome_ui::kit;
-use diskdome_ui::proof::headless::Headless;
 use slint::ComponentHandle;
 use slint::platform::Key;
 

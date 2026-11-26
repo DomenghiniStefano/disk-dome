@@ -1,10 +1,12 @@
 //! Drives both proof windows off screen (Slint's software renderer, no window opened): keyboard navigation and
 //! sorting by a click on a column header.
 
+#![cfg(feature = "spikes")]
+
 use std::sync::Arc;
 
+use diskdome_ui::headless::Headless;
 use diskdome_ui::proof::data::FakeTree;
-use diskdome_ui::proof::headless::Headless;
 use diskdome_ui::proof::model::ProofRows;
 use diskdome_ui::proof::{ProofWindow, View};
 use slint::platform::Key;

@@ -1,10 +1,13 @@
-//! Compiles the interface. With the `kit` feature the entry also exports the Kit window (§ 9), which never
-//! reaches a release build.
+//! Compiles the interface. With a development feature (`kit`, `spikes`) the entry also exports the Kit window
+//! (§ 9) and the throwaway proofs, which never reach a release build.
 
-/// The `.slint` entry for the build: the app, or the app plus the Kit.
+/// The `.slint` entry for the build: the app, or the app plus the development windows.
 fn entry() -> &'static str {
-    if std::env::var_os("CARGO_FEATURE_KIT").is_some() {
-        "ui/kit-app.slint"
+    let dev = ["CARGO_FEATURE_KIT", "CARGO_FEATURE_SPIKES"]
+        .iter()
+        .any(|feature| std::env::var_os(feature).is_some());
+    if dev {
+        "ui/dev-app.slint"
     } else {
         "ui/app.slint"
     }

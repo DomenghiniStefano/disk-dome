@@ -2,7 +2,7 @@
 //! drawn by Slint's software renderer into a buffer.
 //!
 //! ```text
-//! cargo run -p diskdome-ui --release --example proof_bench -- --rows 14000000 --view table
+//! cargo run -p diskdome-ui --release --features spikes --example proof_bench -- --rows 14000000 --view table
 //! ```
 //!
 //! Options: `--rows N` (default 14,000,000), `--view table|list`, `--width W --height H` (default 960×600),
@@ -13,8 +13,8 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
+use diskdome_ui::headless::Headless;
 use diskdome_ui::proof::data::{FakeTree, SortColumn};
-use diskdome_ui::proof::headless::Headless;
 use diskdome_ui::proof::model::{ProofRows, RowStats};
 use diskdome_ui::proof::{ProofWindow, View};
 use slint::platform::Key;
