@@ -53,6 +53,8 @@ export global Size {
     // Fixed control sizes (§ 3.12, § 5.2)
     out property <length> icon-sm: 12px;
     out property <length> button-min-w: 64px;
+    // No upper bound: the `max-width` of what may grow as far as its layout lets it (Slint has no infinity literal).
+    out property <length> unbounded: 1000000px;
     // The empty state's call to action: one per screen, same in both densities.
     out property <length> control-hero: 40px;
     out property <length> icon-hero: 18px;

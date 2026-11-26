@@ -19,6 +19,7 @@ import {
     IconSize,
     ButtonVariant,
     ButtonSize,
+    ButtonWidth,
     SegmentedSize,
     KitState,
     ToggleButton,
@@ -547,6 +548,71 @@ export component KitWindow inherits DesignWindow {
                                         enabled: state.enabled;
                                     }
                                 }
+                            }
+                        }
+                    }
+
+                    KitSection {
+                        title: "Button · width and overflow";
+
+                        KitRow {
+                            name: "minimum, long label";
+
+                            Button {
+                                text: "OK";
+                            }
+
+                            Button {
+                                text: KitData.long-label;
+                            }
+                        }
+
+                        KitRow {
+                            name: "narrow box";
+
+                            HorizontalLayout {
+                                alignment: start;
+                                width: Size.button-min-w * 2;
+
+                                Button {
+                                    text: "Move everything to the Recycle Bin";
+                                }
+                            }
+                        }
+
+                        KitRow {
+                            name: "full width";
+
+                            VerticalLayout {
+                                width: Size.side-panel;
+
+                                Button {
+                                    text: "Continue";
+                                    variant: ButtonVariant.primary;
+                                    width-mode: ButtonWidth.fill;
+                                }
+                            }
+                        }
+
+                        KitRow {
+                            name: "trailing icon";
+
+                            Button {
+                                text: "Columns";
+                                icon-end: Icons.chevron-down;
+                            }
+
+                            Button {
+                                text: "Sort";
+                                icon: Icons.arrow-down;
+                                icon-end: Icons.chevron-down;
+                                variant: ButtonVariant.ghost;
+                            }
+
+                            Button {
+                                text: "Export";
+                                icon-end: Icons.chevron-down;
+                                size: ButtonSize.small;
                             }
                         }
                     }

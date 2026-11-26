@@ -1,5 +1,7 @@
-// Button (§ 5.2): five variants, four sizes; text, icon + text, or icon only (square, `accessible-label`
-// mandatory: rule `icon-label`). It hugs its label with a minimum width, so Italian labels grow it.
+// Button (§ 5.2): five variants, four sizes; text, icon + text, text + trailing icon, or icon only (square,
+// `accessible-label` mandatory: rule `icon-label`). It hugs its content with a minimum width, so Italian labels grow
+// it; short of room it shrinks to that minimum and cuts the label with «…», whose full text the tooltip then says.
+// `ButtonWidth.fill` takes the whole width its layout gives.
 
 import { Size } from "../tokens/size.slint";
 import { Theme } from "../tokens/theme.slint";
@@ -8,6 +10,7 @@ import { TypeStep } from "../tokens/type.slint";
 import {
     ButtonVariant,
     ButtonSize,
+    ButtonWidth,
     IconSize,
     InkTone,
     KitState,
@@ -57,8 +60,11 @@ global ButtonLook {
 export component Button {
     in property <string> text;
     in property <image> icon;
+    // After the label, as the chevron of a button that opens a list; shown only with a text.
+    in property <image> icon-end;
     in property <ButtonVariant> variant: ButtonVariant.secondary;
     in property <ButtonSize> size: ButtonSize.normal;
+    in property <ButtonWidth> width-mode: ButtonWidth.hug;
     in property <bool> enabled: true;
     // The Kit window only (§ 9).
     in property <KitState> kit-state: KitState.live;
@@ -74,16 +80,22 @@ export component Button {
 
     property <bool> has-text: root.text != "";
     property <bool> has-icon: root.icon.width > 0;
+    property <bool> has-icon-end: root.has-text && root.icon-end.width > 0;
     property <bool> icon-only: root.has-icon && !root.has-text;
+    // The label is cut: the tooltip says it whole.
+    property <bool> cut: root.has-text && root.label-width < root.label-wanted;
+    property <length> label-width;
+    property <length> label-wanted;
     property <bool> hero: root.size == ButtonSize.hero;
     property <length> pad-x: root.hero ? Size.button-pad-x-hero : Size.button-pad-x;
     property <length> min-w: root.hero ? Size.button-hero-min-w : Size.button-min-w;
 
     height: ButtonLook.height(root.size);
-    // A button always hugs its content: icon only, square; with text, the label but never below the minimum.
-    min-width: root.has-text ? max(root.min-w, content.preferred-width) : root.height;
-    preferred-width: self.min-width;
-    max-width: self.min-width;
+    // Icon only: square. With text: the content, never below the minimum; short of room it gives way down to the
+    // minimum (or the content, when that is smaller) and the label is cut.
+    min-width: root.has-text ? min(root.min-w, content.preferred-width) : root.height;
+    preferred-width: root.has-text ? max(root.min-w, content.preferred-width) : root.height;
+    max-width: root.width-mode == ButtonWidth.fill && root.has-text ? Size.unbounded : self.preferred-width;
     opacity: root.enabled ? 1 : Size.disabled;
 
     forward-focus: pressable;
@@ -106,7 +118,7 @@ export component Button {
         spacing: Size.label-gap;
         // The side with an icon is a little tighter (§ 3.4), except on the hero button.
         padding-left: !root.has-text ? 0 : root.has-icon && !root.hero ? Size.button-pad-x-icon : root.pad-x;
-        padding-right: root.has-text ? root.pad-x : 0;
+        padding-right: !root.has-text ? 0 : root.has-icon-end && !root.hero ? Size.button-pad-x-icon : root.pad-x;
 
         if root.has-icon: VerticalLayout {
             alignment: center;
@@ -122,6 +134,26 @@ export component Button {
             step: ButtonLook.step(root.variant, root.size);
             tone: ButtonLook.tone(root.variant);
             accessible-role: none;
+
+            changed width => {
+                root.label-width = self.width;
+            }
+            changed preferred-width => {
+                root.label-wanted = self.preferred-width;
+            }
+            init => {
+                root.label-width = self.width;
+                root.label-wanted = self.preferred-width;
+            }
+        }
+        if root.has-icon-end: VerticalLayout {
+            alignment: center;
+
+            Icon {
+                source: root.icon-end;
+                size: root.hero ? IconSize.hero : IconSize.normal;
+                tone: ButtonLook.tone(root.variant);
+            }
         }
     }
 
@@ -147,7 +179,7 @@ export component Button {
 
     // After the pointer area, so over a disabled button it can watch the pointer itself.
     tip := Tooltip {
-        text: root.tooltip != "" ? root.tooltip : root.icon-only ? root.accessible-label : "";
+        text: root.tooltip != "" ? root.tooltip : root.icon-only ? root.accessible-label : root.cut ? root.text : "";
         shortcut: root.tooltip-shortcut;
         hovered: root.kit-state == KitState.live && pressable.hovered;
         focused: root.kit-state == KitState.live && pressable.show-focus;

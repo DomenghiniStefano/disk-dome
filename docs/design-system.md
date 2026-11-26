@@ -952,11 +952,16 @@ paths (Slint elides only at the end) and passed in ready.
 | --- | --- |
 | Variants `ButtonVariant` | `primary` (accent fill, `on-accent`, `body-strong`), `secondary` (`control` fill, `ink`), `ghost` (transparent, `ink-muted`, hover `control-hover`), `danger` (`danger` fill, text `bg`, `body-strong`), `danger-ghost` (transparent, `danger` text; destructive items outside dialogs) |
 | Sizes `ButtonSize` | `small` (control-sm), `normal` (control), `large` (control-lg), `hero` (40 px, `title` text, icon 18, 20 px padding, min 160 px: only the call to action of an empty state, one per screen) |
-| Content | text; icon + text (icon 16, `label-gap`); icon only (square, `label` mandatory: accessible name + tooltip) |
-| Width | hugs the label, minimum 64 px with text (Italian labels grow); icon-only is square |
+| Content | text; icon + text (icon 16, `label-gap`); text + trailing icon (`icon-end`, as the chevron of a button that opens a list; the padding on its side is `button-pad-x-icon`); icon only (square, `label` mandatory: accessible name + tooltip) |
+| Width | `ButtonWidth.hug` (default): hugs the content, minimum 64 px with text (Italian labels grow); short of room it gives way down to that minimum and cuts the label with «…», and the tooltip says the full text. `ButtonWidth.fill`: the whole width its layout gives (a dialog's or a panel's full-width button). Icon-only is square |
 | Radius | `button` (4) |
 | Rules | one `primary` per view; destructive actions never icon-only; a dialog's quiet way out («Cancel») is `secondary` |
 | Keyboard | Enter and Space activate; the dialog's default button takes Enter from anywhere in the dialog |
+
+**Reviewed (2026-11-26, library-grade, § 8.0).** Against shadcn's Button: the overflow (shrink, cut, full text in
+the tooltip), the full width and the trailing icon were added; the tooltip and the disabled reason were already
+there (§ 5.17). Not here: a `loading` state (it needs a design: a spinner and whether the label stays), proposed on
+the card; the dialog's default button comes with the Dialog (§ 5.18).
 
 ### 5.3 ToggleButton
 
