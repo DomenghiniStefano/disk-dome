@@ -1,0 +1,120 @@
+// MenuButton (§ 5.16, § 5.2): a `Button` that opens a `Menu` under it (the app's «⋯», the «+» of the drive tabs,
+// the map's options). A click, Enter or Space opens it, ↓ on the first item and ↑ on the last; the button stays
+// pressed while the menu is open. Icon only, it needs its `accessible-label` (rule `icon-label`).
+
+import { Size } from "../tokens/size.slint";
+import {
+    ButtonVariant,
+    ButtonSize,
+    KitState,
+    MenuStart,
+    PopupSide,
+    PopupAlign,
+} from "../enums.slint";
+import { Nav } from "../nav.slint";
+import { Button } from "button.slint";
+import { Menu } from "menu.slint";
+import { MenuEntry } from "menu-list.slint";
+
+export component MenuButton {
+    in property <string> text;
+    in property <image> icon;
+    in property <ButtonVariant> variant: ButtonVariant.ghost;
+    in property <ButtonSize> size: ButtonSize.normal;
+    in property <bool> enabled: true;
+    in property <KitState> kit-state: KitState.live;
+
+    // The menu, as `Menu`'s own properties.
+    in property <[MenuEntry]> entries;
+    in property <PopupSide> side: PopupSide.bottom;
+    in property <PopupAlign> align: PopupAlign.start;
+    in property <length> list-min-width: Size.menu-min;
+    in property <length> list-max-width: Size.menu-max;
+    in property <bool> match-anchor-width;
+    in property <bool> wrap-around: true;
+    in property <string> empty-text;
+    in property <bool> keep-open-on-check;
+
+    out property <bool> is-open: menu.is-open;
+
+    pure callback submenu(entry: MenuEntry) -> [MenuEntry];
+    callback activated(entry: MenuEntry);
+    callback closed();
+
+    // Opens the menu under the button, highlighting `start`.
+    public function open(start: MenuStart) {
+        menu.open-for(0, 0, root.width, root.height, start);
+    }
+
+    min-width: button.min-width;
+    preferred-width: button.preferred-width;
+    max-width: button.max-width;
+    min-height: button.min-height;
+    max-height: button.max-height;
+
+    forward-focus: keys;
+    accessible-role: AccessibleRole.button;
+    accessible-label: root.text;
+    accessible-enabled: root.enabled;
+    accessible-expandable: true;
+    accessible-expanded: root.is-open;
+    accessible-action-default => {
+        root.open(MenuStart.first);
+    }
+    accessible-action-expand => {
+        root.open(MenuStart.first);
+    }
+
+    keys := FocusScope {
+        enabled: root.enabled;
+        // ↓ and ↑ arrive here unused from the button.
+        key-pressed(event) => {
+            if (event.text == Key.DownArrow) {
+                Nav.keyboard = true;
+                root.open(MenuStart.first);
+                return accept;
+            }
+            if (event.text == Key.UpArrow) {
+                Nav.keyboard = true;
+                root.open(MenuStart.last);
+                return accept;
+            }
+            return reject;
+        }
+
+        button := Button {
+            text: root.text;
+            icon: root.icon;
+            variant: root.variant;
+            size: root.size;
+            enabled: root.enabled;
+            kit-state: root.is-open ? KitState.pressed : root.kit-state;
+            accessible-label: root.accessible-label;
+            clicked => {
+                root.open(Nav.keyboard ? MenuStart.first : MenuStart.none);
+            }
+        }
+    }
+
+    menu := Menu {
+        entries: root.entries;
+        side: root.side;
+        align: root.align;
+        list-min-width: root.list-min-width;
+        list-max-width: root.list-max-width;
+        match-anchor-width: root.match-anchor-width;
+        wrap-around: root.wrap-around;
+        empty-text: root.empty-text;
+        keep-open-on-check: root.keep-open-on-check;
+        submenu(entry) => {
+            return root.submenu(entry);
+        }
+        activated(entry) => {
+            root.activated(entry);
+        }
+        closed => {
+            button.focus();
+            root.closed();
+        }
+    }
+}

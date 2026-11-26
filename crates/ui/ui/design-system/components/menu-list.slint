@@ -1,0 +1,466 @@
+// MenuList (§ 5.16): a menu's entries from data, drawn and driven by the pointer and the keyboard. Items with an
+// icon (or an empty slot, so labels line up), a hint, a shortcut and a submenu arrow; check box and radio items;
+// separators (repeated, leading and trailing ones are not drawn) and section titles. Inside a `Menu`, or on its own
+// where a list behaves like a menu (the command palette).
+//
+// Slint functions have no loops and strings no prefix test, so the walk over the entries and the type-ahead are
+// answered by Rust through `MenuNav` (`src/design_system.rs`, installed on every window).
+
+import { Size } from "../tokens/size.slint";
+import { Theme } from "../tokens/theme.slint";
+import { Motion } from "../tokens/motion.slint";
+import { TypeStep } from "../tokens/type.slint";
+import { Icons } from "../icons/icons.slint";
+import {
+    MenuEntryKind,
+    MenuItemVariant,
+    InkTone,
+    IconSize,
+} from "../enums.slint";
+import { Nav } from "../nav.slint";
+import { Label } from "label.slint";
+import { Icon } from "icon.slint";
+import { ScrollBar } from "scroll-bar.slint";
+
+// One entry. Only `kind` and `label` are needed; the rest is empty or false by default.
+export struct MenuEntry {
+    // What `activated` hands back: the screen's own key for the command.
+    id: string,
+    kind: MenuEntryKind,
+    label: string,
+    // A second text in `ink-faint` after the label (a path and a size in the command palette).
+    hint: string,
+    icon: image,
+    shortcut: string,
+    variant: MenuItemVariant,
+    disabled: bool,
+    // Why it is disabled, said in its tooltip.
+    reason: string,
+    // A check box or radio item's state; the screen owns it and changes it on `activated`.
+    checked: bool,
+    // The item opens a submenu: `Menu.submenu(entry)` gives its entries.
+    submenu: bool,
+}
+
+// The answers Slint cannot compute (`src/design_system.rs`).
+export global MenuNav {
+    // The next item from `from` going `step` entries (±1, or a page), skipping separators and titles; `wrap` goes
+    // round the ends. With no item at all, -1.
+    pure callback step(entries: [MenuEntry], from: int, step: int, wrap: bool) -> int;
+    // The first or the last item.
+    pure callback edge(entries: [MenuEntry], last: bool) -> int;
+    // The next item after `from` whose label starts with `typed` (case and accents ignored), going round; when
+    // `typed` is one letter repeated, the next one starting with it. -1 if none.
+    pure callback typeahead(entries: [MenuEntry], from: int, typed: string) -> int;
+    // Whether a key's text is a letter or digit for the type-ahead, not a control key.
+    pure callback printable(text: string) -> bool;
+    // Whether an entry is drawn: a separator is not at the start, at the end or after another separator.
+    pure callback shown(entries: [MenuEntry], index: int) -> bool;
+}
+
+global MenuLook {
+    public pure function interactive(kind: MenuEntryKind) -> bool {
+        return kind != MenuEntryKind.separator && kind != MenuEntryKind.section;
+    }
+
+    public pure function height(kind: MenuEntryKind, row: length) -> length {
+        return kind == MenuEntryKind.separator ? Size.border-hairline + 2 * Size.space-4 : row;
+    }
+
+    public pure function tone(variant: MenuItemVariant) -> InkTone {
+        return variant == MenuItemVariant.danger ? InkTone.danger : InkTone.normal;
+    }
+
+    public pure function icon-tone(variant: MenuItemVariant) -> InkTone {
+        return variant == MenuItemVariant.danger ? InkTone.danger : InkTone.muted;
+    }
+}
+
+component MenuRow {
+    in property <MenuEntry> entry;
+    in property <bool> highlighted;
+    in property <length> row-height;
+    // A separator that would not show (leading, trailing, repeated) takes no room.
+    in property <bool> shown: true;
+
+    callback hovered();
+    callback left();
+    callback clicked();
+
+    property <bool> item: MenuLook.interactive(root.entry.kind);
+    property <bool> marked: root.entry.checked
+        && (root.entry.kind == MenuEntryKind.checkbox || root.entry.kind == MenuEntryKind.radio);
+
+    min-height: root.shown ? MenuLook.height(root.entry.kind, root.row-height) : 0;
+    max-height: self.min-height;
+    // Fixed: menu rows never wrap, and a height read from the labels would loop through the popup's placement.
+    preferred-height: self.min-height;
+    preferred-width: root.item ? line.preferred-width : root.entry.kind == MenuEntryKind.section ? title.preferred-width : 0;
+    // Slint wants a constant role: an item and a section title each get their own element, a separator none.
+    if root.item && root.shown: Rectangle {
+        accessible-role: list-item;
+        accessible-label: root.entry.label;
+        accessible-description: root.entry.disabled ? root.entry.reason : root.entry.shortcut;
+        accessible-enabled: !root.entry.disabled;
+        accessible-checkable: root.entry.kind == MenuEntryKind.checkbox || root.entry.kind == MenuEntryKind.radio;
+        accessible-checked: root.marked;
+        accessible-action-default => {
+            root.clicked();
+        }
+    }
+    if root.entry.kind == MenuEntryKind.section && root.shown: Rectangle {
+        accessible-role: text;
+        accessible-label: root.entry.label;
+    }
+
+    if root.item && root.shown: Rectangle {
+        border-radius: Size.radius-item;
+        background: root.highlighted ? Theme.control-hover : transparent;
+        animate background { duration: Motion.fast; }
+    }
+
+    // Placed explicitly, so the row's size never comes from the labels (that loops through the popup's placement).
+    line := HorizontalLayout {
+        x: 0;
+        y: 0;
+        width: root.width;
+        height: root.height;
+        visible: root.item && root.shown;
+        padding-left: Size.item-pad-x;
+        padding-right: Size.item-pad-x;
+        spacing: Size.label-gap;
+        opacity: root.entry.disabled ? Size.disabled : 1;
+
+        // The leading slot: the check, the radio dot or the icon; empty, it keeps the labels in line.
+        Rectangle {
+            width: Size.icon;
+
+            if root.entry.kind == MenuEntryKind.checkbox && root.marked: Icon {
+                source: Icons.check;
+                tone: InkTone.normal;
+            }
+            if root.entry.kind == MenuEntryKind.radio && root.marked: Rectangle {
+                width: Size.radio-dot;
+                height: Size.radio-dot;
+                border-radius: Size.radio-dot / 2;
+                background: Theme.ink;
+            }
+            if root.entry.kind == MenuEntryKind.item && root.entry.icon.width > 0: Icon {
+                source: root.entry.icon;
+                tone: MenuLook.icon-tone(root.entry.variant);
+            }
+        }
+
+        Label {
+            text: root.entry.label;
+            tone: MenuLook.tone(root.entry.variant);
+            accessible-role: none;
+        }
+
+        if root.entry.hint != "": Label {
+            text: root.entry.hint;
+            step: TypeStep.caption;
+            tone: InkTone.faint;
+            horizontal-stretch: 1;
+            accessible-role: none;
+        }
+        // Without a hint, the space between the label and the shortcut.
+        if root.entry.hint == "": Rectangle {
+            horizontal-stretch: 1;
+        }
+
+        if root.entry.shortcut != "": Label {
+            text: root.entry.shortcut;
+            step: TypeStep.caption;
+            tone: InkTone.faint;
+            align: TextHorizontalAlignment.right;
+            accessible-role: none;
+        }
+
+        if root.entry.submenu: VerticalLayout {
+            alignment: center;
+
+            Icon {
+                source: Icons.chevron-right;
+                size: IconSize.small;
+                tone: InkTone.muted;
+            }
+        }
+    }
+
+    if root.entry.kind == MenuEntryKind.separator && root.shown: Rectangle {
+        y: Size.space-4;
+        height: Size.border-hairline;
+        background: Theme.line;
+    }
+
+    title := Label {
+        visible: root.entry.kind == MenuEntryKind.section && root.shown;
+        x: Size.item-pad-x;
+        width: root.width - 2 * Size.item-pad-x;
+        text: root.entry.label;
+        step: TypeStep.overline;
+        tone: InkTone.muted;
+        accessible-role: none;
+    }
+
+    if root.item && root.shown: TouchArea {
+        changed has-hover => {
+            if (self.has-hover) {
+                root.hovered();
+            } else {
+                root.left();
+            }
+        }
+        pointer-event(event) => {
+            if (event.kind == PointerEventKind.down) {
+                Nav.keyboard = false;
+            }
+        }
+        clicked => {
+            root.clicked();
+        }
+    }
+}
+
+export component MenuList {
+    in property <[MenuEntry]> entries;
+    // The highlighted item, -1 for none. Both sides write it: the pointer and the keys here, and a parent that
+    // drives the list from elsewhere (the command palette's search field moves it with the arrows).
+    in-out property <int> highlighted: -1;
+    // The arrows go round from the last item to the first.
+    in property <bool> wrap-around: true;
+    in property <length> row-height: Size.menu-item;
+    in property <length> list-min-width: Size.menu-min;
+    in property <length> list-max-width: Size.menu-max;
+    // Said when there are no entries; empty, the list is just empty.
+    in property <string> empty-text;
+    // The item whose submenu is open, kept highlighted while the pointer is in the submenu.
+    in property <int> submenu-open: -1;
+    // Raised by the menu around it to move the keyboard focus back here (a submenu closed with ← or Esc).
+    in property <int> focus-request;
+
+    // An enabled item chosen by a click, Enter or Space; an item with a submenu asks for it instead.
+    callback activated(entry: MenuEntry, index: int);
+    // The pointer rested on an item with a submenu, or → / Enter on it: open it next to the row (`row-y` in the
+    // list's own coordinates, its top edge).
+    callback submenu-requested(entry: MenuEntry, index: int, row-y: length);
+    // The pointer moved onto another item while a submenu is open.
+    callback submenu-left();
+    // A key the list does not use (Esc, ←, Tab): the menu around it decides.
+    callback key-unused(event: KeyEvent) -> EventResult;
+
+    // Typed letters, for the type-ahead; cleared after `Motion.typeahead-reset`.
+    property <string> typed;
+    // The item the pointer rests on, waiting for `Motion.submenu-delay` before its submenu opens.
+    property <int> pending: -1;
+    property <length> pending-y;
+    property <int> page: max(1, floor(root.height / root.row-height));
+    property <bool> empty: root.entries.length == 0;
+
+    min-width: root.list-min-width;
+    preferred-width: max(root.list-min-width, min(root.list-max-width, rows.preferred-width));
+    max-width: root.list-max-width;
+    min-height: min(rows.preferred-height, root.row-height);
+    preferred-height: root.empty ? root.row-height : rows.preferred-height;
+
+    forward-focus: scope;
+    accessible-role: list;
+
+    changed focus-request => {
+        scope.focus();
+    }
+
+    // Moves the highlight and keeps it in view.
+    public function highlight(index: int) {
+        root.highlighted = index;
+    }
+
+    // Highlights the first or the last item, as a menu opened from the keyboard does.
+    public function highlight-edge(last: bool) {
+        root.highlighted = MenuNav.edge(root.entries, last);
+    }
+
+    // The keys of § 5.16: also callable by a parent that keeps the focus elsewhere (a search field).
+    public function key(event: KeyEvent) -> EventResult {
+        if (event.text == Key.DownArrow) {
+            root.go(MenuNav.step(root.entries, root.highlighted, 1, root.wrap-around));
+            return accept;
+        }
+        if (event.text == Key.UpArrow) {
+            root.go(MenuNav.step(root.entries, root.highlighted, -1, root.wrap-around));
+            return accept;
+        }
+        if (event.text == Key.PageDown) {
+            root.go(MenuNav.step(root.entries, root.highlighted, root.page, false));
+            return accept;
+        }
+        if (event.text == Key.PageUp) {
+            root.go(MenuNav.step(root.entries, root.highlighted, -root.page, false));
+            return accept;
+        }
+        if (event.text == Key.Home) {
+            root.go(MenuNav.edge(root.entries, false));
+            return accept;
+        }
+        if (event.text == Key.End) {
+            root.go(MenuNav.edge(root.entries, true));
+            return accept;
+        }
+        if (event.text == Key.Return || (event.text == Key.Space && root.typed == "")) {
+            Nav.keyboard = true;
+            root.choose(root.highlighted, true);
+            return accept;
+        }
+        if (event.text == Key.RightArrow && root.has-submenu(root.highlighted)) {
+            Nav.keyboard = true;
+            root.choose(root.highlighted, true);
+            return accept;
+        }
+        if (!event.modifiers.control && !event.modifiers.alt && MenuNav.printable(event.text)) {
+            root.type(event.text);
+            return accept;
+        }
+        return root.key-unused(event);
+    }
+
+    function go(index: int) {
+        Nav.keyboard = true;
+        if (index >= 0) {
+            root.highlighted = index;
+        }
+    }
+
+    function type(text: string) {
+        root.typed += text;
+        typeahead-reset.running = false;
+        typeahead-reset.running = true;
+        root.go(MenuNav.typeahead(root.entries, root.highlighted, root.typed));
+    }
+
+    function has-submenu(index: int) -> bool {
+        return index >= 0 && index < root.entries.length && root.entries[index].submenu;
+    }
+
+    // A click or a key on an item: its submenu, or the item itself when enabled.
+    function choose(index: int, by-key: bool) {
+        if (index < 0 || index >= root.entries.length || root.entries[index].disabled) {
+            return;
+        }
+        if (!MenuLook.interactive(root.entries[index].kind)) {
+            return;
+        }
+        if (root.entries[index].submenu) {
+            root.submenu-requested(root.entries[index], index, root.row-top(index));
+            return;
+        }
+        root.activated(root.entries[index], index);
+    }
+
+    // The top of a row in the list's coordinates; `MenuRow`s tell it as they are highlighted.
+    property <length> highlighted-y;
+    function row-top(index: int) -> length {
+        return index == root.pending ? root.pending-y : root.highlighted-y;
+    }
+
+    // Keeps the highlighted row inside the visible part.
+    function reveal(top: length, height: length) {
+        if (top + flick.content-y < 0) {
+            flick.content-y = -top;
+        } else if (top + height + flick.content-y > flick.height) {
+            flick.content-y = flick.height - top - height;
+        }
+    }
+
+    typeahead-reset := Timer {
+        interval: Motion.typeahead-reset;
+        running: false;
+        triggered => {
+            self.running = false;
+            root.typed = "";
+        }
+    }
+
+    submenu-wait := Timer {
+        interval: Motion.submenu-delay;
+        running: false;
+        triggered => {
+            self.running = false;
+            if (root.pending >= 0 && root.pending == root.highlighted) {
+                root.submenu-requested(root.entries[root.pending], root.pending, root.pending-y);
+            }
+        }
+    }
+
+    scope := FocusScope {
+        key-pressed(event) => {
+            return root.key(event);
+        }
+
+        if root.empty && root.empty-text != "": Label {
+            x: Size.item-pad-x;
+            width: root.width - 2 * Size.item-pad-x;
+            height: root.row-height;
+            text: root.empty-text;
+            tone: InkTone.faint;
+        }
+
+        flick := Flickable {
+            content-height: rows.preferred-height;
+
+            rows := VerticalLayout {
+                width: flick.width;
+
+                for entry[index] in root.entries: row := MenuRow {
+                    entry: entry;
+                    row-height: root.row-height;
+                    shown: entry.kind != MenuEntryKind.separator || MenuNav.shown(root.entries, index);
+                    highlighted: index == root.highlighted || index == root.submenu-open;
+
+                    changed highlighted => {
+                        if (index == root.highlighted) {
+                            root.highlighted-y = self.y + flick.content-y;
+                            root.reveal(self.y, self.height);
+                        }
+                    }
+                    hovered => {
+                        root.highlighted = index;
+                        scope.focus();
+                        if (root.submenu-open >= 0 && root.submenu-open != index) {
+                            root.submenu-left();
+                        }
+                        if (entry.submenu && !entry.disabled) {
+                            root.pending = index;
+                            root.pending-y = self.y + flick.content-y;
+                            submenu-wait.running = false;
+                            submenu-wait.running = true;
+                        }
+                    }
+                    left => {
+                        // The pointer leaving the list clears its highlight, unless a submenu holds it.
+                        if (root.highlighted == index && root.submenu-open != index) {
+                            root.highlighted = -1;
+                        }
+                        if (root.pending == index) {
+                            root.pending = -1;
+                        }
+                    }
+                    clicked => {
+                        root.pending = index;
+                        root.pending-y = self.y + flick.content-y;
+                        root.choose(index, false);
+                    }
+                }
+            }
+        }
+
+        bar := ScrollBar {
+            x: root.width - self.width;
+            height: root.height;
+            visible: flick.content-height > flick.height;
+            value <=> flick.content-y;
+            content-length: flick.content-height;
+            visible-length: flick.height;
+        }
+    }
+}

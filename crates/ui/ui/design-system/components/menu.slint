@@ -1,0 +1,321 @@
+// Menu (§ 5.16, § 3.11): a `MenuList` in a `MenuFrame` on a `PopupWindow`, with submenus three levels deep. Opened
+// at a point (a right click) or under an anchor (a button, the focused row); it takes the preferred side, flips
+// when there is no room, stays `margin` inside the window and scrolls when it is taller than the room. Esc and ←
+// close a submenu, Esc and Tab the menu; a click outside closes it.
+//
+// Place it inside the element it opens from, outside any layout: positions are in that element's coordinates.
+// Decision 11 (2026-11-26): ours, since Slint's menu cannot take the tokens.
+
+import { Size } from "../tokens/size.slint";
+import {
+    MenuEntryKind,
+    MenuStart,
+    PopupSide,
+    PopupAlign,
+} from "../enums.slint";
+import { Placement, PopupAnchor } from "../primitives/placement.slint";
+import { Nav } from "../nav.slint";
+import { MenuFrame } from "menu-frame.slint";
+import { MenuList, MenuEntry } from "menu-list.slint";
+
+// One level: its popup, frame and list. Its state lives here, outside the popup, where the `Menu` can set it.
+component MenuLevel {
+    in property <[MenuEntry]> entries;
+    // In window coordinates.
+    in property <PopupAnchor> anchor;
+    in property <PopupSide> side;
+    in property <PopupAlign> align;
+    in property <length> gap;
+    in property <length> margin;
+    in property <length> list-min-width;
+    in property <length> list-max-width;
+    in property <bool> match-anchor-width;
+    in property <bool> wrap-around;
+    in property <length> row-height;
+    in property <string> empty-text;
+    in property <int> submenu-open: -1;
+    // The item highlighted on opening.
+    in property <MenuStart> start;
+    // Raised to move the keyboard focus back into this level's list (a submenu closed with ← or Esc).
+    in property <int> focus-request;
+
+    out property <bool> is-open: popup.is-open;
+
+    callback activated(entry: MenuEntry, index: int);
+    callback submenu-requested(entry: MenuEntry, index: int, anchor: PopupAnchor);
+    callback submenu-left();
+    callback key-unused(event: KeyEvent) -> EventResult;
+
+    public function open() {
+        popup.show();
+    }
+
+    public function close() {
+        popup.close();
+    }
+
+    width: 0;
+    height: 0;
+
+    popup := PopupWindow {
+        close-policy: PopupClosePolicy.close-on-click-outside;
+
+        property <length> wanted-width: root.match-anchor-width ? max(root.anchor.width, frame.preferred-width) : frame.preferred-width;
+        property <PopupSide> placed: Placement.side(root.anchor, self.wanted-width, frame.preferred-height, root.side, root.gap, root.margin);
+
+        width: Placement.fitted-width(root.anchor, self.wanted-width, self.placed, root.gap, root.margin);
+        height: Placement.fitted-height(root.anchor, frame.preferred-height, self.placed, root.gap, root.margin);
+        x: Placement.x(root.anchor, self.width, self.placed, root.align, root.gap, root.margin) - root.absolute-position.x;
+        y: Placement.y(root.anchor, self.height, self.placed, root.align, root.gap, root.margin) - root.absolute-position.y;
+
+        frame := MenuFrame {
+            width: parent.width;
+            height: parent.height;
+            side: popup.placed;
+
+            list := MenuList {
+                entries: root.entries;
+                wrap-around: root.wrap-around;
+                row-height: root.row-height;
+                list-min-width: root.match-anchor-width ? max(root.list-min-width, root.anchor.width) : root.list-min-width;
+                list-max-width: root.list-max-width;
+                empty-text: root.empty-text;
+                submenu-open: root.submenu-open;
+                focus-request: root.focus-request;
+
+                init => {
+                    self.focus();
+                    if (root.start != MenuStart.none) {
+                        self.highlight-edge(root.start == MenuStart.last);
+                    }
+                }
+                activated(entry, index) => {
+                    root.activated(entry, index);
+                }
+                // Inside a popup, `absolute-position` is the popup's own: the popup's place is added back.
+                submenu-requested(entry, index, row-y) => {
+                    root.submenu-requested(entry, index, {
+                        x: root.absolute-position.x + popup.x,
+                        y: root.absolute-position.y + popup.y + self.absolute-position.y + row-y - Size.menu-pad - Size.border-hairline,
+                        width: popup.width,
+                        height: root.row-height,
+                    });
+                }
+                submenu-left => {
+                    root.submenu-left();
+                }
+                key-unused(event) => {
+                    return root.key-unused(event);
+                }
+            }
+        }
+    }
+}
+
+export component Menu {
+    in property <[MenuEntry]> entries;
+    in property <PopupSide> side: PopupSide.bottom;
+    in property <PopupAlign> align: PopupAlign.start;
+    // Between the anchor and the menu; a menu at the pointer opens right at it.
+    in property <length> gap: Size.popup-gap;
+    // How far the menu stays inside the window's edges.
+    in property <length> margin: Size.popup-margin;
+    in property <length> list-min-width: Size.menu-min;
+    in property <length> list-max-width: Size.menu-max;
+    // As wide as the anchor at least (a select list under its field).
+    in property <bool> match-anchor-width;
+    in property <bool> wrap-around: true;
+    in property <length> row-height: Size.menu-item;
+    in property <string> empty-text;
+    // Check box and radio items leave the menu open, for several changes in a row (the «Columns…» menu).
+    in property <bool> keep-open-on-check;
+
+    out property <bool> is-open: level-1.is-open;
+
+    // The entries of an item's submenu.
+    pure callback submenu(entry: MenuEntry) -> [MenuEntry];
+    // An enabled item chosen, at any level.
+    callback activated(entry: MenuEntry);
+    // The menu closed, chosen or dismissed: the screen may move the focus back.
+    callback closed();
+
+    property <PopupAnchor> anchor-1;
+    property <PopupAnchor> anchor-2;
+    property <PopupAnchor> anchor-3;
+    property <[MenuEntry]> entries-2;
+    property <[MenuEntry]> entries-3;
+    property <int> open-1: -1;
+    property <int> open-2: -1;
+    property <MenuStart> start;
+    property <int> refocus-1;
+    property <int> refocus-2;
+
+    // Opens at a point in this element's coordinates: a right click.
+    public function open-at(x: length, y: length) {
+        root.show({ x: root.absolute-position.x + x, y: root.absolute-position.y + y, width: 0, height: 0 }, MenuStart.none);
+    }
+
+    // Opens beside a rectangle in this element's coordinates (a button: 0, 0 and its size), highlighting `start`.
+    public function open-for(x: length, y: length, width: length, height: length, start: MenuStart) {
+        root.show({
+            x: root.absolute-position.x + x,
+            y: root.absolute-position.y + y,
+            width: width,
+            height: height
+        }, start);
+    }
+
+    public function close() {
+        root.close-from(1);
+    }
+
+    function show(anchor: PopupAnchor, start: MenuStart) {
+        root.close-from(1);
+        root.anchor-1 = anchor;
+        root.start = start;
+        level-1.open();
+    }
+
+    // Closes a level and the ones above it.
+    function close-from(level: int) {
+        level-3.close();
+        root.open-2 = -1;
+        if (level <= 2) {
+            level-2.close();
+            root.open-1 = -1;
+        }
+        if (level <= 1) {
+            level-1.close();
+        }
+    }
+
+    function chosen(entry: MenuEntry) {
+        root.activated(entry);
+        if (!root.keep-open-on-check || (entry.kind != MenuEntryKind.checkbox && entry.kind != MenuEntryKind.radio)) {
+            root.close-from(1);
+        }
+    }
+
+    // Esc and Tab close the menu; at a submenu, Esc and ← close that level only.
+    function unused-key(level: int, event: KeyEvent) -> EventResult {
+        if (event.text == Key.Tab || (level == 1 && event.text == Key.Escape)) {
+            root.close-from(1);
+            return accept;
+        }
+        if (level > 1 && (event.text == Key.Escape || event.text == Key.LeftArrow)) {
+            root.close-from(level);
+            if (level == 2) {
+                root.refocus-1 += 1;
+            } else {
+                root.refocus-2 += 1;
+            }
+            return accept;
+        }
+        return reject;
+    }
+
+    // It covers the element it sits in, so its own coordinates are that element's (a 0-sized element would be
+    // centred in it); it takes no pointer event.
+    width: 100%;
+    height: 100%;
+
+    changed is-open => {
+        if (!self.is-open) {
+            root.close-from(2);
+            root.closed();
+        }
+    }
+
+    level-1 := MenuLevel {
+        entries: root.entries;
+        anchor: root.anchor-1;
+        side: root.side;
+        align: root.align;
+        gap: root.anchor-1.width == 0 && root.anchor-1.height == 0 ? 0 : root.gap;
+        margin: root.margin;
+        list-min-width: root.list-min-width;
+        list-max-width: root.list-max-width;
+        match-anchor-width: root.match-anchor-width;
+        wrap-around: root.wrap-around;
+        row-height: root.row-height;
+        empty-text: root.empty-text;
+        submenu-open: root.open-1;
+        start: root.start;
+        focus-request: root.refocus-1;
+
+        activated(entry, index) => {
+            root.chosen(entry);
+        }
+        submenu-requested(entry, index, anchor) => {
+            root.close-from(2);
+            root.open-1 = index;
+            root.entries-2 = root.submenu(entry);
+            root.anchor-2 = anchor;
+            level-2.open();
+        }
+        submenu-left => {
+            root.close-from(2);
+        }
+        key-unused(event) => {
+            return root.unused-key(1, event);
+        }
+    }
+
+    // Submenus open to the right of their item, to the left at the window's right edge; their first item lines up
+    // with it, so they overlap the parent's padding.
+    level-2 := MenuLevel {
+        entries: root.entries-2;
+        anchor: root.anchor-2;
+        side: PopupSide.right;
+        align: PopupAlign.start;
+        gap: -Size.menu-pad;
+        margin: root.margin;
+        list-min-width: root.list-min-width;
+        list-max-width: root.list-max-width;
+        wrap-around: root.wrap-around;
+        row-height: root.row-height;
+        submenu-open: root.open-2;
+        // A submenu opened from the keyboard starts on its first item.
+        start: Nav.keyboard ? MenuStart.first : MenuStart.none;
+        focus-request: root.refocus-2;
+
+        activated(entry, index) => {
+            root.chosen(entry);
+        }
+        submenu-requested(entry, index, anchor) => {
+            root.close-from(3);
+            root.open-2 = index;
+            root.entries-3 = root.submenu(entry);
+            root.anchor-3 = anchor;
+            level-3.open();
+        }
+        submenu-left => {
+            root.close-from(3);
+        }
+        key-unused(event) => {
+            return root.unused-key(2, event);
+        }
+    }
+
+    level-3 := MenuLevel {
+        entries: root.entries-3;
+        anchor: root.anchor-3;
+        side: PopupSide.right;
+        align: PopupAlign.start;
+        gap: -Size.menu-pad;
+        margin: root.margin;
+        list-min-width: root.list-min-width;
+        list-max-width: root.list-max-width;
+        wrap-around: root.wrap-around;
+        row-height: root.row-height;
+        // A submenu opened from the keyboard starts on its first item.
+        start: Nav.keyboard ? MenuStart.first : MenuStart.none;
+
+        activated(entry, index) => {
+            root.chosen(entry);
+        }
+        key-unused(event) => {
+            return root.unused-key(3, event);
+        }
+    }
+}

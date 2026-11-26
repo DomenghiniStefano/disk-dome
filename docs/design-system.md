@@ -1148,6 +1148,19 @@ style's colours are fixed, the menu stays light in our dark theme, radius 7, at 
 shortcut text outside a menu bar, no `danger` item, no section title). Decision 11 (owner, 2026-11-26): `Menu` is ours on a `PopupWindow`, with the same keyboard behaviour (arrows, Enter, Esc,
 → / ← for submenus, the Menu key and Shift+F10 to open).
 
+**Built (2026-11-26, library-grade, § 8.0).** `MenuFrame` is the level-1 surface with free content (the map's
+options, the DrivePicker); `MenuList` draws `[MenuEntry]` (`kind`: item, checkbox, radio, separator, section; `icon`,
+`hint`, `shortcut`, `variant`, `disabled` with its `reason`, `checked`, `submenu`), hides leading, trailing and
+repeated separators, elides long labels and scrolls; `Menu` is the popup, three levels deep, placed by `Placement`
+(§ 3.11: `side`, `align`, `gap`, `margin`, flip, shift, cut to the room), with `list-min-width` / `list-max-width`,
+`match-anchor-width`, `wrap-around`, `row-height`, `empty-text`, `keep-open-on-check`; `ContextMenu` asks for a menu
+on a right click (where its content does not take the pointer itself), the Menu key and Shift+F10; `MenuButton`
+opens one under a button (↓ on the first item, ↑ on the last) and takes the focus back when it closes. Keys: ↑ ↓
+(skipping separators and titles, going round), Home, End, PgUp, PgDn, type-ahead, Enter and Space, → and ← for
+submenus, Esc (the top level only) and Tab; a disabled item is highlighted but not chosen, as in Windows. Still
+open on the card: the tooltip with a disabled item's reason and a cut label's full text (Tooltip card), the exit
+fade (Slint closes a popup at once), touch long press.
+
 ### 5.17 Tooltip
 
 `raised`, `edge`, radius `panel`, `tooltip-pad`, `caption` `ink`, max 320 wide, wraps. After 500 ms of rest

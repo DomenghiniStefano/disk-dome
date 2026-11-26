@@ -18,6 +18,7 @@ pub fn run() -> Result<(), slint::PlatformError> {
 /// The Kit with its review board counted, not yet shown.
 pub fn open() -> Result<KitWindow, slint::PlatformError> {
     let kit = KitWindow::new()?;
+    crate::design_system::install(&kit);
     count_review(&kit);
     let search = kit.global::<KitSearch>();
     search.on_matches(|title, query, match_case, regex| {

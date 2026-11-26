@@ -86,6 +86,13 @@ export global Size {
     out property <length> menu-min: 200px;
     out property <length> menu-max: 360px;
     out property <length> tooltip-max: 320px;
+    // Popups stay this far inside the window's edges (§ 3.11).
+    out property <length> popup-margin: 8px;
+    // Pending design: the gap between a popup and the button that opened it (§ 3.11 gives 4 px for the status
+    // bar's popovers only).
+    out property <length> popup-gap: 4px;
+    // Pending design: the radio item's dot (§ 5.16 names the item, not its mark).
+    out property <length> radio-dot: 6px;
     out property <length> toast-w: 360px;
 
     // Window (§ 2.1)
@@ -106,6 +113,8 @@ export global Size {
     out property <length> radius-panel: 4px;
     out property <length> radius-swatch: 2px;
     out property <length> radius-bar: 1px;
+    // Pending design: the highlight of a menu or list item (§ 5.16 gives its colour, not its corners).
+    out property <length> radius-item: 2px;
 
     // Borders and focus (§ 3.7)
     out property <length> border-hairline: 1px;

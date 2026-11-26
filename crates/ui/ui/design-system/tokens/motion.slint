@@ -13,6 +13,10 @@ export global Motion {
     out property <duration> scrollbar-linger: 1000ms;
     // A tooltip waits for the mouse to rest even with reduced motion; on keyboard focus it shows at once.
     out property <duration> tooltip-delay: 500ms;
+    // Pending design: how long the pointer rests on an item before its submenu opens (Windows' default, 400 ms).
+    out property <duration> submenu-delay: 400ms;
+    // Pending design: letters typed within this time make one search in a menu; a longer pause starts a new one.
+    out property <duration> typeahead-reset: 1000ms;
     // The unit the Kit shows durations in (§ 9): a duration divided by it is its number of milliseconds.
     out property <duration> unit: 1ms;
     out property <easing> ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);

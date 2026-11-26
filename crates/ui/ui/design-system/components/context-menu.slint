@@ -1,0 +1,50 @@
+// ContextMenu (§ 5.16, § 6.2): the area that asks for a context menu: a right click on it, or the Menu key and
+// Shift+F10 while the focus is inside it. It holds its content and says where; the screen opens its `Menu` there:
+//
+//     ContextMenu {
+//         requested(x, y) => { menu.open-at(x, y); }
+//         menu := Menu { entries: …; activated(entry) => { … } }
+//         … the content …
+//     }
+//
+// The area sits behind its content: a child that takes the pointer itself (a button, a table row) gets the right
+// click first and opens the menu from its own handler, as the table does for the row under the pointer.
+
+import { Nav } from "../nav.slint";
+
+export component ContextMenu {
+    in property <bool> enabled: true;
+    // Where the keyboard opens the menu, in the area's coordinates; the table sets it to its cursor row.
+    in property <length> key-x;
+    in property <length> key-y;
+
+    // A menu is wanted at this point of the area.
+    callback requested(x: length, y: length);
+
+    forward-focus: keys;
+
+    TouchArea {
+        enabled: root.enabled;
+        pointer-event(event) => {
+            if (event.button == PointerEventButton.right && event.kind == PointerEventKind.up) {
+                Nav.keyboard = false;
+                root.requested(self.mouse-x, self.mouse-y);
+            }
+        }
+    }
+
+    keys := FocusScope {
+        enabled: root.enabled;
+        // The focused child's unused keys arrive here.
+        key-pressed(event) => {
+            if (event.text == Key.Menu || (event.text == Key.F10 && event.modifiers.shift)) {
+                Nav.keyboard = true;
+                root.requested(root.key-x, root.key-y);
+                return accept;
+            }
+            return reject;
+        }
+
+        @children
+    }
+}

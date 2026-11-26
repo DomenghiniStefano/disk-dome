@@ -1,0 +1,129 @@
+// Where a popup goes (§ 3.11): on the preferred side of its anchor, or the opposite side when it does not fit; lined
+// up with the anchor, then moved to stay `margin` inside the window; never longer than the room on its side, so a
+// longer content scrolls. Menus, select lists, tooltips and popovers all place themselves here.
+//
+// Not a component of the design system: screens never use it (it is not exported from `index.slint`).
+
+import { PopupSide, PopupAlign } from "../enums.slint";
+
+// The window's size, for the popups' collisions. `DesignWindow` sets it; with no size known (0), popups are not
+// moved and Slint only keeps them inside the window.
+export global Viewport {
+    in-out property <length> width;
+    in-out property <length> height;
+}
+
+// A rectangle in window coordinates: a popup's anchor. A pointer is a rectangle of no size.
+export struct PopupAnchor {
+    x: length,
+    y: length,
+    width: length,
+    height: length,
+}
+
+export global Placement {
+    property <bool> known: Viewport.width > 0 && Viewport.height > 0;
+
+    public pure function vertical(side: PopupSide) -> bool {
+        return side == PopupSide.bottom || side == PopupSide.top;
+    }
+
+    public pure function opposite(side: PopupSide) -> PopupSide {
+        return side == PopupSide.bottom ? PopupSide.top
+            : side == PopupSide.top ? PopupSide.bottom
+            : side == PopupSide.right ? PopupSide.left
+            : PopupSide.right;
+    }
+
+    // The room between the anchor (plus the gap) and the window's edge, margin taken off, on one side.
+    public pure function room(anchor: PopupAnchor, side: PopupSide, gap: length, margin: length) -> length {
+        if (!known) {
+            return vertical(side) ? Viewport.height : Viewport.width;
+        }
+        if (side == PopupSide.bottom) {
+            return max(0, Viewport.height - margin - (anchor.y + anchor.height + gap));
+        }
+        if (side == PopupSide.top) {
+            return max(0, anchor.y - gap - margin);
+        }
+        if (side == PopupSide.right) {
+            return max(0, Viewport.width - margin - (anchor.x + anchor.width + gap));
+        }
+        return max(0, anchor.x - gap - margin);
+    }
+
+    // The room across the side: the window less its margins, for a popup's width under a button.
+    public pure function span(side: PopupSide, margin: length) -> length {
+        return vertical(side) ? Viewport.width - 2 * margin : Viewport.height - 2 * margin;
+    }
+
+    // The side the popup opens on: the preferred one if the content fits, else the opposite one if it fits there,
+    // else whichever has more room (the content then scrolls).
+    public pure function side(anchor: PopupAnchor, width: length, height: length, prefer: PopupSide, gap: length, margin: length) -> PopupSide {
+        if (!known) {
+            return prefer;
+        }
+        return resolve(
+            prefer,
+            vertical(prefer) ? height : width,
+            room(anchor, prefer, gap, margin),
+            room(anchor, opposite(prefer), gap, margin));
+    }
+
+    pure function resolve(prefer: PopupSide, need: length, here: length, there: length) -> PopupSide {
+        return need <= here ? prefer : need <= there ? opposite(prefer) : here >= there ? prefer : opposite(prefer);
+    }
+
+    // The popup's height, cut to the room there: on its side for a top or bottom popup, the whole window for a
+    // left or right one.
+    public pure function fitted-height(anchor: PopupAnchor, height: length, side: PopupSide, gap: length, margin: length) -> length {
+        if (!known) {
+            return height;
+        }
+        return min(height, vertical(side) ? room(anchor, side, gap, margin) : span(side, margin));
+    }
+
+    // The popup's width, cut the same way.
+    public pure function fitted-width(anchor: PopupAnchor, width: length, side: PopupSide, gap: length, margin: length) -> length {
+        if (!known) {
+            return width;
+        }
+        return min(width, vertical(side) ? span(side, margin) : room(anchor, side, gap, margin));
+    }
+
+    // The popup's top-left corner in window coordinates, for its final width and height.
+    public pure function x(anchor: PopupAnchor, width: length, side: PopupSide, align: PopupAlign, gap: length, margin: length) -> length {
+        if (side == PopupSide.right) {
+            return anchor.x + anchor.width + gap;
+        }
+        if (side == PopupSide.left) {
+            return anchor.x - gap - width;
+        }
+        return shift(lined-up(anchor.x, anchor.width, width, align), width, Viewport.width, margin);
+    }
+
+    public pure function y(anchor: PopupAnchor, height: length, side: PopupSide, align: PopupAlign, gap: length, margin: length) -> length {
+        if (side == PopupSide.bottom) {
+            return anchor.y + anchor.height + gap;
+        }
+        if (side == PopupSide.top) {
+            return anchor.y - gap - height;
+        }
+        return shift(lined-up(anchor.y, anchor.height, height, align), height, Viewport.height, margin);
+    }
+
+    // Along the anchor: its start edge, its centre or its end edge.
+    pure function lined-up(start: length, span: length, size: length, align: PopupAlign) -> length {
+        return align == PopupAlign.start ? start
+            : align == PopupAlign.center ? start + (span - size) / 2
+            : start + span - size;
+    }
+
+    // Moved back inside the window, `margin` from its edges; a popup longer than the window keeps its start edge.
+    pure function shift(position: length, size: length, limit: length, margin: length) -> length {
+        if (!known) {
+            return position;
+        }
+        return max(margin, min(position, limit - margin - size));
+    }
+}

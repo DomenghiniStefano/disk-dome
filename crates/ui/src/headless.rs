@@ -83,6 +83,27 @@ impl Headless {
             .dispatch_event(WindowEvent::PointerReleased { position, button });
     }
 
+    /// A key pressed while a modifier is held (Shift+F10).
+    pub fn press_key_with(&self, modifier: slint::platform::Key, key: slint::platform::Key) {
+        let held = SharedString::from(modifier);
+        self.window
+            .dispatch_event(WindowEvent::KeyPressed { text: held.clone() });
+        self.press_key(key);
+        self.window
+            .dispatch_event(WindowEvent::KeyReleased { text: held });
+    }
+
+    /// Types text, one key per character (a menu's type-ahead).
+    pub fn type_text(&self, text: &str) {
+        for c in text.chars() {
+            let text = SharedString::from(c.to_string().as_str());
+            self.window
+                .dispatch_event(WindowEvent::KeyPressed { text: text.clone() });
+            self.window
+                .dispatch_event(WindowEvent::KeyReleased { text });
+        }
+    }
+
     /// Moves the pointer to a point, without pressing.
     pub fn hover(&self, x: f32, y: f32) {
         let position = LogicalPosition::new(x, y);

@@ -1,0 +1,20 @@
+// DesignWindow (§ 3.11): the window every screen and the Kit inherit. It gives the window its ground and tells the
+// popups its size, so menus, tooltips and popovers stay inside it and flip when there is no room.
+
+import { Theme } from "../tokens/theme.slint";
+import { Viewport } from "../primitives/placement.slint";
+
+export component DesignWindow inherits Window {
+    background: Theme.bg;
+
+    init => {
+        Viewport.width = self.width;
+        Viewport.height = self.height;
+    }
+    changed width => {
+        Viewport.width = self.width;
+    }
+    changed height => {
+        Viewport.height = self.height;
+    }
+}

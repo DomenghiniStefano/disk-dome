@@ -12,6 +12,7 @@ pub mod generated {
     slint::include_modules!();
 }
 
+pub mod design_system;
 pub mod headless;
 #[cfg(feature = "kit")]
 pub mod kit;
