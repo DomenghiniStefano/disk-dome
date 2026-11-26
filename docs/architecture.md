@@ -12,7 +12,8 @@ fields, text).
 | `crates/scan-ntfs` | `diskdome-scan-ntfs` | Windows: reads the `$MFT` directly with `windows-rs`, parses it in parallel with `rayon`; empty on other platforms |
 | `crates/scan-fs` | `diskdome-scan-fs` | other drives, single folders, network paths, the no-admin mode and macOS: parallel directory walk (`getattrlistbulk` on macOS) |
 | `crates/treemap` | `diskdome-treemap` | squarified layout and its rendering into a pixel buffer |
-| `crates/ui` | `diskdome-ui` (binary `diskdome`) | the Slint app: design system, screens, a lazy `Model` that serves only the visible rows |
+| `crates/ui` | `diskdome-ui` (binary `diskdome`) | the Slint app: screens, the Kit, a lazy `Model` that serves only the visible rows |
+| `crates/dome-ui` | `dome-ui` | the design system, Dome UI: tokens, primitives and components as a Slint library (`ui/`, imported as `@dome-ui`) and their Rust half; nothing specific to DiskDome, for every Dome app |
 | `crates/cli` | `diskdome-cli` | scan benchmarks and exports; every engine change is measured here |
 | `crates/platform` | `diskdome-platform` | OS services outside the scanners: process memory, the window's own title bar (spike of card 4.T1), the shell actions later |
 

@@ -1,8 +1,20 @@
-# Design system
+# Dome UI
 
-The Slint side of `docs/design-system.md`, which holds every value and the reasons.
+The design system of the Dome apps (`docs/design-system.md`, which holds every value and the reasons): a Slint library
+with its Rust half. Nothing in it is specific to DiskDome; it moves to its own repository with the second Dome app
+(card https://trello.com/c/9yiz5cgx), and the name is provisional.
 
-- `index.slint` — the only file screens and `app.slint` import from.
+Using it from an app:
+
+- `build.rs`: `with_library_paths({"dome-ui": "<path>/crates/dome-ui/ui/slint-project.json"})`; the `.slint` files
+  import `from "@dome-ui"`. The project file makes every other file private: the compiler refuses them.
+- Rust: depend on `dome-ui`, then `dome_ui::menu_nav!(MenuNav, MenuEntry, MenuEntryKind);` in one module (with the
+  app's generated types in scope) writes `install(window)`; every window calls it once.
+- Translations: the components' `@tr` strings are compiled with the app and go in the app's `.po`.
+
+The Slint half, in `ui/`:
+
+- `index.slint` — the only file an app imports, as `@dome-ui`.
 - `tokens/` — typed globals, the only place with literal colours, lengths and durations:
   `Theme` (colours per theme), `Data` (file categories, age), `Size` (spacing, sizes, density, radii, borders,
   opacity, layers), `Type` (font and type steps), `Motion` (durations, easing).
@@ -19,11 +31,11 @@ The Slint side of `docs/design-system.md`, which holds every value and the reaso
   Shift+F10), `MenuButton`, and the tooltip (§ 5.17): `Tooltip` (inside a control; `Button` and `ToggleButton`
   have it through `tooltip`) and `TooltipBubble`, drawn by `DesignWindow` from `primitives/tooltip-layer.slint`.
 - `MenuNav` (in `menu-list.slint`) — what Slint cannot compute (no loops, no prefix test): the walk over a menu's
-  entries and its type-ahead, answered by `src/design_system.rs`. Every window calls `design_system::install`.
+  entries, its type-ahead and `toggled`, answered by `src/menu.rs` and wired by `menu_nav!`.
 - `primitives/` — the behaviour components share, never used by screens: `FocusTarget` (one keyboard stop),
   `Pressable` (pointer + keyboard, the states of § 5), `FocusRing`, `TextEntry` (the one editable text, which like
   `Label` sets font properties), `placement.slint` (`Viewport` and `Placement`: where a popup goes, § 3.11).
-- `kit/` — the Kit window (§ 9): `cargo run -p diskdome-ui --features kit -- --kit`. `kit.slint` holds the window
+- The Kit window (§ 9) lives in the app, `crates/ui/ui/kit/`: `cargo run -p diskdome-ui --features kit -- --kit`. `kit.slint` holds the window
   and the component sections (every component shows each state through `kit-state: KitState`, Kit only; screens
   leave it `live`); `kit-tokens.slint` draws every token (a new token gets its line in `KitTokenData`, shown in
   units of `Size.unit` and `Motion.unit`); `kit-review.slint` is the review board (`KitReview.issues`, «Now» and

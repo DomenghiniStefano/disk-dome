@@ -1,11 +1,11 @@
 // Placeholder window: it proves the Slint toolchain builds on every platform.
-// The real screens arrive with step 4 of the plan, built only from `design-system/index.slint`.
+// The real screens arrive with step 4 of the plan, built only from the design system, `@dome-ui`.
 // User-visible text always goes through @tr() (English source, Italian translation).
 
-import { Size, DesignWindow } from "design-system/index.slint";
+import { Size, DesignWindow } from "@dome-ui";
 
 // Answered by Rust on every window (`src/design_system.rs`).
-export { MenuNav } from "design-system/index.slint";
+export { MenuNav } from "@dome-ui";
 
 export component MainWindow inherits DesignWindow {
     title: @tr("DiskDome");

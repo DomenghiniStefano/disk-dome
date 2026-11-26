@@ -978,6 +978,7 @@ dependencies = [
  "diskdome-core",
  "diskdome-platform",
  "diskdome-treemap",
+ "dome-ui",
  "raw-window-handle",
  "rayon",
  "regex",
@@ -1029,6 +1030,10 @@ checksum = "d4b8a88685455ed29a21542a33abd9cb6510b6b129abadabdcef0f4c55bc8f61"
 dependencies = [
  "litrs",
 ]
+
+[[package]]
+name = "dome-ui"
+version = "0.1.0"
 
 [[package]]
 name = "downcast-rs"

@@ -1,0 +1,11 @@
+[package]
+name = "dome-ui"
+description = "The Dome apps' design system for Slint: tokens, primitives and components (ui/), and their Rust half."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true

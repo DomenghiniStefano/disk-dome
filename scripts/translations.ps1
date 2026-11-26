@@ -11,7 +11,8 @@ $po = Join-Path $ui 'lang\it\LC_MESSAGES\diskdome-ui.po'
 
 Push-Location $ui
 try {
-    $sources = Get-ChildItem -Path ui -Recurse -Filter *.slint | ForEach-Object { Resolve-Path -Relative $_.FullName }
+    # The app's sources and the design system's (`@dome-ui`), compiled into the app with its translation.
+    $sources = Get-ChildItem -Path ui, ..\dome-ui\ui -Recurse -Filter *.slint | ForEach-Object { Resolve-Path -Relative $_.FullName }
     & slint-tr-extractor --join-existing --default-domain diskdome-ui -o $po @sources
     if ($LASTEXITCODE -ne 0) { throw 'slint-tr-extractor failed' }
 } finally {

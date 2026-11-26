@@ -60,9 +60,11 @@ fn unescape(text: &str) -> String {
     text.replace("\\\"", "\"").replace("\\\\", "\\")
 }
 
+/// The app's sources and the design system's (`@dome-ui`): both are compiled into the app, with its translation.
 fn sources() -> BTreeSet<Key> {
-    slint_files(&manifest().join("ui"))
+    [manifest().join("ui"), manifest().join("../dome-ui/ui")]
         .iter()
+        .flat_map(|dir| slint_files(dir))
         .flat_map(|path| source_keys(&fs::read_to_string(path).expect("test data is valid")))
         .collect()
 }
