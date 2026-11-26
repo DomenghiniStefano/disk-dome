@@ -1168,7 +1168,19 @@ with the mouse, at once on keyboard focus; never on rows of the table (they have
 (it has its header). Slint 1.19's `Tooltip` element takes our tokens when it is given our content instead of a
 `text` (test 8, 2026-11-26), but it shows on hover only (never on keyboard focus), after a fixed 500 ms, beside the
 pointer, without the fade and rise; with a `text` it draws the style's own light box. Decision 11 (owner,
-2026-11-26): the tooltip is ours on a `PopupWindow`, with the keyboard behaviour above.
+2026-11-26): the tooltip is ours, with the keyboard behaviour above.
+
+**Built (2026-11-26, library-grade, § 8.0).** Not on a `PopupWindow`: Slint gives every popup but its own tooltip
+the keyboard focus, so ours would take it from the control it describes and from a field being typed in. A
+`Tooltip` inside the control writes the window's one tooltip (`TooltipLayer`), and `DesignWindow` draws it as its
+last layer, over every content, with no pointer area. It opens after `delay` (`tooltip-delay`), at once on keyboard
+focus and at once again within `skip-delay` of another one closing (`tooltip-skip`, as Radix); it closes when the
+pointer leaves and the focus goes, on a press and with Esc; over a disabled control it watches the pointer itself,
+to give the reason. Placed by `Placement` (`side`, `align`, `gap`, `margin`, flip and shift; bottom and centred by
+default), at most `max-bubble-width` wide, wrapping. `TooltipBubble` is the bubble: text, an optional shortcut, free
+content. `Button` and `ToggleButton` take `tooltip` and `tooltip-shortcut`; an icon-only one says its
+`accessible-label` by default, and the tooltip is also its `accessible-description`. Still open: a tooltip inside a
+popup (a menu item's reason) is drawn under the popup; scrolling does not close it yet.
 
 ### 5.18 Dialog
 

@@ -1,0 +1,135 @@
+// Tooltip (§ 5.17, § 3.11): what a control says on hover and keyboard focus. It opens after `delay` with the pointer
+// resting on the control, at once on keyboard focus, and at once again when another tooltip has just closed
+// (`skip-delay`, as Radix); it closes when the pointer leaves and the focus goes, on a press, and with Esc (the
+// control calls `dismiss`). Placed like every popup: the preferred side, flipped when there is no room, kept
+// `margin` inside the window, never over the control. It works on a disabled control, to say why.
+//
+// It sits inside the control, covering it, and is told the control's state; `Button` and `ToggleButton` have it
+// through their `tooltip` property. The bubble itself is drawn by `DesignWindow` (`TooltipLayer`), so there is one
+// at a time and it never takes the focus. Decision 11 (2026-11-26): ours, since Slint's opens on hover only.
+
+import { Size } from "../tokens/size.slint";
+import { Motion } from "../tokens/motion.slint";
+import { PopupSide, PopupAlign } from "../enums.slint";
+import { TooltipLayer } from "../primitives/tooltip-layer.slint";
+
+export component Tooltip {
+    in property <string> text;
+    in property <string> shortcut;
+    in property <bool> enabled: true;
+    // The control's state: the pointer over it, its keyboard focus (shown with the ring), a press on it.
+    in property <bool> hovered;
+    in property <bool> focused;
+    in property <bool> pressed;
+    // A disabled control's own pointer area is off: the tooltip then watches the pointer itself.
+    in property <bool> watch-pointer;
+    in property <PopupSide> side: PopupSide.bottom;
+    in property <PopupAlign> align: PopupAlign.center;
+    in property <length> gap: Size.popup-gap;
+    in property <length> margin: Size.popup-margin;
+    in property <length> max-bubble-width: Size.tooltip-max;
+    in property <duration> delay: Motion.tooltip-delay;
+    in property <duration> skip-delay: Motion.tooltip-skip;
+
+    out property <bool> shown: root.id > 0 && TooltipLayer.owner == root.id;
+
+    // Esc, or anything that should put it away until the pointer and the focus have left.
+    public function dismiss() {
+        root.dismissed = true;
+    }
+
+    property <int> id;
+    property <bool> dismissed;
+    property <bool> pointer: root.hovered || (root.watch-pointer && area.has-hover);
+    property <bool> asked: root.pointer || root.focused;
+    property <bool> wanted: root.enabled && (root.text != "" || root.shortcut != "") && root.asked && !root.dismissed;
+
+    // It covers the control it sits in; it takes no pointer event unless it watches the pointer for a disabled
+    // control.
+    width: 100%;
+    height: 100%;
+
+    init => {
+        TooltipLayer.last-id += 1;
+        root.id = TooltipLayer.last-id;
+    }
+
+    changed wanted => {
+        if (!self.wanted) {
+            wait.running = false;
+            root.hide();
+        } else if (root.focused || TooltipLayer.warm) {
+            root.show();
+        } else {
+            wait.running = true;
+        }
+    }
+    changed pressed => {
+        if (self.pressed) {
+            root.dismiss();
+        }
+    }
+    changed asked => {
+        if (!self.asked) {
+            root.dismissed = false;
+        }
+    }
+    // The text can change while it shows (a reason that changes).
+    changed text => {
+        if (root.shown) {
+            TooltipLayer.text = self.text;
+        }
+    }
+
+    function show() {
+        TooltipLayer.text = root.text;
+        TooltipLayer.shortcut = root.shortcut;
+        TooltipLayer.anchor = {
+            x: root.absolute-position.x,
+            y: root.absolute-position.y,
+            width: root.width,
+            height: root.height,
+        };
+        TooltipLayer.side = root.side;
+        TooltipLayer.align = root.align;
+        TooltipLayer.gap = root.gap;
+        TooltipLayer.margin = root.margin;
+        TooltipLayer.max-width = root.max-bubble-width;
+        TooltipLayer.owner = root.id;
+        TooltipLayer.warm = true;
+        cool.running = false;
+    }
+
+    function hide() {
+        if (root.shown) {
+            TooltipLayer.owner = 0;
+            cool.running = true;
+        }
+    }
+
+    wait := Timer {
+        interval: root.delay;
+        running: false;
+        triggered => {
+            self.running = false;
+            if (root.wanted) {
+                root.show();
+            }
+        }
+    }
+
+    cool := Timer {
+        interval: root.skip-delay;
+        running: false;
+        triggered => {
+            self.running = false;
+            if (TooltipLayer.owner == 0) {
+                TooltipLayer.warm = false;
+            }
+        }
+    }
+
+    area := TouchArea {
+        enabled: root.watch-pointer;
+    }
+}

@@ -16,6 +16,7 @@ import { Pressable } from "../primitives/pressable.slint";
 import { FocusRing } from "../primitives/focus-ring.slint";
 import { Label } from "label.slint";
 import { Icon } from "icon.slint";
+import { Tooltip } from "tooltip.slint";
 
 // Variant and size → look. One place, so the Kit and the screens can never disagree.
 global ButtonLook {
@@ -61,11 +62,19 @@ export component Button {
     in property <bool> enabled: true;
     // The Kit window only (§ 9).
     in property <KitState> kit-state: KitState.live;
+    // Said on hover and keyboard focus (§ 5.17); an icon-only button says its `accessible-label` when this is empty.
+    // On a disabled button, the reason.
+    in property <string> tooltip;
+    in property <string> tooltip-shortcut;
+
+    // Whether its tooltip is showing (the tests read it).
+    out property <bool> tooltip-shown: tip.shown;
 
     callback clicked;
 
     property <bool> has-text: root.text != "";
     property <bool> has-icon: root.icon.width > 0;
+    property <bool> icon-only: root.has-icon && !root.has-text;
     property <bool> hero: root.size == ButtonSize.hero;
     property <length> pad-x: root.hero ? Size.button-pad-x-hero : Size.button-pad-x;
     property <length> min-w: root.hero ? Size.button-hero-min-w : Size.button-min-w;
@@ -81,6 +90,7 @@ export component Button {
     accessible-role: button;
     accessible-label: root.text;
     accessible-enabled: root.enabled;
+    accessible-description: root.tooltip;
     accessible-action-default => {
         root.clicked();
     }
@@ -125,5 +135,23 @@ export component Button {
         activated => {
             root.clicked();
         }
+        // Esc puts the tooltip away (§ 5.17); other keys are not the button's.
+        key-pressed(event) => {
+            if (event.text == Key.Escape && tip.shown) {
+                tip.dismiss();
+                return accept;
+            }
+            return reject;
+        }
+    }
+
+    // After the pointer area, so over a disabled button it can watch the pointer itself.
+    tip := Tooltip {
+        text: root.tooltip != "" ? root.tooltip : root.icon-only ? root.accessible-label : "";
+        shortcut: root.tooltip-shortcut;
+        hovered: root.kit-state == KitState.live && pressable.hovered;
+        focused: root.kit-state == KitState.live && pressable.show-focus;
+        pressed: pressable.pressed;
+        watch-pointer: !root.enabled;
     }
 }
