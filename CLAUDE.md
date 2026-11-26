@@ -31,7 +31,12 @@ entries, NVMe Gen4): scan ≤ 8 s and memory ≤ 1.5 GB, against WizTree's 24 s 
   Names in code in English.
 - **User interface: never hardcoded.** Every user-visible string goes through `@tr()` in the `.slint` files
   (English source, Italian translation). The language follows the OS locale by default (anything that is not
-  Italian gets English); Settings › General can force Italian or English.
+  Italian gets English); Settings › General can force Italian or English (`slint::select_bundled_translation`).
+- **Translations**: the Italian `.po` is `crates/ui/lang/it/LC_MESSAGES/diskdome-ui.po`, built into the binary.
+  A new `@tr` string: `./scripts/translations.ps1` adds it, then translate it by hand; `tests/translations.rs`
+  fails on a string missing, untranslated or no longer used. Plurals always as
+  `@tr("{n} file" | "{n} files" % count)`, never built from pieces; the same English word with two meanings gets
+  a context, `@tr("Menu" => "Open")` (otherwise the context is the enclosing component).
 - The engine sends **structured data, never sentences**: errors are codes with values, turned into text by the
   interface. A path or an OS message goes to the log, never into a user-facing sentence built in Rust.
 - Interface tone (both languages): address the user directly ("tu" in Italian), short sentences, verb first on
@@ -61,6 +66,7 @@ cargo run -p diskdome-cli           # the command line (benchmarks, JSON export)
 cargo run -p diskdome-ui --features kit -- --kit   # the Kit window: every component, variant and state
 cargo run -p diskdome-ui --features spikes -- --spike-titlebar   # the throwaway proofs (also --proof-rows N)
 ./scripts/check.ps1                 # format, clippy, tests, licences: what the CI runs
+./scripts/translations.ps1          # add new @tr strings to the Italian .po (cargo install slint-tr-extractor)
 ./scripts/proof.ps1                 # step 3 go / no-go on this PC's C: (asks for admin once)
 cargo deny check                    # licences and advisories (cargo install cargo-deny --locked)
 ```

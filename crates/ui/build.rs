@@ -13,6 +13,11 @@ fn entry() -> &'static str {
     }
 }
 
+/// The `.po` files, one folder per language (`lang/<lang>/LC_MESSAGES/diskdome-ui.po`), built into the binary.
+/// Slint picks the one matching the OS locale and falls back to the English source.
+const TRANSLATIONS: &str = "lang";
+
 fn main() {
-    slint_build::compile(entry()).expect("the Slint interface must compile");
+    let config = slint_build::CompilerConfiguration::new().with_bundled_translations(TRANSLATIONS);
+    slint_build::compile_with_config(entry(), config).expect("the Slint interface must compile");
 }
