@@ -1,0 +1,77 @@
+// The Button's test window (`tests/button_headless.rs`, § 5.2): a short label that keeps the minimum width, a long
+// one in a box too narrow for it, a full-width one, and the same label with and without a trailing icon. Kit only;
+// texts are the Kit's own, not translated.
+
+import {
+    DesignWindow,
+    Button,
+    ButtonWidth,
+    Icons,
+    Size,
+} from "@dome-ui";
+
+export component KitButtonHarness inherits DesignWindow {
+    preferred-width: Size.window-min-w;
+    preferred-height: Size.window-min-h;
+
+    // The narrow box the long label must fit in, and the full-width row.
+    out property <length> narrow-box: Size.button-min-w * 1.5;
+    out property <length> fill-box: Size.side-panel;
+
+    out property <length> short-width: short.width;
+    out property <length> long-width: long.width;
+    out property <length> long-y: long.y + narrow.y;
+    out property <bool> long-tooltip: long.tooltip-shown;
+    out property <length> fill-width: fill.width;
+    out property <length> plain-width: plain.width;
+    out property <length> end-width: end.width;
+
+    VerticalLayout {
+        alignment: start;
+        spacing: Size.group-gap;
+
+        HorizontalLayout {
+            alignment: start;
+
+            short := Button {
+                text: "OK";
+            }
+        }
+
+        narrow := HorizontalLayout {
+            alignment: start;
+            width: root.narrow-box;
+
+            long := Button {
+                text: "Move everything to the Recycle Bin";
+            }
+        }
+
+        HorizontalLayout {
+            alignment: start;
+
+            VerticalLayout {
+                width: root.fill-box;
+
+                fill := Button {
+                    text: "Continue";
+                    width-mode: ButtonWidth.fill;
+                }
+            }
+        }
+
+        HorizontalLayout {
+            alignment: start;
+            spacing: Size.group-gap;
+
+            plain := Button {
+                text: "Columns";
+            }
+
+            end := Button {
+                text: "Columns";
+                icon-end: Icons.chevron-down;
+            }
+        }
+    }
+}

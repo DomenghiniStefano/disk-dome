@@ -13,6 +13,10 @@ export enum IconSize { small, normal, hero }
 
 export enum ButtonVariant { primary, secondary, ghost, danger, danger-ghost }
 
+// How wide a button is (§ 5.2): `hug` its content (and, short of room, down to its minimum with the label cut by
+// «…»), or `fill` the width its layout gives it (a dialog's or a panel's full-width button).
+export enum ButtonWidth { hug, fill }
+
 // `hero`: only the call to action of an empty state, one per screen (§ 5.2).
 export enum ButtonSize { small, normal, large, hero }
 
