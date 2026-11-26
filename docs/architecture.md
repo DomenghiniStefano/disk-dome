@@ -59,7 +59,7 @@ API hides the inner flags of cloud placeholders), hard links for 99.97%.
 
 1. Get the `$MFT`'s extents with `FSCTL_GET_RETRIEVAL_POINTERS` on `X:\$MFT` (a 13.7 GB MFT is
    fragmented); if that is refused, decode the data runs of record 0.
-2. Cut the `$MFT` into 4 MB chunks. A pool of threads (twice the cores, at most 32) takes chunks in turn: each
+2. Cut the `$MFT` into 4 MB chunks. A pool of eight threads, whatever the cores (`DEFAULT_THREADS`: more concurrent reads slow an NVMe drive down), takes chunks in turn: each
    reads its chunk with an unbuffered read on its own volume handle (Windows serialises synchronous reads on a
    shared handle), then parses it. With more threads than cores, some always wait on the drive while others
    parse: reading and parsing overlap with no queue.
@@ -174,15 +174,16 @@ WizTree on the same PC.
 
 | Target | Desktop, 3.4 M entries (2026-11-24) | Laptop, 14.1 M entries (2026-11-26) |
 | --- | --- | --- |
-| scan ≤ `$MFT` read alone (`mft-read`) + 5 s, average of three runs | 7.0 s (read ~6.7 s) | 33.2 s (read 29.6 s, ~470 MB/s) |
-| scan ≥ 3× faster than WizTree on the same PC | 3.1–4.4× (22–31 s) | 5.2–5.9× (182 s) |
-| peak memory ≤ 1.5 GB on 14 million entries | 0.40 GB | 0.99 GB (model 773 MB, 57.7 bytes per entry) |
+| scan ≤ `$MFT` read alone (`mft-read`) + 5 s, average of three runs | 7.0 s (read ~6.7 s; 32 threads) | 7.5 s (read 4.9 s, ~2.9 GB/s); 33.2 s with 32 threads (read 29.6 s) |
+| scan ≥ 3× faster than WizTree on the same PC | 3.1–4.4× (22–31 s) | 24× (182 s) |
+| peak memory ≤ 1.5 GB on 14 million entries | 0.40 GB | 0.90 GB (model 773 MB, 57.7 bytes per entry) |
 | ≥ 99% of folder totals identical to WizTree's, whole drive within 0.1% | 99.1%, +0.04% | 99.8%, −0.03% |
 
 The folders that differ are mostly files changed between the two scans (WizTree runs minutes after ours) and
-size on disk of compressed or hard-linked files; the comparison lists them. Open: WizTree's own figure on the
-laptop (23.97 s, `docs/research.md`) implies it read the same `$MFT` at ~600 MB/s, so ours (~470 MB/s) may still
-gain from other thread counts and chunk sizes (`./scripts/proof.ps1 -Sweep`).
+size on disk of compressed or hard-linked files; the comparison lists them. The laptop's first numbers used
+32 threads; a sweep (`./scripts/proof.ps1 -Sweep`) showed the KIOXIA reads the `$MFT` 3–6× faster with 4–10
+threads, so the pool is fixed at eight. Open: the desktop with eight threads (it read at ~640 MB/s whatever the
+count, so no change is expected); merge and totals, single-threaded, are now ~2.5 s of the laptop's 7.5 s.
 
 `./scripts/proof.ps1` runs it on the PC it is launched on: it builds the CLI, asks for administrator rights
 once, reads the `$MFT` alone three times (`mft-read`), scans three times (`scan`), exports the folder totals,

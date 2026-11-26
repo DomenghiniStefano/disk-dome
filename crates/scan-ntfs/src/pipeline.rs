@@ -3,8 +3,8 @@
 //! the names are joined into one buffer, the records spread over several MFT records (attribute
 //! lists, extra hard links) are merged, and the tree is linked and summed.
 //!
-//! Each thread reads and then parses its chunk: with more threads than cores, some are always
-//! waiting on the drive while the others parse, so reading and parsing overlap without a queue.
+//! Each thread reads and then parses its chunk: while some wait on the drive the others parse, so
+//! reading and parsing overlap without a queue.
 
 use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -91,12 +91,20 @@ pub struct Options {
     pub chunk_bytes: usize,
 }
 
+/// Threads of the pool. Fixed, not derived from the cores: on an NVMe drive more concurrent reads
+/// slow the `$MFT` down instead of speeding it up (14 GB `$MFT` on a KIOXIA XG8, 2026-11-26, read
+/// alone: 4–8 threads 4.6–5.6 s, 16 in 10 s, 32 in 15–30 s, 64 in 45 s; full scan 5.8–7.1 s with
+/// 4–10 threads, 29 s with 32), and on a slower drive the
+/// read rate does not depend on the threads at all (Crucial P3, ~640 MB/s with any count).
+pub const DEFAULT_THREADS: usize = 8;
+/// Bytes per read: 4 MB beat 1 MB and 16 MB on the same drive.
+pub const DEFAULT_CHUNK_BYTES: usize = 4 << 20;
+
 impl Default for Options {
     fn default() -> Self {
-        let cores = std::thread::available_parallelism().map_or(4, |n| n.get());
         Self {
-            threads: (cores * 2).clamp(4, 32),
-            chunk_bytes: 4 << 20,
+            threads: DEFAULT_THREADS,
+            chunk_bytes: DEFAULT_CHUNK_BYTES,
         }
     }
 }

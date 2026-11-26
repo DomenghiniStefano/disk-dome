@@ -1,8 +1,9 @@
 //! Windows NTFS scanner.
 //!
 //! Reads the volume's `$MFT` directly: its extents from `FSCTL_GET_RETRIEVAL_POINTERS` (or, failing
-//! that, from the data runs of record 0), large unbuffered reads on several threads at once, each
-//! thread parsing the chunk it just read while the others wait on the drive. The MFT record number
+//! that, from the data runs of record 0), large unbuffered reads on a few threads at once (eight: more
+//! concurrent reads slow an NVMe drive down), each thread parsing the chunk it just read while the
+//! others wait on the drive. The MFT record number
 //! is already a dense index, so a record's slot and its parent are found by array access, not a map.
 //! Needs administrator rights; it runs in the small elevated component, never in the interface.
 //!
