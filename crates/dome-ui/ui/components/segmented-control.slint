@@ -1,12 +1,12 @@
-// SegmentedControl (§ 5.6): 2–4 options in one frame, one Tab stop; the arrow keys, Home and End move the
-// choice, skipping disabled segments, and `wrap` goes round the ends (as Radix). A segment shows its text, an icon
-// and its text, or its icon only (its text is then its accessible name and its tooltip). The chosen segment is
+// SegmentedControl (§ 5.6): 2–4 items in one frame, one Tab stop; the arrow keys, Home and End move the choice,
+// skipping disabled segments, and `wrap-around` goes round the ends (as Radix). A segment shows its text, an icon and
+// its text, or its icon only (its text is then its accessible name and its tooltip). The chosen segment is
 // `raised` with `ink`, the others `ink-muted`; a disabled one is faded and says why in its tooltip. It hugs its
-// segments, or fills its layout's width split equally (`SegmentWidth.fill`); short of room, the segments give way
+// segments, or fills its layout's width split equally (`SegmentedWidth.fill`); short of room, the segments give way
 // down to `segment-min-w` and cut their labels with «…», whose full text the tooltip then says.
 //
-// Slint functions have no loops, so skipping the disabled segments is answered by Rust through `SegmentNav`
-// (`crates/dome-ui/src/segment.rs`, wired by `segment_nav!` on every window).
+// Slint functions have no loops, so skipping the disabled segments is answered by Rust through `SegmentedNav`
+// (`crates/dome-ui/src/segmented.rs`, wired by `segmented_nav!` on every window).
 
 import { Size } from "../tokens/size.slint";
 import { Theme } from "../tokens/theme.slint";
@@ -17,9 +17,9 @@ import {
     InkTone,
     KitState,
     SegmentedSize,
-    SegmentWidth,
+    SegmentedWidth,
 } from "../enums.slint";
-import { Nav } from "../nav.slint";
+import { InputMode } from "../input-mode.slint";
 import { Pressable } from "../primitives/pressable.slint";
 import { FocusTarget } from "../primitives/focus-target.slint";
 import { FocusRing } from "../primitives/focus-ring.slint";
@@ -28,7 +28,7 @@ import { Icon } from "icon.slint";
 import { Tooltip } from "tooltip.slint";
 
 // One segment. Only `text` is needed; the rest is empty or false by default.
-export struct SegmentOption {
+export struct SegmentedItem {
     // Shown, and always its accessible name (with `icon-only` too).
     text: string,
     icon: image,
@@ -39,49 +39,49 @@ export struct SegmentOption {
     disabled: bool,
 }
 
-// The answers Slint cannot compute (`crates/dome-ui/src/segment.rs`).
-export global SegmentNav {
+// The answers Slint cannot compute (`crates/dome-ui/src/segmented.rs`).
+export global SegmentedNav {
     // The nearest enabled segment after `from` (`forward`) or before it; `wrap` goes round the ends, otherwise the
     // choice stays. With `from` out of range, the first (forward) or last enabled one. -1 with none enabled.
-    pure callback step(options: [SegmentOption], from: int, forward: bool, wrap: bool) -> int;
+    pure callback step(items: [SegmentedItem], from: int, forward: bool, wrap: bool) -> int;
     // The first or the last enabled segment, -1 with none.
-    pure callback edge(options: [SegmentOption], last: bool) -> int;
+    pure callback edge(items: [SegmentedItem], last: bool) -> int;
 }
 
 export component SegmentedControl {
-    in property <[SegmentOption]> options;
+    in property <[SegmentedItem]> items;
     // Written by the control when the user chooses, and by the screen to set the choice: both sides write. Out of
     // range, no segment is chosen.
-    in-out property <int> current: 0;
+    in-out property <int> current-index: 0;
     in property <SegmentedSize> size: SegmentedSize.normal;
-    in property <SegmentWidth> width-mode: SegmentWidth.hug;
+    in property <SegmentedWidth> width-mode: SegmentedWidth.hug;
     in property <bool> enabled: true;
     // The arrow keys go round the ends.
-    in property <bool> wrap: true;
+    in property <bool> wrap-around: true;
     // The Kit window only (§ 9): hover and pressed are shown on the segment after the chosen one.
     in property <KitState> kit-state: KitState.live;
 
     // The segment whose tooltip shows, -1 with none (the tests read it).
     out property <int> tooltip-index: -1;
 
-    // The user chose another option.
-    callback changed(index: int);
+    // The user chose another item.
+    callback selected(index: int);
 
-    property <int> kit-segment: Math.mod(root.current + 1, max(1, root.options.length));
+    property <int> kit-segment: Math.mod(root.current-index + 1, max(1, root.items.length));
     // The segment whose tooltip Esc put away, until the pointer and the focus leave it.
     property <int> hushed: -1;
 
     function choose(index: int) {
-        if (index >= 0 && index < root.options.length && index != root.current && !root.options[index].disabled) {
-            root.current = index;
-            root.changed(index);
+        if (index >= 0 && index < root.items.length && index != root.current-index && !root.items[index].disabled) {
+            root.current-index = index;
+            root.selected(index);
         }
     }
 
     height: root.size == SegmentedSize.small ? Size.control-sm : Size.control;
     min-width: row.min-width;
     preferred-width: row.preferred-width;
-    max-width: root.width-mode == SegmentWidth.fill ? Size.unbounded : row.preferred-width;
+    max-width: root.width-mode == SegmentedWidth.fill ? Size.unbounded : row.preferred-width;
     opacity: root.enabled ? 1 : Size.disabled;
 
     forward-focus: group;
@@ -93,20 +93,20 @@ export component SegmentedControl {
         kit-state: root.kit-state;
         key-pressed(event) => {
             if (event.text == Key.LeftArrow || event.text == Key.UpArrow) {
-                root.choose(SegmentNav.step(root.options, root.current, false, root.wrap));
+                root.choose(SegmentedNav.step(root.items, root.current-index, false, root.wrap-around));
             } else if (event.text == Key.RightArrow || event.text == Key.DownArrow) {
-                root.choose(SegmentNav.step(root.options, root.current, true, root.wrap));
+                root.choose(SegmentedNav.step(root.items, root.current-index, true, root.wrap-around));
             } else if (event.text == Key.Home) {
-                root.choose(SegmentNav.edge(root.options, false));
+                root.choose(SegmentedNav.edge(root.items, false));
             } else if (event.text == Key.End) {
-                root.choose(SegmentNav.edge(root.options, true));
+                root.choose(SegmentedNav.edge(root.items, true));
             } else if (event.text == Key.Escape && root.tooltip-index >= 0) {
                 // Esc puts the tooltip away (§ 5.17).
                 root.hushed = root.tooltip-index;
             } else {
                 return reject;
             }
-            Nav.keyboard = true;
+            InputMode.keyboard = true;
             return accept;
         }
     }
@@ -119,11 +119,11 @@ export component SegmentedControl {
     row := HorizontalLayout {
         padding: Size.segment-inset;
 
-        for option[index] in root.options: Rectangle {
-            property <bool> chosen: index == root.current;
-            property <bool> live: root.enabled && !option.disabled;
-            property <bool> has-icon: option.icon.width > 0;
-            property <bool> icon-only: option.icon-only && self.has-icon;
+        for item[index] in root.items: Rectangle {
+            property <bool> chosen: index == root.current-index;
+            property <bool> live: root.enabled && !item.disabled;
+            property <bool> has-icon: item.icon.width > 0;
+            property <bool> icon-only: item.icon-only && self.has-icon;
             // The label is cut: the tooltip says it whole.
             property <bool> cut: !self.icon-only && self.label-width < self.label-wanted;
             property <length> label-width;
@@ -141,7 +141,7 @@ export component SegmentedControl {
             // smaller). Filling, every segment starts from nothing and takes an equal share.
             horizontal-stretch: 1;
             min-width: self.icon-only ? self.height : min(Size.segment-min-w, content.preferred-width);
-            preferred-width: root.width-mode == SegmentWidth.fill ? 0 : self.icon-only ? self.height : content.preferred-width;
+            preferred-width: root.width-mode == SegmentedWidth.fill ? 0 : self.icon-only ? self.height : content.preferred-width;
             border-radius: Size.radius-control;
             background: self.chosen ? Theme.raised
                 : segment.pressed ? Theme.control-pressed
@@ -150,8 +150,8 @@ export component SegmentedControl {
             animate background { duration: Motion.fast; }
 
             accessible-role: radio-button;
-            accessible-label: option.text;
-            accessible-description: option.tooltip;
+            accessible-label: item.text;
+            accessible-description: item.tooltip;
             accessible-enabled: self.live;
             accessible-checkable: true;
             accessible-checked: self.chosen;
@@ -162,7 +162,7 @@ export component SegmentedControl {
             content := HorizontalLayout {
                 alignment: center;
                 spacing: Size.label-gap;
-                opacity: option.disabled ? Size.disabled : 1;
+                opacity: item.disabled ? Size.disabled : 1;
                 // The side with an icon is a little tighter (§ 3.4), as on the Button.
                 padding-left: icon-only ? 0 : has-icon ? Size.button-pad-x-icon : Size.button-pad-x;
                 padding-right: icon-only ? 0 : Size.button-pad-x;
@@ -171,13 +171,13 @@ export component SegmentedControl {
                     alignment: center;
 
                     Icon {
-                        source: option.icon;
+                        source: item.icon;
                         size: IconSize.normal;
                         tone: chosen ? InkTone.normal : InkTone.muted;
                     }
                 }
                 if !icon-only: Label {
-                    text: option.text;
+                    text: item.text;
                     step: TypeStep.body;
                     tone: chosen ? InkTone.normal : InkTone.muted;
                     align: TextHorizontalAlignment.center;
@@ -208,7 +208,7 @@ export component SegmentedControl {
 
             // After the pointer area, so over a disabled segment it can watch the pointer itself.
             Tooltip {
-                text: option.tooltip != "" ? option.tooltip : icon-only || cut ? option.text : "";
+                text: item.tooltip != "" ? item.tooltip : icon-only || cut ? item.text : "";
                 hovered: asked && segment.hovered && root.hushed != index;
                 focused: asked && chosen && group.show-focus && root.hushed != index;
                 pressed: segment.pressed;

@@ -21,15 +21,15 @@ The Slint half, in `ui/`:
 - Run-time switches set by Rust: `Theme.mode`, `Size.compact`, `Data.palette`, `Data.style`, `Motion.reduced`.
 - `enums.slint` — the components' variants and sizes (`ButtonVariant`, `InkTone`…); `TypeStep` is in `tokens/type.slint`.
 - `tones.slint` — `InkTone` → colour, shared by `Label` and `Icon`.
-- `nav.slint` — `Nav.keyboard`: the focus ring shows only while the user moves with the keyboard (§ 3.7).
+- `input-mode.slint` — `InputMode.keyboard`: the focus ring shows only while the user moves with the keyboard (§ 3.7).
 - `icons/` — the Lucide SVGs (version pinned in `icons.slint` and `THIRD_PARTY.md`) and `global Icons`, one
   property per file.
 - `components/` — one file per component of § 5, each exported through `index.slint`: `Label`, `Icon`, `Button`,
-  `SegmentedControl`, `ToggleButton`, `SearchField`, `ScrollBar` (vertical only for now), `DesignWindow` (the window
+  `SegmentedControl`, `ToggleButton`, `SearchField`, `ScrollBar` (vertical only for now), `DomeWindow` (the window
   every screen inherits: it tells the popups its size), and the menu (§ 5.16): `MenuFrame` (the level-1 surface),
   `MenuList` (entries from `[MenuEntry]`), `Menu` (the popup, three levels), `ContextMenu` (right click, Menu key,
   Shift+F10), `MenuButton`, and the tooltip (§ 5.17): `Tooltip` (inside a control; `Button` and `ToggleButton`
-  have it through `tooltip`) and `TooltipBubble`, drawn by `DesignWindow` from `primitives/tooltip-layer.slint`.
+  have it through `tooltip`) and `TooltipBubble`, drawn by `DomeWindow` from `primitives/tooltip-layer.slint`.
 - `MenuNav` (in `menu-list.slint`) — what Slint cannot compute (no loops, no prefix test): the walk over a menu's
   entries, its type-ahead and `toggled`, answered by `src/menu.rs` and wired by `menu_nav!`.
 - `primitives/` — the behaviour components share, never used by screens: `FocusTarget` (one keyboard stop),

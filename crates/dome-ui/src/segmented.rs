@@ -1,6 +1,6 @@
 //! The segmented control's walk over its segments (`docs/design-system.md` § 5.6): the arrow keys, Home and End skip
 //! the disabled segments, which Slint cannot do itself since its functions have no loops. Pure functions over the
-//! segments' `disabled` flags; `segment_nav!` wires them to an app's `SegmentNav` global.
+//! segments' `disabled` flags; `segmented_nav!` wires them to an app's `SegmentedNav` global.
 
 /// The indices of the segments the keyboard can choose, in order.
 fn enabled(disabled: &[bool]) -> Vec<i32> {

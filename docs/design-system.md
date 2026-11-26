@@ -444,7 +444,7 @@ No pills. Round only where the shape is round by nature: the live-state dot, the
 
 - **Focus ring**: 2 px `focus`, 1 px outside the control's edge, following its radius (+1). In a table the focus
   is the **cursor row**: a 1 px `focus` frame drawn inside the row, on top of the selection fill.
-- The ring shows only while the user moves with the keyboard (Windows' own rule): a `Nav.keyboard` flag, set by
+- The ring shows only while the user moves with the keyboard (Windows' own rule): a `InputMode.keyboard` flag, set by
   any navigation key and cleared by a pointer press, decides it.
 - Edges are 1 px `line` between panels and around fields (`line-strong` for checkbox and radio boxes, which
   need 3:1); popups and dialogs use `edge`.
@@ -926,6 +926,10 @@ Every component is one `.slint` file in `crates/dome-ui/ui/components/`, exporte
 state × theme × density before a screen uses it. Screens never restyle a component: a missing look is a new
 variant, decided with the owner.
 
+Not every entry below belongs to Dome UI: the ones that know a drive, a scan or a view of DiskDome (`DrivePicker`,
+`DriveCard`, `DriveTabs`, `ViewSwitch`, `ActionProgress`, the `Treemap`) live in the app, built from Dome UI's
+generic components (§ 8.4).
+
 States, with the same meaning everywhere:
 
 | State | Look |
@@ -997,16 +1001,17 @@ and in the settings (theme, density, units).
 
 | | |
 | --- | --- |
-| Segments `SegmentOption` | `text` (always the accessible name), `icon`, `icon-only`, `tooltip`, `disabled` |
+| Interface | `items: [SegmentedItem]`, `current-index` (written by both the control and the screen), `selected(index)` when the user chooses |
+| `SegmentedItem` | `text` (always the accessible name), `icon`, `icon-only`, `tooltip`, `disabled` |
 | Content | text; icon + text (icon 16, `label-gap`, the icon's side padded `button-pad-x-icon`); icon only (square, its text said by the tooltip and screen readers) |
-| Width | `SegmentWidth.hug` (default): hugs its segments; short of room they give way down to `segment-min-w` (40, pending design) and cut their labels with «…», and the tooltip says the full text. `SegmentWidth.fill`: the whole width its layout gives, split equally between the segments («Extensions \| Categories» in the side panel) |
+| Width | `SegmentedWidth.hug` (default): hugs its segments; short of room they give way down to `segment-min-w` (40, pending design) and cut their labels with «…», and the tooltip says the full text. `SegmentedWidth.fill`: the whole width its layout gives, split equally between the segments («Extensions \| Categories» in the side panel) |
 | Disabled segment | faded (`disabled` opacity), not clickable, skipped by the keyboard; its `tooltip` says why |
-| Keyboard | one Tab stop; ← ↑ / → ↓ choose the previous / next enabled segment, Home / End the first / last; `wrap` (default on, as Radix) goes round the ends; Esc puts the tooltip away |
+| Keyboard | one Tab stop; ← ↑ / → ↓ choose the previous / next enabled segment, Home / End the first / last; `wrap-around` (default on, as Radix and the Menu) goes round the ends; Esc puts the tooltip away |
 | Tooltip | a segment's `tooltip`, or the text of an icon-only or cut one; on hover, and at once for the chosen segment under keyboard focus |
-| Nothing chosen | `current` out of range: no segment is chosen; an arrow chooses the first (→) or last (←) enabled one |
+| Nothing chosen | `current-index` out of range: no segment is chosen; an arrow chooses the first (→) or last (←) enabled one |
 
 **Reviewed (2026-11-26, library-grade, § 8.0).** Against Radix's ToggleGroup (single) and RadioGroup: icon segments,
-per-segment tooltips, disabled segments, `wrap`, the full width and the overflow were added. Not here, until a
+per-segment tooltips, disabled segments, `wrap-around`, the full width and the overflow were added. Not here, until a
 second use asks: a vertical orientation, multiple choice (that is a row of `ToggleButton`s), equal widths without
 filling (as wide as the widest segment).
 
@@ -1196,7 +1201,7 @@ pointer, without the fade and rise; with a `text` it draws the style's own light
 
 **Built (2026-11-26, library-grade, § 8.0).** Not on a `PopupWindow`: Slint gives every popup but its own tooltip
 the keyboard focus, so ours would take it from the control it describes and from a field being typed in. A
-`Tooltip` inside the control writes the window's one tooltip (`TooltipLayer`), and `DesignWindow` draws it as its
+`Tooltip` inside the control writes the window's one tooltip (`TooltipLayer`), and `DomeWindow` draws it as its
 last layer, over every content, with no pointer area. It opens after `delay` (`tooltip-delay`), at once on keyboard
 focus and at once again within `skip-delay` of another one closing (`tooltip-skip`, as Radix); it closes when the
 pointer leaves and the focus goes, on a press and with Esc; over a disabled control it watches the pointer itself,
@@ -1261,9 +1266,9 @@ the action button.
 - `ScrollBar`: 10 px area over the content's edge, thumb 6 px (8 while hovered) radius 3, `scroll-thumb` /
   `scroll-thumb-hover`, no arrows, no track. Shows while scrolling and while the pointer is over the area.
 
-### 5.25 Toolbar, StatusBar, PanelHeader
+### 5.25 ToolBar, StatusBar, PanelHeader
 
-Structure components that only lay out others with the right height, ground and padding; `ToolbarSeparator` is
+Structure components that only lay out others with the right height, ground and padding; `ToolBarSeparator` is
 1 × 16 px `line` with `group-gap` / 2 on each side. Status bar items: `caption` `ink-muted`, separated by 1 × 12
 `line`; the live dot is 6 px round. From the left: the drive's counts and when it was scanned (or the scan's
 progress), the selection; then, at the right, the running operations (§ 5.29), «Live», the scan mode, the unit.
@@ -2405,7 +2410,7 @@ app that uses it; the name is provisional.
 ```
 crates/dome-ui/                  the design system (package `dome-ui`)
   README.md                      the map (this document's short version)
-  src/                           the Rust half: pure functions (menu.rs, segment.rs) and the macros that wire them (menu_nav!, segment_nav!)
+  src/                           the Rust half: pure functions (menu.rs, segmented.rs) and the macros that wire them (menu_nav!, segmented_nav!)
   ui/
     slint-project.json           the library: main file index.slint
     index.slint                  the only file apps import, as `@dome-ui`
@@ -2495,6 +2500,30 @@ size, weight and line through pure functions in `global Type`.
 
 Standard widgets (`std-widgets.slint`) are used only inside design-system components and only where their look
 can be fully set by our tokens (or not at all: for behaviour such as `TextInput` editing).
+
+### 8.4 Names
+
+Decided 2026-11-26, after a review of every public name with a developer's eyes. A name says what a thing holds or
+does, and the same idea has the same name in every component.
+
+- **Components** are nouns in PascalCase, with every word capitalised: `ScrollBar`, `StatusBar`, `ToolBar`,
+  `ProgressBar` (`Checkbox` stays one word, as in shadcn and WinUI). The base window is `DomeWindow`.
+- **A component's own types carry its name**: its enums (`ButtonVariant`, `ButtonWidth`, `SegmentedSize`,
+  `SegmentedWidth`), its row struct (`MenuEntry`, `SegmentedItem`), the global Rust answers for it (`MenuNav`,
+  `SegmentedNav`), and, in Rust, its module and wiring macro (`menu`, `menu_nav!`; `segmented`, `segmented_nav!`).
+- **Item or entry.** An *item* is something the user chooses; an *entry* is any row of a list that also holds
+  separators and section titles (`MenuEntry` with its `kind`). The property is named after its rows: `items`,
+  `entries`.
+- **Indices end in `-index`** and are -1 for none: `current-index`, `highlighted-index`, `submenu-index`.
+- **Callbacks are events, in the past tense or as a request**: `clicked`, `toggled`, `selected`, `activated`,
+  `closed`, `requested`, `search-requested`, `unhandled-key`. Never `changed`, which reads like Slint's
+  `changed <property> =>` handlers.
+- **One idea, one name**, in every component that has it: `enabled`, `size`, `variant`, `width-mode`, `tooltip`,
+  `tooltip-shortcut`, `wrap-around`, `kit-state`. Anything that floats over the window is a *popup* (`PopupSide`,
+  `PopupAlign`, `PopupAnchor`, `PopupSurface`), never a popover or flyout.
+- **Globals say their state**: `InputMode.keyboard` (the user moves with the keyboard, so focus rings show).
+- **Dome UI is generic.** A component that knows a drive, a scan or a DiskDome view lives in the app, built from
+  Dome UI's components, and is named in the app's words (`DrivePicker`, `DriveTabs`, `ViewSwitch`).
 
 ## 9. The Kit window
 

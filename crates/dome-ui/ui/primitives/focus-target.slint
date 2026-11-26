@@ -4,7 +4,7 @@
 //
 // Not a component of the design system: screens never use it (it is not exported from `index.slint`).
 
-import { Nav } from "../nav.slint";
+import { InputMode } from "../input-mode.slint";
 import { KitState } from "../enums.slint";
 
 export component FocusTarget {
@@ -13,7 +13,7 @@ export component FocusTarget {
 
     // The focus ring shows only while the user moves with the keyboard.
     out property <bool> show-focus: enabled
-        && (kit-state == KitState.focus || (kit-state == KitState.live && scope.has-focus && Nav.keyboard));
+        && (kit-state == KitState.focus || (kit-state == KitState.live && scope.has-focus && InputMode.keyboard));
 
     // Enter or Space.
     callback activated;
@@ -30,12 +30,12 @@ export component FocusTarget {
         enabled: root.enabled;
         focus-gained(reason) => {
             if (reason == FocusReason.tab-navigation) {
-                Nav.keyboard = true;
+                InputMode.keyboard = true;
             }
         }
         key-pressed(event) => {
             if (event.text == Key.Return || event.text == Key.Space) {
-                Nav.keyboard = true;
+                InputMode.keyboard = true;
                 root.activated();
                 return accept;
             }

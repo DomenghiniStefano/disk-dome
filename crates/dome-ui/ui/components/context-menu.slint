@@ -10,7 +10,7 @@
 // The area sits behind its content: a child that takes the pointer itself (a button, a table row) gets the right
 // click first and opens the menu from its own handler, as the table does for the row under the pointer.
 
-import { Nav } from "../nav.slint";
+import { InputMode } from "../input-mode.slint";
 
 export component ContextMenu {
     in property <bool> enabled: true;
@@ -27,7 +27,7 @@ export component ContextMenu {
         enabled: root.enabled;
         pointer-event(event) => {
             if (event.button == PointerEventButton.right && event.kind == PointerEventKind.up) {
-                Nav.keyboard = false;
+                InputMode.keyboard = false;
                 root.requested(self.mouse-x, self.mouse-y);
             }
         }
@@ -38,7 +38,7 @@ export component ContextMenu {
         // The focused child's unused keys arrive here.
         key-pressed(event) => {
             if (event.text == Key.Menu || (event.text == Key.F10 && event.modifiers.shift)) {
-                Nav.keyboard = true;
+                InputMode.keyboard = true;
                 root.requested(root.key-x, root.key-y);
                 return accept;
             }

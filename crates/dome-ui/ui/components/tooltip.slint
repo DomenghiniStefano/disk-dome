@@ -5,7 +5,7 @@
 // `margin` inside the window, never over the control. It works on a disabled control, to say why.
 //
 // It sits inside the control, covering it, and is told the control's state; `Button` and `ToggleButton` have it
-// through their `tooltip` property. The bubble itself is drawn by `DesignWindow` (`TooltipLayer`), so there is one
+// through their `tooltip` property. The bubble itself is drawn by `DomeWindow` (`TooltipLayer`), so there is one
 // at a time and it never takes the focus. Decision 11 (2026-11-26): ours, since Slint's opens on hover only.
 
 import { Size } from "../tokens/size.slint";

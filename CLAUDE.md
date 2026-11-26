@@ -59,8 +59,8 @@ set, Button, SegmentedControl, ToggleButton, SearchField, ScrollBar) are in `cra
 every component and the review board (cards 4.2, 4.3), and checks text and digits (card 4.T7). Slint draws with
 its software renderer only (decision 9); Segoe UI at 400 and 700 only (decision 8). Menus and tooltips are ours (decision 11,
 2026-11-26, after test 8). The menu is built (`Menu`, `MenuList`,
-`MenuFrame`, `ContextMenu`, `MenuButton`, § 5.16) with `DesignWindow`, which every window inherits, and
-`design_system::install`, which every window calls; the tooltip too (`Tooltip`, drawn by `DesignWindow`, § 5.17).
+`MenuFrame`, `ContextMenu`, `MenuButton`, § 5.16) with `DomeWindow`, which every window inherits, and
+`design_system::install`, which every window calls; the tooltip too (`Tooltip`, drawn by `DomeWindow`, § 5.17).
 Both wait for the owner's look in the Kit. The plan and its status: https://claude.ai/artifact/6b7K1hVhjpupdAURw4CfFP
 and the Trello board: https://trello.com/b/BrdLKkTt/diskdome (personal account, workspace DomeHub).
 
@@ -169,6 +169,9 @@ Clean code, small components, one source of truth. They apply to Rust and Slint 
 - **Components**: one per file in `crates/dome-ui/ui/components/`, exported from `index.slint`, with its variants
   and sizes as enums in `enums.slint`. The look for each variant comes from one pure-function global in the
   file (as `ButtonLook`), not from ternaries scattered over the elements.
+- **Names** follow `docs/design-system.md` § 8.4: a component's enums, row struct and Rust global carry its name
+  (`SegmentedWidth`, `SegmentedItem`, `SegmentedNav`); indices end in `-index`; callbacks are events (`selected`,
+  never `changed`); one idea has one name everywhere (`wrap-around`, `width-mode`, `tooltip`).
 - **Properties**: `in` by default; `out` only for what the component computes; `in-out` and two-way bindings
   (`<=>`) only when both sides really write, with a comment saying why. Everything that is not the component's
   interface is a private `property` (no direction).
@@ -180,7 +183,7 @@ Clean code, small components, one source of truth. They apply to Rust and Slint 
 - **From another thread to the interface** only through `Weak::upgrade_in_event_loop` or
   `slint::invoke_from_event_loop`; their error (the event loop has ended) is logged, never dropped with `let _`.
 - **Behaviour is never rewritten**: clicks, hover, press, Enter / Space and the focus ring come from
-  `primitives/` (`Pressable`, `FocusTarget`, `FocusRing`); the ring shows only when `Nav.keyboard` is set.
+  `primitives/` (`Pressable`, `FocusTarget`, `FocusRing`); the ring shows only when `InputMode.keyboard` is set.
   Disabled is one `opacity: Size.disabled` on the component's root.
 - **Text only through `Label`, icons only through `Icon`** with `Icons.*`; colours through `InkTone`. A new
   icon: the SVG from the pinned Lucide version, its property in `icons.slint`, its entry in the Kit
@@ -206,11 +209,11 @@ Clean code, small components, one source of truth. They apply to Rust and Slint 
   - a property named like a built-in one cannot be declared (`row` in a layout child, `padding` on a component):
     pick another name (`inset`);
   - strings have no `contains`, prefix test or regex, and functions have no loops and no recursion: answer it in
-    Rust with a `pure callback` on a global, wired on every window (`MenuNav`: `dome_ui::menu`, wired by `menu_nav!`; `SegmentNav`: `dome_ui::segment`, by `segment_nav!`) and unit
+    Rust with a `pure callback` on a global, wired on every window (`MenuNav`: `dome_ui::menu`, wired by `menu_nav!`; `SegmentedNav`: `dome_ui::segmented`, by `segmented_nav!`) and unit
     tested in Rust;
   - a `PopupWindow` takes the keyboard focus when it shows and gives it back when it closes, and while it is open
     the next pointer move goes to the popup layer: never put something that must not take the focus (a tooltip,
-    a badge, a hint) on one; draw it in `DesignWindow`'s top layer (`TooltipLayer`);
+    a badge, a hint) on one; draw it in `DomeWindow`'s top layer (`TooltipLayer`);
   - inside a `PopupWindow`, `absolute-position` is relative to the popup, not the window: add the popup's own
     `x` / `y` (and its parent's `absolute-position`) to get window coordinates;
   - properties of elements inside a `PopupWindow` cannot be read from outside it: keep a popup's state on the

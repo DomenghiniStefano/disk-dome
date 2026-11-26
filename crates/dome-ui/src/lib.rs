@@ -3,7 +3,7 @@
 //! components ask Rust for, as pure functions, and the macro that wires them to an app's generated globals.
 
 pub mod menu;
-pub mod segment;
+pub mod segmented;
 
 /// Writes `pub fn install_menu_nav(window)` in the calling module: it wires a window's `MenuNav` global (`§ 5.16`) to
 /// [`menu`]. The app names its own generated types, since each app compiles the Slint half itself:
@@ -67,33 +67,33 @@ macro_rules! menu_nav {
     };
 }
 
-/// Writes `pub fn install_segment_nav(window)` in the calling module: it wires a window's `SegmentNav` global (§ 5.6)
-/// to [`segment`], as [`menu_nav!`] does for menus:
+/// Writes `pub fn install_segmented_nav(window)` in the calling module: it wires a window's `SegmentedNav` global (§ 5.6)
+/// to [`segmented`], as [`menu_nav!`] does for menus:
 ///
 /// ```ignore
-/// use crate::generated::{SegmentNav, SegmentOption};
-/// dome_ui::segment_nav!(SegmentNav, SegmentOption);
+/// use crate::generated::{SegmentedNav, SegmentedItem};
+/// dome_ui::segmented_nav!(SegmentedNav, SegmentedItem);
 /// ```
 #[macro_export]
-macro_rules! segment_nav {
-    ($nav:ident, $option:ident) => {
-        /// Wires the window's `SegmentNav` global to `dome_ui::segment`.
-        pub fn install_segment_nav<'a, T>(window: &'a T)
+macro_rules! segmented_nav {
+    ($nav:ident, $item:ident) => {
+        /// Wires the window's `SegmentedNav` global to `dome_ui::segmented`.
+        pub fn install_segmented_nav<'a, T>(window: &'a T)
         where
             T: slint::ComponentHandle,
             $nav<'a>: slint::Global<'a, T>,
         {
             let nav = window.global::<$nav>();
-            nav.on_step(|options, from, forward, wrap| {
-                $crate::segment::step(&dome_ui_disabled(&options), from, forward, wrap)
+            nav.on_step(|items, from, forward, wrap| {
+                $crate::segmented::step(&dome_ui_disabled(&items), from, forward, wrap)
             });
-            nav.on_edge(|options, last| $crate::segment::edge(&dome_ui_disabled(&options), last));
+            nav.on_edge(|items, last| $crate::segmented::edge(&dome_ui_disabled(&items), last));
         }
 
-        /// Which segments are disabled, as `dome_ui::segment` reads them.
-        fn dome_ui_disabled(options: &slint::ModelRc<$option>) -> Vec<bool> {
-            slint::Model::iter(options)
-                .map(|option| option.disabled)
+        /// Which segments are disabled, as `dome_ui::segmented` reads them.
+        fn dome_ui_disabled(items: &slint::ModelRc<$item>) -> Vec<bool> {
+            slint::Model::iter(items)
+                .map(|item| item.disabled)
                 .collect()
         }
     };
