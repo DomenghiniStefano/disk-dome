@@ -1,0 +1,112 @@
+# DiskDome's interface in Italian. scripts/translations.ps1 adds the new strings; tests/translations.rs checks it.
+msgid ""
+msgstr ""
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgctxt "MainWindow"
+msgid "DiskDome"
+msgstr "DiskDome"
+
+msgctxt "SearchField"
+msgid "Clear the search"
+msgstr "Cancella la ricerca"
+
+msgctxt "SearchField"
+msgid "Match case"
+msgstr "Maiuscole e minuscole"
+
+msgctxt "SearchField"
+msgid "Regular expression"
+msgstr "Espressione regolare"
+
+msgctxt "ProofStatus"
+msgid "{} rows, sorting…"
+msgstr "{} righe, ordinamento…"
+
+msgctxt "ProofStatus"
+msgid "{} rows, sorted in {} ms"
+msgstr "{} righe, ordinate in {} ms"
+
+msgctxt "ProofStatus"
+msgid "{} rows"
+msgstr "{} righe"
+
+msgctxt "ProofTableWindow"
+msgid "DiskDome: table proof"
+msgstr "DiskDome: prova della tabella"
+
+msgctxt "ProofTableWindow"
+msgid "Name"
+msgstr "Nome"
+
+msgctxt "ProofTableWindow"
+msgid "Size"
+msgstr "Dimensione"
+
+msgctxt "ProofTableWindow"
+msgid "% of parent"
+msgstr "% della cartella"
+
+msgctxt "ProofTableWindow"
+msgid "Modified"
+msgstr "Modificato"
+
+msgctxt "ProofListWindow"
+msgid "DiskDome: list proof"
+msgstr "DiskDome: prova dell'elenco"
+
+msgctxt "ProofListWindow"
+msgid "Name"
+msgstr "Nome"
+
+msgctxt "ProofListWindow"
+msgid "Size"
+msgstr "Dimensione"
+
+msgctxt "ProofListWindow"
+msgid "% of parent"
+msgstr "% della cartella"
+
+msgctxt "ProofListWindow"
+msgid "Modified"
+msgstr "Modificato"
+
+msgctxt "TitlebarSpike"
+msgid "DiskDome — title bar test"
+msgstr "DiskDome — prova della barra del titolo"
+
+msgctxt "TitlebarSpike"
+msgid "Minimize"
+msgstr "Riduci a icona"
+
+msgctxt "TitlebarSpike"
+msgid "Restore"
+msgstr "Ripristina giù"
+
+msgctxt "TitlebarSpike"
+msgid "Maximize"
+msgstr "Ingrandisci"
+
+msgctxt "TitlebarSpike"
+msgid "Close"
+msgstr "Chiudi"
+
+msgctxt "TitlebarSpike"
+msgid ""
+"Title bar test: drag, double-click, snap, resize from every edge, Alt+Space, "
+"two monitors."
+msgstr ""
+"Prova della barra del titolo: trascina, doppio clic, aggancia, ridimensiona "
+"da ogni bordo, Alt+Spazio, due monitor."
+
+msgctxt "TitlebarSpike"
+msgid "Switch to the light theme"
+msgstr "Passa al tema chiaro"
+
+msgctxt "TitlebarSpike"
+msgid "Switch to the dark theme"
+msgstr "Passa al tema scuro"
