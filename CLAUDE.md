@@ -169,6 +169,9 @@ Clean code, small components, one source of truth. They apply to Rust and Slint 
 - **Components**: one per file in `crates/dome-ui/ui/components/`, exported from `index.slint`, with its variants
   and sizes as enums in `enums.slint`. The look for each variant comes from one pure-function global in the
   file (as `ButtonLook`), not from ternaries scattered over the elements.
+- **Names** follow `docs/design-system.md` § 8.4: a component's enums, row struct and Rust global carry its name
+  (`SegmentedWidth`, `SegmentedItem`, `SegmentedNav`); indices end in `-index`; callbacks are events (`selected`,
+  never `changed`); one idea has one name everywhere (`wrap-around`, `width-mode`, `tooltip`).
 - **Properties**: `in` by default; `out` only for what the component computes; `in-out` and two-way bindings
   (`<=>`) only when both sides really write, with a comment saying why. Everything that is not the component's
   interface is a private `property` (no direction).

@@ -926,6 +926,10 @@ Every component is one `.slint` file in `crates/dome-ui/ui/components/`, exporte
 state × theme × density before a screen uses it. Screens never restyle a component: a missing look is a new
 variant, decided with the owner.
 
+Not every entry below belongs to Dome UI: the ones that know a drive, a scan or a view of DiskDome (`DrivePicker`,
+`DriveCard`, `DriveTabs`, `ViewSwitch`, `ActionProgress`, the `Treemap`) live in the app, built from Dome UI's
+generic components (§ 8.4).
+
 States, with the same meaning everywhere:
 
 | State | Look |
@@ -1262,9 +1266,9 @@ the action button.
 - `ScrollBar`: 10 px area over the content's edge, thumb 6 px (8 while hovered) radius 3, `scroll-thumb` /
   `scroll-thumb-hover`, no arrows, no track. Shows while scrolling and while the pointer is over the area.
 
-### 5.25 Toolbar, StatusBar, PanelHeader
+### 5.25 ToolBar, StatusBar, PanelHeader
 
-Structure components that only lay out others with the right height, ground and padding; `ToolbarSeparator` is
+Structure components that only lay out others with the right height, ground and padding; `ToolBarSeparator` is
 1 × 16 px `line` with `group-gap` / 2 on each side. Status bar items: `caption` `ink-muted`, separated by 1 × 12
 `line`; the live dot is 6 px round. From the left: the drive's counts and when it was scanned (or the scan's
 progress), the selection; then, at the right, the running operations (§ 5.29), «Live», the scan mode, the unit.
@@ -2496,6 +2500,30 @@ size, weight and line through pure functions in `global Type`.
 
 Standard widgets (`std-widgets.slint`) are used only inside design-system components and only where their look
 can be fully set by our tokens (or not at all: for behaviour such as `TextInput` editing).
+
+### 8.4 Names
+
+Decided 2026-11-26, after a review of every public name with a developer's eyes. A name says what a thing holds or
+does, and the same idea has the same name in every component.
+
+- **Components** are nouns in PascalCase, with every word capitalised: `ScrollBar`, `StatusBar`, `ToolBar`,
+  `ProgressBar` (`Checkbox` stays one word, as in shadcn and WinUI). The base window is `DomeWindow`.
+- **A component's own types carry its name**: its enums (`ButtonVariant`, `ButtonWidth`, `SegmentedSize`,
+  `SegmentedWidth`), its row struct (`MenuEntry`, `SegmentedItem`), the global Rust answers for it (`MenuNav`,
+  `SegmentedNav`), and, in Rust, its module and wiring macro (`menu`, `menu_nav!`; `segmented`, `segmented_nav!`).
+- **Item or entry.** An *item* is something the user chooses; an *entry* is any row of a list that also holds
+  separators and section titles (`MenuEntry` with its `kind`). The property is named after its rows: `items`,
+  `entries`.
+- **Indices end in `-index`** and are -1 for none: `current-index`, `highlighted-index`, `submenu-index`.
+- **Callbacks are events, in the past tense or as a request**: `clicked`, `toggled`, `selected`, `activated`,
+  `closed`, `requested`, `search-requested`, `unhandled-key`. Never `changed`, which reads like Slint's
+  `changed <property> =>` handlers.
+- **One idea, one name**, in every component that has it: `enabled`, `size`, `variant`, `width-mode`, `tooltip`,
+  `tooltip-shortcut`, `wrap-around`, `kit-state`. Anything that floats over the window is a *popup* (`PopupSide`,
+  `PopupAlign`, `PopupAnchor`, `PopupSurface`), never a popover or flyout.
+- **Globals say their state**: `InputMode.keyboard` (the user moves with the keyboard, so focus rings show).
+- **Dome UI is generic.** A component that knows a drive, a scan or a DiskDome view lives in the app, built from
+  Dome UI's components, and is named in the app's words (`DrivePicker`, `DriveTabs`, `ViewSwitch`).
 
 ## 9. The Kit window
 
