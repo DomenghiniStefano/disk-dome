@@ -999,14 +999,16 @@ and in the settings (theme, density, units).
 | --- | --- |
 | Segments `SegmentOption` | `text` (always the accessible name), `icon`, `icon-only`, `tooltip`, `disabled` |
 | Content | text; icon + text (icon 16, `label-gap`, the icon's side padded `button-pad-x-icon`); icon only (square, its text said by the tooltip and screen readers) |
+| Width | `SegmentWidth.hug` (default): hugs its segments; short of room they give way down to `segment-min-w` (40, pending design) and cut their labels with «…», and the tooltip says the full text. `SegmentWidth.fill`: the whole width its layout gives, split equally between the segments («Extensions \| Categories» in the side panel) |
 | Disabled segment | faded (`disabled` opacity), not clickable, skipped by the keyboard; its `tooltip` says why |
 | Keyboard | one Tab stop; ← ↑ / → ↓ choose the previous / next enabled segment, Home / End the first / last; `wrap` (default on, as Radix) goes round the ends; Esc puts the tooltip away |
-| Tooltip | a segment's `tooltip`, or the text of an icon-only one; on hover, and at once for the chosen segment under keyboard focus |
+| Tooltip | a segment's `tooltip`, or the text of an icon-only or cut one; on hover, and at once for the chosen segment under keyboard focus |
 | Nothing chosen | `current` out of range: no segment is chosen; an arrow chooses the first (→) or last (←) enabled one |
 
 **Reviewed (2026-11-26, library-grade, § 8.0).** Against Radix's ToggleGroup (single) and RadioGroup: icon segments,
-per-segment tooltips, disabled segments and `wrap` were added. Not here, until a second use asks: a vertical
-orientation, multiple choice (that is a row of `ToggleButton`s).
+per-segment tooltips, disabled segments, `wrap`, the full width and the overflow were added. Not here, until a
+second use asks: a vertical orientation, multiple choice (that is a row of `ToggleButton`s), equal widths without
+filling (as wide as the widest segment).
 
 ### 5.7 Tabs
 

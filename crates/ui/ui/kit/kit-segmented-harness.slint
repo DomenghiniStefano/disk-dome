@@ -1,11 +1,13 @@
 // The SegmentedControl's test window (`tests/segmented_headless.rs`, § 5.6): text segments with a disabled one the
-// arrow keys skip, and icon-only segments (square, their text in the tooltip) with a disabled one. Kit only; texts
-// are the Kit's own, not translated.
+// arrow keys skip, icon-only segments (square, their text in the tooltip) with a disabled one, long labels in a box
+// too narrow for them, and the same control hugging and filling a panel's width. Kit only; texts are the Kit's own,
+// not translated.
 
 import {
     DesignWindow,
     SegmentedControl,
     SegmentOption,
+    SegmentWidth,
     Icons,
     Size,
 } from "@dome-ui";
@@ -21,6 +23,16 @@ export component KitSegmentedHarness inherits DesignWindow {
     out property <int> icons-tooltip: icons.tooltip-index;
     // How many times `changed` was called on the icon-only control.
     out property <int> icons-changes;
+
+    // The narrow box the long labels must fit in, and the panel the hugging and filling controls sit in.
+    out property <length> narrow-box: Size.segment-min-w * 2 + Size.segment-inset * 2;
+    out property <length> panel: Size.side-panel;
+    out property <length> long-width: long.width;
+    out property <length> long-y: narrow-row.y;
+    out property <int> long-tooltip: long.tooltip-index;
+    out property <length> hug-width: hug.width;
+    out property <length> fill-width: fill.width;
+    out property <length> fill-y: fill-row.y + fill.y;
 
     VerticalLayout {
         alignment: start;
@@ -52,6 +64,36 @@ export component KitSegmentedHarness inherits DesignWindow {
                 accessible-label: "Theme";
                 changed => {
                     root.icons-changes += 1;
+                }
+            }
+        }
+
+        narrow-row := HorizontalLayout {
+            alignment: start;
+            width: root.narrow-box;
+
+            long := SegmentedControl {
+                options: [{ text: "Extensions by size" }, { text: "Categories by type" }];
+                accessible-label: "Side panel list";
+            }
+        }
+
+        fill-row := HorizontalLayout {
+            alignment: start;
+
+            VerticalLayout {
+                width: root.panel;
+                spacing: Size.group-gap;
+
+                hug := SegmentedControl {
+                    options: [{ text: "Extensions" }, { text: "Categories" }];
+                    accessible-label: "Side panel list";
+                }
+
+                fill := SegmentedControl {
+                    options: [{ text: "Extensions" }, { text: "Categories" }];
+                    width-mode: SegmentWidth.fill;
+                    accessible-label: "Side panel list";
                 }
             }
         }

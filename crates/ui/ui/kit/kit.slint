@@ -16,6 +16,7 @@ import {
     Button,
     SegmentedControl,
     SegmentOption,
+    SegmentWidth,
     InkTone,
     IconSize,
     ButtonVariant,
@@ -172,6 +173,8 @@ global KitData {
     // The scroll bar at rest is hidden: `live` shows nothing until the content moves.
     out property <[KitState]> scroll-states: [KitState.live, KitState.focus, KitState.hover, KitState.pressed];
     out property <[SegmentOption]> three-options: [{ text: "Dark" }, { text: "Light" }, { text: "System" }];
+    // Italian labels, longer than the English ones (§ 3.3): in a narrow box they are cut.
+    out property <[SegmentOption]> long-options: [{ text: "Estensioni per dimensione" }, { text: "Categorie per tipo" }];
     out property <[SegmentOption]> theme-icons: [
         { text: "Dark", icon: Icons.moon },
         { text: "Light", icon: Icons.sun },
@@ -717,6 +720,51 @@ export component KitWindow inherits DesignWindow {
                                 options: KitData.three-options;
                                 current: -1;
                                 accessible-label: "Theme";
+                            }
+                        }
+                    }
+
+                    KitSection {
+                        title: "SegmentedControl · width and overflow";
+
+                        KitRow {
+                            name: "narrow box";
+
+                            HorizontalLayout {
+                                alignment: start;
+                                width: Size.segment-min-w * 3;
+
+                                SegmentedControl {
+                                    options: KitData.long-options;
+                                    accessible-label: "Side panel list";
+                                }
+                            }
+                        }
+
+                        KitRow {
+                            name: "hug, fill";
+
+                            VerticalLayout {
+                                width: Size.side-panel;
+                                spacing: Size.group-gap;
+
+                                SegmentedControl {
+                                    options: KitData.two-options;
+                                    accessible-label: "Side panel list";
+                                }
+
+                                SegmentedControl {
+                                    options: KitData.two-options;
+                                    width-mode: SegmentWidth.fill;
+                                    accessible-label: "Side panel list";
+                                }
+
+                                SegmentedControl {
+                                    options: KitData.theme-icons;
+                                    width-mode: SegmentWidth.fill;
+                                    size: SegmentedSize.small;
+                                    accessible-label: "Theme";
+                                }
                             }
                         }
                     }
