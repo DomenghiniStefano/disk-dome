@@ -7,7 +7,7 @@
 
 #![cfg(feature = "kit")]
 
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use diskdome_ui::design_system;
 use diskdome_ui::generated::KitScrollHarness;
@@ -42,8 +42,12 @@ const RANGE: f32 = LENGTH * 4.0;
 const HOLD: Duration = Duration::from_millis(1500);
 /// Past `Motion.base` (140 ms), the fade, with a margin for a busy CI machine.
 const AFTER_FADE: Duration = Duration::from_millis(400);
-/// Past `scrollbar-linger` (1000 ms) and the fade.
-const AFTER_LINGER: Duration = Duration::from_millis(1600);
+/// The default bar's `hide-delay` in the harness: three times `scrollbar-linger` (1000 ms).
+const REST_HIDE_DELAY: Duration = Duration::from_millis(3000);
+/// Past the default bar's delay and the fade.
+const AFTER_LINGER: Duration = Duration::from_millis(3600);
+/// One turn of `wait`.
+const TURN: Duration = Duration::from_millis(25);
 
 /// Two turns of the loop: a timer or a change handler is seen in the next one.
 fn settle(headless: &mut Headless) {
@@ -51,11 +55,12 @@ fn settle(headless: &mut Headless) {
     headless.frame();
 }
 
-/// Lets time pass in small turns, so a repeating timer fires at its pace rather than once.
+/// Lets `time` pass by the clock, in small turns so a repeating timer fires at its pace rather than once. Counting
+/// turns instead would wait far longer on a slow machine, where each frame takes its own time.
 fn wait(headless: &mut Headless, time: Duration) {
-    let turn = Duration::from_millis(25);
-    for _ in 0..time.as_millis() / turn.as_millis() {
-        std::thread::sleep(turn);
+    let deadline = Instant::now() + time;
+    while Instant::now() < deadline {
+        std::thread::sleep(TURN);
         headless.frame();
     }
     settle(headless);
@@ -87,6 +92,10 @@ fn scroll_bar_arrows_track_drag_wheel_and_visibility() {
     assert_eq!(harness.get_horizontal_length(), WIDE);
     assert_eq!(harness.get_thickness(), BAR);
     assert_eq!(harness.get_step(), STEP);
+    assert_eq!(
+        harness.get_rest_hide_delay(),
+        REST_HIDE_DELAY.as_millis() as i64
+    );
 
     // The arrows step by `step` and stop at the start.
     let (x, y) = on_arrows_bar(LENGTH - BAR / 2.0);
@@ -214,7 +223,7 @@ fn scroll_bar_arrows_track_drag_wheel_and_visibility() {
     wait(&mut headless, AFTER_LINGER);
     let ground = headless.pixel(MARGIN as usize / 2, HEIGHT as usize - 10);
 
-    // The default bar is hidden at rest; it shows when the content moves, and fades `scrollbar-linger` later.
+    // The default bar is hidden at rest; it shows when the content moves, and fades its `hide-delay` later.
     // Its thumb is 40 px (200 × 200 / 1000); 50 px down a 800 px range it starts at 10.
     let rest =
         |headless: &Headless| headless.pixel((MARGIN + BAR / 2.0) as usize, LOWER as usize + 30);
