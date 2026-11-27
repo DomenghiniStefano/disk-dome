@@ -55,6 +55,19 @@ unwrap_used = "deny"
 wildcard_enum_match_arm = "deny"
 wildcard_imports = "deny"
 
+# Development builds carry line numbers for our code and no debug info for the dependencies (Slint and the
+# rest): a test binary links Slint whole, and full debug info made every link slow and ran this PC out of page file.
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+debug = false
+
+# Build scripts and proc macros run optimised: the Slint compiler runs in our build script on every interface change,
+# and unoptimised it took most of a rebuild.
+[profile.dev.build-override]
+opt-level = 3
+
 [profile.release]
 lto = "thin"
 codegen-units = 1

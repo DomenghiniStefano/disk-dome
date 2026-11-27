@@ -153,9 +153,9 @@ Clean code, small components, one source of truth. They apply to Rust and Slint 
 - **Before «done»**: `./scripts/check.ps1` (format, clippy and tests with every feature, licences) passes. It takes
   over 10 minutes from a fresh worktree: run it in the background. From Windows PowerShell 5.1, cargo's progress on
   stderr reads as a failure: run it as `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check.ps1`
-  from Git Bash and read its exit code. On this PC a full parallel build runs out of the page file
-  (`os error 1455`, «Il file di paging è troppo piccolo»): run `check.ps1 -Jobs 2`, and never two worktrees'
-  builds at once.
+  from Git Bash and read its exit code. If a build runs out of the page file (`os error 1455`, «Il file di
+  paging è troppo piccolo»; it did with full debug info, before the lighter `[profile.dev]`), run
+  `check.ps1 -Jobs 2`.
 - **After a push to `develop`, watch its CI run to the end** (`gh run list`, then `gh run view <id>`) and fix a
   red one before the next card; the CI builds on macOS too, which the local checks do not.
 - **Expected values come from the spec**: compute them before running; a failing test is first read as a bug in the
@@ -185,5 +185,9 @@ file, a Kit harness or a headless test.** The project skill `/slint` (`.claude/s
   in worktrees under `C:\PersonalProjects\disk-dome.wt\<name>`) merged into `develop`; always commit and push the
   branch and `develop`; the CI must be green. **No push to `main`**: a release is `develop` merged into `main`
   plus a tag, done by the owner.
+- **Worktrees share the main checkout's `target`**: `C:PersonalProjectsdisk-dome.wt.cargoconfig.toml` (outside
+  the repository, this PC only) sets `target-dir = "../disk-dome/target"` for every folder under `disk-dome.wt`. A
+  new worktree then reuses Slint and every dependency (a build from scratch takes about 15 minutes), and Cargo's
+  lock makes two builds wait for each other. A merged worktree is removed (`git worktree remove`).
 - Owner-only actions: anything on `main`, releases and tags, repository settings, code signing, licence
   changes, design decisions.

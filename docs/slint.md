@@ -155,8 +155,7 @@ UI tests run off screen (`crates/ui/src/headless.rs`: Slint's software renderer 
    and light / compact.
 4. A test window and a headless test prove each behaviour, with expectations from the spec, waits by the clock,
    and one mutation that made it fail.
-5. `./scripts/check.ps1 -Jobs 2` passes (format, Slint format, clippy, every test, licences), one worktree building
-   at a time.
+5. `./scripts/check.ps1` passes (format, Slint format, clippy, every test, licences).
 6. After the merge into `develop` and the push, its CI run is watched to the end, macOS included; a red run is
    fixed before the next card.
 7. The card says what was done, what was measured, what waits for the owner.
