@@ -10,6 +10,7 @@ import {
     ScrollBarVisibility,
     Size,
     Theme,
+    Motion,
 } from "@dome-ui";
 
 export component KitScrollHarness inherits DomeWindow {
@@ -31,6 +32,8 @@ export component KitScrollHarness inherits DomeWindow {
     in-out property <length> disabled-value <=> disabled.value;
     // How many times the bar with arrows said the user scrolled with it.
     out property <int> arrows-scrolled;
+    // How long the default bar stays after the content moves.
+    out property <duration> rest-hide-delay: rest.hide-delay;
 
     // Arrows always, paging through the track, always shown while the content overflows, with a track to see.
     arrows := ScrollBar {
@@ -59,8 +62,10 @@ export component KitScrollHarness inherits DomeWindow {
         visibility: ScrollBarVisibility.auto;
     }
 
-    // Every default: hidden until the content moves or the pointer comes over it.
+    // Every default but the delay: hidden until the content moves or the pointer comes over it. It stays three times
+    // the token's delay, so a slow machine still catches it shown before it fades.
     rest := ScrollBar {
+        hide-delay: Motion.scrollbar-linger * 3;
         x: root.margin;
         y: root.lower;
         height: root.vertical-length;
