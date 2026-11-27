@@ -8,6 +8,10 @@ export enum InkTone { normal, muted, faint, accent, danger, warning, success, on
 // arrives already shortened from Rust, and is then cut at the end only if it still does not fit.
 export enum Elide { none, end, middle }
 
+// How a long text goes to a new line (§ 3.3): never (names and paths in tables and bars), between words (dialogs,
+// info bars, toasts, empty states), or anywhere, mid-word too (a long path in a dialog).
+export enum LabelWrap { none, word, anywhere }
+
 // `small` 12, `normal` 16 / 14 (density), `hero` 18: only inside the hero button (§ 3.12, § 5.2).
 export enum IconSize { small, normal, hero }
 

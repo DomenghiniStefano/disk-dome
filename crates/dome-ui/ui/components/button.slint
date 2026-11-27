@@ -83,9 +83,9 @@ export component Button {
     property <bool> has-icon-end: root.has-text && root.icon-end.width > 0;
     property <bool> icon-only: root.has-icon && !root.has-text;
     // The label is cut: the tooltip says it whole.
-    property <bool> cut: root.has-text && root.label-width < root.label-wanted;
-    property <length> label-width;
-    property <length> label-wanted;
+    property <bool> cut: root.has-text && root.label-cut;
+    // The label sits inside an `if`, so its `cut` is copied here to be read.
+    property <bool> label-cut;
     property <bool> hero: root.size == ButtonSize.hero;
     property <length> pad-x: root.hero ? Size.button-pad-x-hero : Size.button-pad-x;
     property <length> min-w: root.hero ? Size.button-hero-min-w : Size.button-min-w;
@@ -135,15 +135,11 @@ export component Button {
             tone: ButtonLook.tone(root.variant);
             accessible-role: none;
 
-            changed width => {
-                root.label-width = self.width;
-            }
-            changed preferred-width => {
-                root.label-wanted = self.preferred-width;
+            changed cut => {
+                root.label-cut = self.cut;
             }
             init => {
-                root.label-width = self.width;
-                root.label-wanted = self.preferred-width;
+                root.label-cut = self.cut;
             }
         }
         if root.has-icon-end: VerticalLayout {

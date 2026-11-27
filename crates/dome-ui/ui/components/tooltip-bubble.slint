@@ -4,7 +4,7 @@
 
 import { Size } from "../tokens/size.slint";
 import { TypeStep } from "../tokens/type.slint";
-import { InkTone } from "../enums.slint";
+import { InkTone, LabelWrap } from "../enums.slint";
 import { PopupSurface } from "../primitives/popup-surface.slint";
 import { Label } from "label.slint";
 
@@ -24,7 +24,7 @@ export component TooltipBubble inherits PopupSurface {
         if root.text != "": Label {
             text: root.text;
             step: TypeStep.caption;
-            wrap: true;
+            wrap: LabelWrap.word;
             horizontal-stretch: 1;
             accessible-role: none;
         }

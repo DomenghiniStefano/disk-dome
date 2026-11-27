@@ -950,6 +950,16 @@ The only text primitive. Properties: `text`, `step: TypeStep` (`display`, `title
 upper-cases its text (the translation stays lower-case in the `.po`). Middle elision is computed in Rust for
 paths (Slint elides only at the end) and passed in ready.
 
+| Label | |
+| --- | --- |
+| Wrap `LabelWrap` | `none` (default: one line, exactly the step's line tall; names and paths in tables and bars), `word` (between words: dialogs, info bars, toasts, empty states), `anywhere` (mid-word too: a long path in a dialog). A wrapped text starts at the top of its box and steps by the font's own line |
+| `max-lines` | a wrapped text stops after that many lines, the last one cut with «…»; 0 (default) for no limit |
+| `cut` (out) | the text does not fit its box. The control holding the label then says it whole in its tooltip (§ 3.3): a pointer area on the label itself would take the clicks of the row under it. `Button` and `SegmentedControl` read it |
+
+**Library-grade (§ 8.0).** Like Radix Themes' `Text`, with the wrap modes, a line limit and the cut readable from
+outside. Not here: the middle elision of paths (with the Table: it needs the text measured in Rust), selectable and
+copyable text (its own card), a form field's label (`FieldLabel`, with the TextField).
+
 ### 5.2 Button
 
 | | |
