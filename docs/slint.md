@@ -141,6 +141,9 @@ UI tests run off screen (`crates/ui/src/headless.rs`: Slint's software renderer 
   `opacity`) and changed in `init` appears at once. Read the start value in `init` before changing it
   (`PopupSurface`).
 - The software renderer puts things on whole pixels: a move of a few pixels runs `linear`, or eased it jumps.
+- The software renderer draws no rotation and no scale (`rotate` and `scale` are empty, `// TODO (#6068)` in
+  `i-slint-renderer-software`): `transform-rotation` and `transform-scale-*` do nothing on screen. A chevron that
+  turns is two icons; a growing element changes its size.
 - Off-screen shots do not advance time: animations and `Timer`s stay where they started, so a colour caught
   mid-animation in a shot is not a bug.
 - Segoe UI Semibold (600) has proportional digits; 400 and 700 are tabular, so the design uses only those (§ 3.3).

@@ -1,11 +1,11 @@
 // The colour of each `InkTone`, shared by `Label` and `Icon` so a text and its icon always agree (§ 5.1).
 
 import { Theme } from "tokens/theme.slint";
-import { Data, FileCategory } from "tokens/data.slint";
+import { Data, FileCategory, DataShade } from "tokens/data.slint";
 import { InkTone } from "enums.slint";
 
 export global Tones {
-    // `category` matters only for `on-data`: the text colour that reads on that category's fill.
+    // `category` matters only for `data` (the category's colour) and `on-data` (the ink that reads on it).
     public pure function ink(tone: InkTone, category: FileCategory) -> color {
         return tone == InkTone.muted ? Theme.ink-muted
             : tone == InkTone.faint ? Theme.ink-faint
@@ -15,6 +15,7 @@ export global Tones {
             : tone == InkTone.success ? Theme.success
             : tone == InkTone.on-accent ? Theme.on-accent
             : tone == InkTone.on-danger ? Theme.bg
+            : tone == InkTone.data ? Data.colour(category, DataShade.base)
             : tone == InkTone.on-data ? Data.on-data(category)
             : Theme.ink;
     }
