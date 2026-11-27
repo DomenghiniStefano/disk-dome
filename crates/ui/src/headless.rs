@@ -83,6 +83,34 @@ impl Headless {
             .dispatch_event(WindowEvent::PointerReleased { position, button });
     }
 
+    /// Presses the left button at a point and keeps it held: a drag or a press that repeats, ended by `release`.
+    pub fn press(&self, x: f32, y: f32) {
+        let position = LogicalPosition::new(x, y);
+        let button = slint::platform::PointerEventButton::Left;
+        self.window
+            .dispatch_event(WindowEvent::PointerMoved { position });
+        self.window
+            .dispatch_event(WindowEvent::PointerPressed { position, button });
+    }
+
+    /// Lets the left button go at a point.
+    pub fn release(&self, x: f32, y: f32) {
+        let position = LogicalPosition::new(x, y);
+        let button = slint::platform::PointerEventButton::Left;
+        self.window
+            .dispatch_event(WindowEvent::PointerReleased { position, button });
+    }
+
+    /// A click while a modifier is held (Shift+click).
+    pub fn click_with(&self, modifier: slint::platform::Key, x: f32, y: f32) {
+        let held = SharedString::from(modifier);
+        self.window
+            .dispatch_event(WindowEvent::KeyPressed { text: held.clone() });
+        self.click(x, y);
+        self.window
+            .dispatch_event(WindowEvent::KeyReleased { text: held });
+    }
+
     /// A key pressed while a modifier is held (Shift+F10).
     pub fn press_key_with(&self, modifier: slint::platform::Key, key: slint::platform::Key) {
         let held = SharedString::from(modifier);

@@ -11,6 +11,9 @@ export global Motion {
     out property <duration> search-rest: 150ms;
     // Pending design: how long the scroll bar stays after the scrolling stops (§ 5.24 says only «while scrolling»).
     out property <duration> scrollbar-linger: 1000ms;
+    // Pending design: a held scroll bar arrow or track starts repeating after this, then repeats every interval.
+    out property <duration> repeat-delay: 400ms;
+    out property <duration> repeat-interval: 50ms;
     // A tooltip waits for the mouse to rest even with reduced motion; on keyboard focus it shows at once.
     out property <duration> tooltip-delay: 500ms;
     // Pending design: after a tooltip closes, another one within this time opens without waiting (Radix's 300 ms).

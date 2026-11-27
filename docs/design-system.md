@@ -1279,6 +1279,25 @@ the action button.
 - `ScrollBar`: 10 px area over the content's edge, thumb 6 px (8 while hovered) radius 3, `scroll-thumb` /
   `scroll-thumb-hover`, no arrows, no track. Shows while scrolling and while the pointer is over the area.
 
+| ScrollBar | |
+| --- | --- |
+| Interface | `orientation` (Slint's `Orientation`, vertical by default), `value` (the content's offset, as Flickable's `content-y` / `content-x`: written by both the bar and the content), `content-length`, `visible-length`, `enabled`; `scrolled()` when the user moves the content with the bar, never for a change made by the screen |
+| Placement | laid over one edge of the scrolled area; its thickness is `thickness` (default `scrollbar`), its length is given where it is placed |
+| Thumb | as long as the track × visible / content, never shorter than `thumb-min` (24, pending design); `thumb-thickness` at rest, `thumb-thickness-hover` while the bar is under the pointer or pressed; `thumb-color`, `thumb-hover-color` |
+| Visibility `ScrollBarVisibility` | `scroll` (default): while the content moves and while the pointer is over the bar, then it fades `hide-delay` later (default `scrollbar-linger`, 1 s, pending design); `auto`: always while the content overflows; `always`: always, the track and arrows even when the content fits (no thumb then) |
+| Track | drawn while the bar is under the pointer or pressed, and always with `always`; `track-color` (default `scroll-track`: transparent, so no track) |
+| Arrows `ScrollBarArrows` | `none` (default), `on-hover` (shown while the bar is under the pointer or pressed, as on Windows 11), `always`. Each is a square of the bar's thickness at an end, a filled triangle of `arrow-size` (`scroll-arrow`, 6, pending design) in the thumb's colour; the arrows keep their room while hidden, so the thumb does not move when they appear. A press moves `step` (`scroll-step`: one `row`, pending design) |
+| Track press `ScrollBarTrackClick` | `page` (default, as Windows): one visible length towards the pointer; `jump` (as Radix and macOS): the thumb's centre comes under the pointer, ready to drag. Shift+click always jumps |
+| Holding | a held arrow or page repeats after `repeat-delay` (400 ms), every `repeat-interval` (50 ms), both pending design; paging stops once the thumb has reached the pointer |
+| Pointer | dragging the thumb moves the content with it; the wheel over the bar scrolls along its axis, and a vertical wheel over a horizontal bar scrolls it too (Windows) |
+| Disabled | faded (`disabled` opacity), takes no pointer |
+| Accessibility | none of its own: Slint 1.19 has no scroll bar role, so screen readers and the keyboard scroll the content itself (as with Radix) |
+
+**Library-grade (§ 8.0).** Like Radix's ScrollArea scroll bar and Windows 11's, with both orientations, optional
+arrows, paging or jumping on the track with repeat while held, the visibility modes, and every size, colour and delay
+as a parameter. Not here: Radix's `hover` visibility (shown while the pointer is anywhere over the scrolled area) and
+the corner between two bars, which come with the ScrollArea.
+
 ### 5.25 ToolBar, StatusBar, PanelHeader
 
 Structure components that only lay out others with the right height, ground and padding; `ToolBarSeparator` is

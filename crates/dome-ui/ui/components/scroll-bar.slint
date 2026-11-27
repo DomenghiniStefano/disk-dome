@@ -1,48 +1,204 @@
-// ScrollBar (§ 5.24): a vertical bar laid over the right edge of a scrolled area, `scrollbar` wide. Only the thumb
-// is drawn, `scroll-thumb` thick (`scroll-thumb-hover` while hovered or dragged), no arrows and no track. It shows
-// while the content scrolls and while the pointer is over its area. Horizontal bars come with the table.
+// ScrollBar (§ 5.24): a bar laid over one edge of a scrolled area, vertical or horizontal, `scrollbar` thick. At rest
+// only the thumb is drawn, `scroll-thumb` thick; under the pointer or while pressed it widens to `scroll-thumb-hover`
+// and shows its track and, if asked, its arrows. When it shows, what a press on the track does, the arrows, and every
+// size, colour and delay are parameters whose defaults are the tokens.
 
 import { Size } from "../tokens/size.slint";
 import { Theme } from "../tokens/theme.slint";
 import { Motion } from "../tokens/motion.slint";
-import { KitState } from "../enums.slint";
+import {
+    KitState,
+    ScrollBarArrows,
+    ScrollBarTrackClick,
+    ScrollBarVisibility,
+} from "../enums.slint";
+
+// What the press being held does: drag the thumb, step with an arrow, or page through the track. `back` moves
+// towards the content's start (up or left), `forward` towards its end.
+enum ScrollBarPress { none, thumb, step-back, step-forward, page-back, page-forward }
+
+// One arrow at an end of the bar: a filled triangle, drawn as Windows 11 does, in the thumb's colour. The path is
+// drawn in an 8 × 8 box scaled to the arrow's side.
+component ScrollBarArrow {
+    in property <string> shape;
+    in property <length> side;
+    in property <color> colour;
+
+    Path {
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+        width: root.side;
+        height: root.side;
+        viewbox-width: 8;
+        viewbox-height: 8;
+        commands: root.shape;
+        fill: root.colour;
+        accessible-role: none;
+    }
+}
 
 export component ScrollBar {
-    // The content's offset, as Flickable's `content-y`: 0 at the top, negative further down.
+    in property <Orientation> orientation: Orientation.vertical;
+    // The content's offset along the bar, as Flickable's `content-y` (`content-x` for a horizontal bar): 0 at the
+    // start, negative further on. Both sides write it: the content when it scrolls, the bar when it is used.
     in-out property <length> value;
     in property <length> content-length;
     in property <length> visible-length;
-    // The Kit window only (§ 9): `hover` shows the bar hovered, `pressed` dragged, `focus` simply shown.
+    in property <bool> enabled: true;
+    in property <ScrollBarVisibility> visibility: ScrollBarVisibility.scroll;
+    in property <ScrollBarArrows> arrows: ScrollBarArrows.none;
+    in property <ScrollBarTrackClick> track-click: ScrollBarTrackClick.page;
+    // How far an arrow moves the content. A page is the visible length.
+    in property <length> step: Size.scroll-step;
+    // How long the bar stays after the content stops moving (`scroll` visibility).
+    in property <duration> hide-delay: Motion.scrollbar-linger;
+    // A held arrow or track repeats after `repeat-delay`, then every `repeat-interval`.
+    in property <duration> repeat-delay: Motion.repeat-delay;
+    in property <duration> repeat-interval: Motion.repeat-interval;
+    // The bar's thickness: the area over the content that takes the pointer. Each arrow is a square of this side.
+    in property <length> thickness: Size.scrollbar;
+    in property <length> thumb-thickness: Size.scroll-thumb;
+    in property <length> thumb-thickness-hover: Size.scroll-thumb-hover;
+    // The shortest the thumb gets on a very long content, so it stays easy to grab.
+    in property <length> thumb-min: Size.scroll-thumb-min;
+    in property <length> arrow-size: Size.scroll-arrow;
+    in property <color> thumb-color: Theme.scroll-thumb;
+    in property <color> thumb-hover-color: Theme.scroll-thumb-hover;
+    in property <color> track-color: Theme.scroll-track;
+    // The Kit window only (§ 9): `hover` shows the bar widened, `pressed` dragged, `focus` simply shown.
     in property <KitState> kit-state: KitState.live;
+
+    // The user moved the content with the bar: a drag, a press on the track or an arrow, the wheel over it.
+    callback scrolled();
+
+    property <bool> vertical: root.orientation == Orientation.vertical;
+    property <bool> live: root.kit-state == KitState.live;
+    // The bar's length along its axis, and the pointer's place along it.
+    property <length> extent: root.vertical ? root.height : root.width;
+    property <length> pointer: root.vertical ? touch.mouse-y : touch.mouse-x;
 
     property <length> range: max(0, root.content-length - root.visible-length);
     property <bool> needed: root.range > 0;
-    property <bool> hovered: root.kit-state == KitState.hover || (root.kit-state == KitState.live && area.has-hover);
-    property <bool> dragged: root.kit-state == KitState.pressed || (root.kit-state == KitState.live && area.pressed);
+    property <bool> hovered: root.enabled && (root.kit-state == KitState.hover || (root.live && touch.has-hover));
+    property <bool> dragged: root.enabled
+        && (root.kit-state == KitState.pressed || (root.live && root.press != ScrollBarPress.none));
+    property <bool> widened: root.hovered || root.dragged;
+    // The content moved a moment ago (`hide-delay`).
     property <bool> recent;
-    property <bool> shown: root.needed
-        && (root.hovered || root.dragged || root.recent || root.kit-state != KitState.live);
-    property <length> thumb-length: min(root.height,
-        max(Size.scroll-thumb-min, root.height * root.visible-length / max(root.content-length, Size.unit)));
-    property <length> travel: root.height - root.thumb-length;
-    property <length> grab-offset;
+    property <bool> shown: root.visibility == ScrollBarVisibility.always
+        || (root.needed && (root.visibility == ScrollBarVisibility.auto || root.widened || root.recent || !root.live));
 
-    width: Size.scrollbar;
+    // The arrows keep their room even while hidden, so the thumb does not move when they appear.
+    property <bool> has-arrows: root.arrows != ScrollBarArrows.none;
+    property <bool> arrows-shown: root.arrows == ScrollBarArrows.always
+        || (root.arrows == ScrollBarArrows.on-hover && root.widened);
+    property <length> arrow-room: root.has-arrows ? root.thickness : 0;
+
+    property <length> track-length: max(0, root.extent - 2 * root.arrow-room);
+    property <length> thumb-length: min(root.track-length,
+        max(root.thumb-min, root.track-length * root.visible-length / max(root.content-length, Size.unit)));
+    property <length> travel: root.track-length - root.thumb-length;
+    property <float> progress: root.needed ? clamp(-root.value / root.range, 0, 1) : 0;
+    property <length> thumb-start: root.arrow-room + root.travel * root.progress;
+    property <length> thumb-end: root.thumb-start + root.thumb-length;
+    property <length> thumb-cross: root.widened ? root.thumb-thickness-hover : root.thumb-thickness;
+
+    // The press being held, where the thumb was grabbed, and whether a held press has started repeating.
+    property <ScrollBarPress> press: ScrollBarPress.none;
+    property <length> grab-offset;
+    property <bool> repeating;
+
+    // Its thickness across the bar; its length is set where it is placed (the height of a vertical bar).
+    preferred-width: root.vertical ? root.thickness : 0;
+    preferred-height: root.vertical ? 0 : root.thickness;
+    opacity: root.enabled ? 1 : Size.disabled;
+    // Slint has no scroll bar role: screen readers and the keyboard scroll the content itself, as with Radix.
     accessible-role: none;
 
-    // The content moved: the bar shows, then fades `scrollbar-linger` after the last move.
+    // The content moved: the bar shows, then fades `hide-delay` after the last move.
     changed value => {
         root.recent = true;
         linger.running = false;
         linger.running = true;
     }
 
-    function move-to(pointer: length) {
-        root.value = -root.range * clamp((pointer - root.grab-offset) / max(root.travel, Size.unit), 0, 1);
+    // Moves the content to an offset, kept within its range.
+    function scroll-to(offset: length) {
+        root.value = max(-root.range, min(0, offset));
+        root.scrolled();
+    }
+
+    // Moves the content further on by `delta` (back for a negative one).
+    function scroll-by(delta: length) {
+        root.scroll-to(root.value - delta);
+    }
+
+    // Puts the thumb's grabbed point under the pointer.
+    function drag-to(at: length) {
+        root.scroll-to(-root.range * clamp((at - root.arrow-room - root.grab-offset) / max(root.travel, Size.unit), 0, 1));
+    }
+
+    // Grabs the thumb by its centre and brings it under the pointer, ready to drag.
+    function jump-to(at: length) {
+        root.press = ScrollBarPress.thumb;
+        root.grab-offset = root.thumb-length / 2;
+        root.drag-to(at);
+    }
+
+    // What a press does at a point along the bar: an arrow steps, the thumb is grabbed, the track pages or jumps.
+    function press-at(at: length, jump: bool) {
+        if (root.has-arrows && at < root.arrow-room) {
+            root.hold(ScrollBarPress.step-back);
+        } else if (root.has-arrows && at >= root.extent - root.arrow-room) {
+            root.hold(ScrollBarPress.step-forward);
+        } else if (at >= root.thumb-start && at <= root.thumb-end) {
+            root.press = ScrollBarPress.thumb;
+            root.grab-offset = at - root.thumb-start;
+        } else if (jump) {
+            root.jump-to(at);
+        } else {
+            root.hold(at < root.thumb-start ? ScrollBarPress.page-back : ScrollBarPress.page-forward);
+        }
+    }
+
+    // Starts a press that repeats while held: it acts once now, again after `repeat-delay`.
+    function hold(press: ScrollBarPress) {
+        root.press = press;
+        root.repeating = false;
+        root.act();
+        repeat.running = false;
+        repeat.running = true;
+    }
+
+    // One step of a held press. A page stops once the thumb has reached the pointer, as on Windows.
+    function act() {
+        if (root.press == ScrollBarPress.step-back) {
+            root.scroll-by(-root.step);
+        } else if (root.press == ScrollBarPress.step-forward) {
+            root.scroll-by(root.step);
+        } else if (root.press == ScrollBarPress.page-back && root.pointer < root.thumb-start) {
+            root.scroll-by(-root.visible-length);
+        } else if (root.press == ScrollBarPress.page-forward && root.pointer > root.thumb-end) {
+            root.scroll-by(root.visible-length);
+        }
+    }
+
+    function release() {
+        root.press = ScrollBarPress.none;
+        root.repeating = false;
+        repeat.running = false;
+    }
+
+    // The wheel moves along the bar's axis; over a horizontal bar, a plain vertical wheel scrolls it too (Windows).
+    function wheel-delta(event: PointerScrollEvent) -> length {
+        if (root.vertical) {
+            return event.delta-y;
+        }
+        return event.delta-x != 0 ? event.delta-x : event.delta-y;
     }
 
     linger := Timer {
-        interval: Motion.scrollbar-linger;
+        interval: root.hide-delay;
         running: false;
         triggered => {
             self.running = false;
@@ -50,36 +206,108 @@ export component ScrollBar {
         }
     }
 
-    thumb := Rectangle {
-        property <length> thickness: root.hovered || root.dragged ? Size.scroll-thumb-hover : Size.scroll-thumb;
-
-        x: (root.width - self.width) / 2;
-        y: root.needed ? root.travel * (-root.value / root.range) : 0;
-        width: self.thickness;
-        height: root.thumb-length;
-        border-radius: self.thickness / 2;
-        background: root.hovered || root.dragged ? Theme.scroll-thumb-hover : Theme.scroll-thumb;
-        opacity: root.shown ? 1 : 0;
-        animate opacity, width {
-            duration: Motion.base;
-            easing: Motion.ease-out;
+    repeat := Timer {
+        interval: root.repeating ? root.repeat-interval : root.repeat-delay;
+        running: false;
+        triggered => {
+            root.repeating = true;
+            root.act();
         }
     }
 
-    // Dragging moves the content; a press outside the thumb jumps it there, centred under the pointer.
-    area := TouchArea {
-        enabled: root.needed;
+    // Track, arrows and thumb show and fade as one.
+    Rectangle {
+        width: 100%;
+        height: 100%;
+        opacity: root.shown ? 1 : 0;
+        animate opacity {
+            duration: Motion.base;
+            easing: Motion.ease-out;
+        }
+
+        Rectangle {
+            width: 100%;
+            height: 100%;
+            background: root.track-color;
+            opacity: root.widened || root.visibility == ScrollBarVisibility.always ? 1 : 0;
+            animate opacity {
+                duration: Motion.base;
+                easing: Motion.ease-out;
+            }
+        }
+
+        if root.has-arrows: Rectangle {
+            width: 100%;
+            height: 100%;
+            opacity: root.arrows-shown ? 1 : 0;
+            animate opacity {
+                duration: Motion.base;
+                easing: Motion.ease-out;
+            }
+
+            ScrollBarArrow {
+                x: 0;
+                y: 0;
+                width: root.arrow-room;
+                height: root.arrow-room;
+                side: root.arrow-size;
+                // Pointing up, or left.
+                shape: root.vertical ? "M 4 1 L 8 7 L 0 7 Z" : "M 1 4 L 7 0 L 7 8 Z";
+                colour: root.press == ScrollBarPress.step-back
+                    || (root.hovered && root.live && root.pointer < root.arrow-room)
+                    ? root.thumb-hover-color : root.thumb-color;
+            }
+
+            ScrollBarArrow {
+                x: root.vertical ? 0 : root.width - root.arrow-room;
+                y: root.vertical ? root.height - root.arrow-room : 0;
+                width: root.arrow-room;
+                height: root.arrow-room;
+                side: root.arrow-size;
+                // Pointing down, or right.
+                shape: root.vertical ? "M 0 1 L 8 1 L 4 7 Z" : "M 1 0 L 7 4 L 1 8 Z";
+                colour: root.press == ScrollBarPress.step-forward
+                    || (root.hovered && root.live && root.pointer >= root.extent - root.arrow-room)
+                    ? root.thumb-hover-color : root.thumb-color;
+            }
+        }
+
+        thumb := Rectangle {
+            x: root.vertical ? (root.width - self.width) / 2 : root.thumb-start;
+            y: root.vertical ? root.thumb-start : (root.height - self.height) / 2;
+            width: root.vertical ? root.thumb-cross : root.thumb-length;
+            height: root.vertical ? root.thumb-length : root.thumb-cross;
+            visible: root.needed;
+            border-radius: root.thumb-cross / 2;
+            background: root.widened ? root.thumb-hover-color : root.thumb-color;
+            // The thickness eases as the bar widens; along the bar the thumb only changes with the content's length.
+            animate width, height {
+                duration: Motion.base;
+                easing: Motion.ease-out;
+            }
+        }
+    }
+
+    touch := TouchArea {
+        enabled: root.enabled;
         pointer-event(event) => {
-            if (event.kind == PointerEventKind.down) {
-                root.grab-offset = self.mouse-y >= thumb.y && self.mouse-y <= thumb.y + thumb.height
-                    ? self.mouse-y - thumb.y : root.thumb-length / 2;
-                root.move-to(self.mouse-y);
+            if (event.button == PointerEventButton.left && event.kind == PointerEventKind.down) {
+                root.press-at(root.pointer, root.track-click == ScrollBarTrackClick.jump || event.modifiers.shift);
+            } else if (event.kind == PointerEventKind.up || event.kind == PointerEventKind.cancel) {
+                root.release();
             }
         }
         moved => {
-            if (self.pressed) {
-                root.move-to(self.mouse-y);
+            if (root.press == ScrollBarPress.thumb) {
+                root.drag-to(root.pointer);
             }
+        }
+        scroll-event(event) => {
+            if (!root.needed || root.wheel-delta(event) == 0) {
+                return reject;
+            }
+            root.scroll-to(root.value + root.wheel-delta(event));
+            accept
         }
     }
 }

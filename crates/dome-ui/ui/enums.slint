@@ -33,6 +33,18 @@ export enum SearchFieldToggles { none, match-case, match-case-and-regex }
 // `small` sits inside a field (the search's `Aa` / `.*`), `normal` in a toolbar (§ 5.3).
 export enum ToggleSize { small, normal }
 
+// What a scroll bar draws at its ends (§ 5.24): no arrows (the default), arrows that appear while the bar is widened
+// under the pointer (as Windows 11), or arrows always.
+export enum ScrollBarArrows { none, on-hover, always }
+
+// What a press on a scroll bar's track does (§ 5.24): `page` through the content towards the pointer, repeating while
+// held (as Windows), or `jump` the thumb under the pointer, ready to drag (as Radix and macOS). Shift+click jumps.
+export enum ScrollBarTrackClick { page, jump }
+
+// When a scroll bar shows (§ 5.24): `scroll` while the content moves and while the pointer is over the bar (Radix's
+// `type="scroll"`), `auto` whenever the content overflows, `always` even when it does not (track and arrows).
+export enum ScrollBarVisibility { scroll, auto, always }
+
 // The Kit window shows every state side by side (§ 9): a component shows the forced state instead of the
 // pointer's and the keyboard's. Screens never set it; `live` is the real behaviour.
 export enum KitState { live, hover, pressed, focus }
