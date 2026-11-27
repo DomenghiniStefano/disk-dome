@@ -7,6 +7,7 @@ import {
     TypeStep,
     Label,
     InkTone,
+    LabelWrap,
     ScrollBar,
     ScrollBarArrows,
     ScrollBarTrackClick,
@@ -194,5 +195,38 @@ export component KitScrollDemo inherits Rectangle {
         visibility: root.visibility;
         track-color: root.track-color;
         enabled: root.enabled;
+    }
+}
+
+// A label held in a narrow framed box (§ 5.1, § 3.3), and beside it «cut» when the label says it is. The word only
+// fades in and out: a text that changed with `cut` would change the layout that `cut` is computed from.
+export component KitTextBox inherits HorizontalLayout {
+    in property <string> text;
+    in property <LabelWrap> wrap: LabelWrap.none;
+    in property <int> max-lines: 0;
+
+    spacing: Size.space-8;
+    alignment: start;
+
+    Rectangle {
+        width: Size.bar-w * 3;
+        border-width: Size.border-hairline;
+        border-color: Theme.line;
+        border-radius: Size.radius-control;
+
+        HorizontalLayout {
+            padding: Size.space-4;
+
+            sample := Label {
+                text: root.text;
+                wrap: root.wrap;
+                max-lines: root.max-lines;
+            }
+        }
+    }
+
+    KitCaption {
+        text: "cut";
+        opacity: sample.cut ? 1 : 0;
     }
 }

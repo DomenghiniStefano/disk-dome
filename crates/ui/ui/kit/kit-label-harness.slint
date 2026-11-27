@@ -1,0 +1,100 @@
+// The Label's test window (`tests/label_headless.rs`, § 5.1, § 3.3): a text that fits and one cut in a narrow box,
+// a sentence wrapped between words, a path wrapped anywhere, and a long text held to two and to three lines. Kit
+// only; texts are the Kit's own, not translated.
+
+import {
+    DomeWindow,
+    Label,
+    LabelWrap,
+    Size,
+} from "@dome-ui";
+
+export component KitLabelHarness inherits DomeWindow {
+    preferred-width: Size.window-min-w;
+    preferred-height: Size.window-min-h;
+
+    // The box every label below is held in.
+    out property <length> narrow: Size.bar-w * 2;
+
+    out property <bool> short-cut: short.cut;
+    out property <bool> long-cut: long.cut;
+    out property <length> single-height: long.height;
+    out property <bool> sentence-cut: sentence.cut;
+    out property <length> sentence-height: sentence.height;
+    out property <bool> path-cut: path.cut;
+    out property <length> path-height: path.height;
+    out property <bool> two-cut: two.cut;
+    out property <length> two-height: two.height;
+    out property <length> three-height: three.height;
+    // Where the two-line label is, for its pixels: nothing may be drawn under its second line.
+    out property <length> two-x: two-row.x;
+    out property <length> two-y: two-row.y;
+
+    property <string> long-text: "Every file of the drive, the largest first, with its folder and when it changed";
+
+    VerticalLayout {
+        alignment: start;
+        padding: Size.space-16;
+        spacing: Size.space-16;
+
+        HorizontalLayout {
+            alignment: start;
+
+            short := Label {
+                text: "Size";
+            }
+        }
+
+        HorizontalLayout {
+            alignment: start;
+
+            long := Label {
+                width: root.narrow;
+                text: root.long-text;
+            }
+        }
+
+        HorizontalLayout {
+            alignment: start;
+
+            sentence := Label {
+                width: root.narrow;
+                text: root.long-text;
+                wrap: LabelWrap.word;
+            }
+        }
+
+        HorizontalLayout {
+            alignment: start;
+
+            path := Label {
+                width: root.narrow;
+                text: "C:\\Users\\someone\\AppData\\Local\\Temp\\cache";
+                wrap: LabelWrap.anywhere;
+            }
+        }
+
+        HorizontalLayout {
+            alignment: start;
+
+            three := Label {
+                width: root.narrow;
+                text: root.long-text;
+                wrap: LabelWrap.word;
+                max-lines: 3;
+            }
+        }
+
+        // Last, with nothing under it.
+        two-row := HorizontalLayout {
+            alignment: start;
+
+            two := Label {
+                width: root.narrow;
+                text: root.long-text;
+                wrap: LabelWrap.word;
+                max-lines: 2;
+            }
+        }
+    }
+}

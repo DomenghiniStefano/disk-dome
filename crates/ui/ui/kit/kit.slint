@@ -12,6 +12,7 @@ import {
     TypeStep,
     Icons,
     Label,
+    LabelWrap,
     Icon,
     Button,
     SegmentedControl,
@@ -49,6 +50,7 @@ import {
     KitSection,
     KitRow,
     KitOnFill,
+    KitTextBox,
     KitPane,
     KitScrollDemo,
     KitSearch,
@@ -199,6 +201,9 @@ global KitData {
     // An Italian label, ~25 % longer than English (§ 3.3): buttons must grow with it.
     out property <string> long-label: "Sposta nel Cestino";
     out property <string> sample-text: "Users 310.4 GB · 46.4 % · 3,789,066 files";
+    // Longer than the Kit's narrow boxes, with spaces and without (§ 3.3).
+    out property <string> long-text: "Every file of the drive, the largest first, with its folder and when it changed";
+    out property <string> long-path: "C:\\Users\\someone\\AppData\\Local\\Temp\\cache\\thumbnails";
     // Every kind of entry, variant and state of § 5.16, with repeated and trailing separators that must not show.
     in-out property <[MenuEntry]> menu: [
         { id: "open", label: "Open", icon: Icons.folder-open, shortcut: "Enter" },
@@ -465,6 +470,52 @@ export component KitWindow inherits DomeWindow {
                                 text: "on-danger";
                                 tone: InkTone.on-danger;
                                 background: Theme.danger;
+                            }
+                        }
+                    }
+
+                    KitSection {
+                        title: "Label · wrap and cut";
+
+                        KitRow {
+                            name: "one line";
+
+                            KitTextBox {
+                                text: "Size";
+                            }
+
+                            KitTextBox {
+                                text: KitData.long-text;
+                            }
+                        }
+
+                        KitRow {
+                            name: "word, anywhere";
+
+                            KitTextBox {
+                                text: KitData.long-text;
+                                wrap: LabelWrap.word;
+                            }
+
+                            KitTextBox {
+                                text: KitData.long-path;
+                                wrap: LabelWrap.anywhere;
+                            }
+                        }
+
+                        KitRow {
+                            name: "max-lines 2";
+
+                            KitTextBox {
+                                text: KitData.long-text;
+                                wrap: LabelWrap.word;
+                                max-lines: 2;
+                            }
+
+                            KitTextBox {
+                                text: KitData.long-path;
+                                wrap: LabelWrap.anywhere;
+                                max-lines: 2;
                             }
                         }
                     }

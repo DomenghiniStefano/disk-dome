@@ -1,10 +1,10 @@
 // Label (§ 5.1): the only text primitive. It maps a `TypeStep` to the font and an `InkTone` to the colour;
 // nothing else in the interface sets `font-size`, `font-weight`, `font-family` or `letter-spacing` (rule
-// `font-literal`, § 10).
+// `font-literal`, § 10). It cuts or wraps a text that does not fit, and says when it is cut.
 
 import { Type, TypeStep } from "../tokens/type.slint";
 import { FileCategory } from "../tokens/data.slint";
-import { InkTone, Elide } from "../enums.slint";
+import { InkTone, Elide, LabelWrap } from "../enums.slint";
 import { Tones } from "../tones.slint";
 
 export component Label {
@@ -15,13 +15,27 @@ export component Label {
     in property <FileCategory> category: FileCategory.other;
     in property <TextHorizontalAlignment> align: TextHorizontalAlignment.left;
     in property <Elide> elide: Elide.end;
-    // Wrapping only in dialogs, info bars, toasts and empty states (§ 3.3); names and paths never wrap.
-    in property <bool> wrap: false;
+    // Wrapping only in dialogs, info bars, toasts and empty states (§ 3.3); names and paths in tables never wrap.
+    in property <LabelWrap> wrap: LabelWrap.none;
+    // A wrapped text stops after this many lines, the last one cut with «…»; 0 for no limit.
+    in property <int> max-lines: 0;
+
+    // The text does not fit in the room it was given: the control holding the label says it whole in its tooltip
+    // (§ 3.3). The label cannot: a pointer area over it would take the clicks of the row under it.
+    out property <bool> cut: root.wrapped ? glyphs.preferred-height > root.height : glyphs.preferred-width > root.width;
+
+    property <bool> wrapped: root.wrap != LabelWrap.none;
+    // The font's own line, which a wrapped text steps by (Slint's `Text` has no line height to set).
+    property <length> font-line: line.preferred-height;
+    // What `line` measures: any one character gives the font's line. Never drawn, so not a text to translate.
+    property <string> line-sample: " ";
+    property <length> wrapped-height: root.max-lines > 0
+        ? min(glyphs.preferred-height, root.font-line * root.max-lines) : glyphs.preferred-height;
 
     // A single-line label is exactly as tall as its step's line (§ 3.3).
     min-height: Type.line(root.step);
     preferred-width: glyphs.preferred-width;
-    preferred-height: root.wrap ? glyphs.preferred-height : Type.line(root.step);
+    preferred-height: root.wrapped ? root.wrapped-height : Type.line(root.step);
     accessible-role: AccessibleRole.text;
     accessible-label: root.text;
 
@@ -36,9 +50,21 @@ export component Label {
         font-weight: Type.weight(root.step);
         letter-spacing: Type.tracking(root.step);
         horizontal-alignment: root.align;
-        vertical-alignment: center;
-        wrap: root.wrap ? TextWrap.word-wrap : TextWrap.no-wrap;
+        // A wrapped text starts at the top: a taller box leaves room under it, not around it.
+        vertical-alignment: root.wrapped ? TextVerticalAlignment.top : TextVerticalAlignment.center;
+        wrap: root.wrap == LabelWrap.word ? TextWrap.word-wrap
+            : root.wrap == LabelWrap.anywhere ? TextWrap.char-wrap : TextWrap.no-wrap;
         overflow: root.elide == Elide.none ? TextOverflow.clip : TextOverflow.elide;
+        accessible-role: none;
+    }
+
+    // Measures one line in the same font; never drawn.
+    line := Text {
+        visible: false;
+        text: root.line-sample;
+        font-family: glyphs.font-family;
+        font-size: glyphs.font-size;
+        font-weight: glyphs.font-weight;
         accessible-role: none;
     }
 }
