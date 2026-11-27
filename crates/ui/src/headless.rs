@@ -10,6 +10,9 @@ use slint::platform::software_renderer::{
 use slint::platform::{Platform, WindowAdapter, WindowEvent};
 use slint::{LogicalPosition, PhysicalSize, PlatformError, SharedString};
 
+/// How long `wait` sleeps between two frames.
+const WAIT_TURN: Duration = Duration::from_millis(25);
+
 struct HeadlessPlatform {
     window: Rc<MinimalSoftwareWindow>,
 }
@@ -57,6 +60,16 @@ impl Headless {
             renderer.render(pixels, width);
         });
         drawn.then(|| start.elapsed())
+    }
+
+    /// Lets `time` pass by the clock, a frame every few milliseconds, so a repeating timer fires at its pace. Never
+    /// count turns instead: where a frame is slow (the macOS CI), the turns last far longer than they add up to.
+    pub fn wait(&mut self, time: Duration) {
+        let deadline = Instant::now() + time;
+        while Instant::now() < deadline {
+            std::thread::sleep(WAIT_TURN);
+            self.frame();
+        }
     }
 
     /// Forces the next `frame()` to draw even if nothing changed.

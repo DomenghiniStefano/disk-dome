@@ -50,6 +50,7 @@ cargo run -p diskdome-ui --features spikes -- --spike-titlebar   # the throwaway
 - [`docs/architecture.md`](docs/architecture.md) — crates, data model, scan pipeline, privileges
 - [`docs/features.md`](docs/features.md) — what is in v1 and what comes later
 - [`docs/design-system.md`](docs/design-system.md) — the design system: principles, tokens, components, patterns
+- [`docs/slint.md`](docs/slint.md) — how the interface is written in Slint: layers, the Kit, off-screen tests, traps
 - [`docs/research.md`](docs/research.md) — measurements, alternatives considered, sources
 - [`docs/decisions.md`](docs/decisions.md) — every decision and its reason
 

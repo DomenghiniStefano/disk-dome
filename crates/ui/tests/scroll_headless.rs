@@ -7,7 +7,7 @@
 
 #![cfg(feature = "kit")]
 
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use diskdome_ui::design_system;
 use diskdome_ui::generated::KitScrollHarness;
@@ -46,8 +46,6 @@ const AFTER_FADE: Duration = Duration::from_millis(400);
 const REST_HIDE_DELAY: Duration = Duration::from_millis(3000);
 /// Past the default bar's delay and the fade.
 const AFTER_LINGER: Duration = Duration::from_millis(3600);
-/// One turn of `wait`.
-const TURN: Duration = Duration::from_millis(25);
 
 /// Two turns of the loop: a timer or a change handler is seen in the next one.
 fn settle(headless: &mut Headless) {
@@ -55,14 +53,9 @@ fn settle(headless: &mut Headless) {
     headless.frame();
 }
 
-/// Lets `time` pass by the clock, in small turns so a repeating timer fires at its pace rather than once. Counting
-/// turns instead would wait far longer on a slow machine, where each frame takes its own time.
+/// Lets `time` pass by the clock (`Headless::wait`), then lets what it started be seen.
 fn wait(headless: &mut Headless, time: Duration) {
-    let deadline = Instant::now() + time;
-    while Instant::now() < deadline {
-        std::thread::sleep(TURN);
-        headless.frame();
-    }
+    headless.wait(time);
     settle(headless);
 }
 

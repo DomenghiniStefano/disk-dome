@@ -147,92 +147,25 @@ Clean code, small components, one source of truth. They apply to Rust and Slint 
   section it implements (`§ 5.2`).
 - **Tests come with the change**: a behaviour gets a test, a bug fix starts with a failing one. UI tests run
   off screen (`crates/ui/src/headless.rs`), never in a window.
+- **A test that passes at once is proved**: break the behaviour on purpose (a mutation), see the test fail, then
+  restore from a copy taken before the mutation, never with `git checkout` (it brings back the last commit and
+  drops the uncommitted work).
 - **Before «done»**: `./scripts/check.ps1` (format, clippy and tests with every feature, licences) passes. It takes
   over 10 minutes from a fresh worktree: run it in the background. From Windows PowerShell 5.1, cargo's progress on
   stderr reads as a failure: run it as `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check.ps1`
-  from Git Bash and read its exit code.
-- **Before building on a Slint element, read its source** in `~/.cargo/registry/src/*/i-slint-*-1.19.1/`
-  (`builtin_elements.rs`, `widgets/`, `i-slint-core/window.rs`): what it draws, what it takes (focus, the pointer),
-  what can be set. Two days of guessing are one `grep`.
-- **The Kit works, not only shows**: every interactive component in the Kit is wired so that using it does what it
-  would in a screen (a check box in a menu flips, a choice is shown), and the owner checks it by hand there.
-- **The Kit shot covers the whole Kit**: a new section raises `HEIGHT` in `tests/kit_headless.rs` until the last
-  section is in the shot; a cut shot hides the new work silently.
+  from Git Bash and read its exit code. On this PC a full parallel build runs out of the page file
+  (`os error 1455`, «Il file di paging è troppo piccolo»): run `check.ps1 -Jobs 2`, and never two worktrees'
+  builds at once.
+- **After a push to `develop`, watch its CI run to the end** (`gh run list`, then `gh run view <id>`) and fix a
+  red one before the next card; the CI builds on macOS too, which the local checks do not.
 - **Expected values come from the spec**: compute them before running; a failing test is first read as a bug in the
   code, and only an expectation proven wrong by the spec is changed, with the reason in its comment.
 
 ### Slint
 
-- **Layers**: `tokens/` → `primitives/` → `components/` → screens. Each layer imports only the ones below it;
-  screens and `app.slint` import only `@dome-ui` (the library's `index.slint`; its project file makes every other file
-  private). Dome UI holds nothing specific to DiskDome: it is the design system of every Dome app.
-- **Components**: one per file in `crates/dome-ui/ui/components/`, exported from `index.slint`, with its variants
-  and sizes as enums in `enums.slint`. The look for each variant comes from one pure-function global in the
-  file (as `ButtonLook`), not from ternaries scattered over the elements.
-- **Names** follow `docs/design-system.md` § 8.4: a component's enums, row struct and Rust global carry its name
-  (`SegmentedWidth`, `SegmentedItem`, `SegmentedNav`); indices end in `-index`; callbacks are events (`selected`,
-  never `changed`); one idea has one name everywhere (`wrap-around`, `width-mode`, `tooltip`).
-- **Properties**: `in` by default; `out` only for what the component computes; `in-out` and two-way bindings
-  (`<=>`) only when both sides really write, with a comment saying why. Everything that is not the component's
-  interface is a private `property` (no direction).
-- **Screens talk to Rust through globals**: one `export global` per area (`ScanApi`, `TreeApi`…) with
-  properties and callbacks, re-exported by the build entry; one Rust adapter module per area wires it. Screens
-  never get data through properties of the `Window`, so the Kit can show them with fake data.
-- **Models are lazy**: a list or table implements `slint::Model` over `core` and builds only the rows asked
-  for; no `VecModel` copy of the tree. Small fixed lists (tabs, menu items) may be a `VecModel`.
-- **From another thread to the interface** only through `Weak::upgrade_in_event_loop` or
-  `slint::invoke_from_event_loop`; their error (the event loop has ended) is logged, never dropped with `let _`.
-- **Behaviour is never rewritten**: clicks, hover, press, Enter / Space and the focus ring come from
-  `primitives/` (`Pressable`, `FocusTarget`, `FocusRing`); the ring shows only when `InputMode.keyboard` is set.
-  Disabled is one `opacity: Size.disabled` on the component's root.
-- **Text only through `Label`, icons only through `Icon`** with `Icons.*`; colours through `InkTone`. A new
-  icon: the SVG from the pinned Lucide version, its property in `icons.slint`, its entry in the Kit
-  (`tests/design_icons.rs` checks all three).
-- **A value the spec does not give** becomes a token under `// Pending design`, listed on the card for the
-  owner. Never a literal, never a guess presented as decided.
-- **Accessibility on every component**: `accessible-role`, `accessible-label`, `accessible-enabled`, and
-  `accessible-checked` where it applies; an icon-only button always has its `accessible-label`.
-- **The Kit is the proof**: every component, variant and state appears in `kit/kit.slint` (test
-  `kit-coverage`); states are shown with `kit-state`, which screens never set. A visual change is looked at
-  in the off-screen shots before it is called done:
-  `DISKDOME_KIT_SHOTS=<folder> cargo test -p diskdome-ui --features kit --test kit_headless`. The shots are
-  a local look only: never committed, never compared by a test.
-- **Slint 1.19 traps**:
-  - an element inside a component without a layout is centred at its preferred size, so an overlay sets
-    `width: 100%; height: 100%`; a helper that only holds a popup (`Menu`) does the same, or its coordinates start
-    at the parent's centre;
-  - `&&` next to `||` needs parentheses;
-  - an enum value whose name matches a property is written in full (`AccessibleRole.text`);
-  - `Flickable` takes `content-height` and `content-y`, not the deprecated `viewport-*`;
-  - `visible: false` keeps the element's place in a layout: to take no room, bind its min / preferred / max height
-    to 0 (as `KitSection`) or use `if`;
-  - a property named like a built-in one cannot be declared (`row` in a layout child, `padding` on a component):
-    pick another name (`inset`);
-  - strings have no `contains`, prefix test or regex, and functions have no loops and no recursion: answer it in
-    Rust with a `pure callback` on a global, wired on every window (`MenuNav`: `dome_ui::menu`, wired by `menu_nav!`; `SegmentedNav`: `dome_ui::segmented`, by `segmented_nav!`) and unit
-    tested in Rust;
-  - a `PopupWindow` takes the keyboard focus when it shows and gives it back when it closes, and while it is open
-    the next pointer move goes to the popup layer: never put something that must not take the focus (a tooltip,
-    a badge, a hint) on one; draw it in `DomeWindow`'s top layer (`TooltipLayer`);
-  - inside a `PopupWindow`, `absolute-position` is relative to the popup, not the window: add the popup's own
-    `x` / `y` (and its parent's `absolute-position`) to get window coordinates;
-  - properties of elements inside a `PopupWindow` cannot be read from outside it: keep a popup's state on the
-    component that owns it and let the popup read it;
-  - `accessible-role` must be a constant: an element that is sometimes an item and sometimes a title gets one
-    `if` element per role;
-  - a size computed from itself through a layout is a binding loop, and some loops crash the compiler with a stack
-    overflow instead of an error (a width that depends on whether a scroll bar shows): lay the scroll bar over the
-    content; a row whose height must not follow its text gets a fixed `preferred-height` and its inner layout an
-    explicit `x` / `y`;
-  - a `Timer` or a `changed` handler that opens or closes a popup is seen one frame later: headless tests let two
-    frames run (`settle`) and wait with a margin over every delay;
-  - Slint animates a change only from a value it has already read: a property first read when drawn (an
-    `opacity`) and changed in `init` appears at once. Read the start value in `init` before changing it
-    (`PopupSurface`), and test an animation by reading pixels over frames (`Headless::pixel`), not by a shot;
-  - the software renderer puts things on whole pixels: a move of a few pixels runs `linear`, or eased it jumps;
-  - off-screen shots do not advance time: animations and `Timer`s stay where they started, so a colour caught
-    mid-animation in a shot is not a bug;
-  - Segoe UI Semibold (600) has proportional digits; 400 and 700 are tabular, so the design uses only those (§ 3.3).
+The Slint rules (layers, components, properties, globals, models and threads, the Kit, the off-screen tests, the
+Slint 1.19 traps) and the checklist before «done» are in **`docs/slint.md`: read it before touching a `.slint`
+file, a Kit harness or a headless test.** The project skill `/slint` (`.claude/skills/slint/`) loads it.
 
 ## Interface and design
 
@@ -242,8 +175,7 @@ Clean code, small components, one source of truth. They apply to Rust and Slint 
   until a design exists, a screen stays a functional placeholder (correct, translated, keyboard-usable). A
   visual problem you notice goes on Trello for the owner, not into the code.
 - Every visual value is a token; no `px` and no colour written by hand outside Dome UI's `tokens/`; a new
-  component or variant appears in the Kit window first; screens never restyle a component (how: «Implementation
-  rules › Slint» above).
+  component or variant appears in the Kit window first; screens never restyle a component (how: `docs/slint.md`).
 
 ## Workflow
 
