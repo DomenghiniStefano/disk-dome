@@ -29,6 +29,9 @@ import {
     SearchField,
     SearchFieldToggles,
     ScrollBar,
+    ScrollBarArrows,
+    ScrollBarTrackClick,
+    ScrollBarVisibility,
     DomeWindow,
     MenuFrame,
     MenuList,
@@ -47,6 +50,7 @@ import {
     KitRow,
     KitOnFill,
     KitPane,
+    KitScrollDemo,
     KitSearch,
 } from "kit-parts.slint";
 import { KitTokens } from "kit-tokens.slint";
@@ -1125,6 +1129,99 @@ export component KitWindow inherits DomeWindow {
                                     visible-length: Size.control-lg * 3;
                                     kit-state: state;
                                 }
+                            }
+                        }
+                    }
+
+                    KitSection {
+                        title: "ScrollBar · options";
+
+                        KitRow {
+                            name: "arrows";
+
+                            KitScrollDemo {
+                                name: "none";
+                                visibility: ScrollBarVisibility.auto;
+                            }
+
+                            KitScrollDemo {
+                                name: "on-hover";
+                                arrows: ScrollBarArrows.on-hover;
+                                visibility: ScrollBarVisibility.auto;
+                            }
+
+                            KitScrollDemo {
+                                name: "always";
+                                arrows: ScrollBarArrows.always;
+                                visibility: ScrollBarVisibility.auto;
+                            }
+                        }
+
+                        KitRow {
+                            name: "track click";
+
+                            KitScrollDemo {
+                                name: "page";
+                                track-click: ScrollBarTrackClick.page;
+                                visibility: ScrollBarVisibility.auto;
+                            }
+
+                            KitScrollDemo {
+                                name: "jump";
+                                track-click: ScrollBarTrackClick.jump;
+                                visibility: ScrollBarVisibility.auto;
+                            }
+
+                            KitScrollDemo {
+                                name: "track";
+                                arrows: ScrollBarArrows.on-hover;
+                                visibility: ScrollBarVisibility.auto;
+                                track-color: Theme.control;
+                            }
+                        }
+
+                        KitRow {
+                            name: "visibility";
+
+                            KitScrollDemo {
+                                name: "scroll";
+                            }
+
+                            KitScrollDemo {
+                                name: "auto";
+                                visibility: ScrollBarVisibility.auto;
+                            }
+
+                            KitScrollDemo {
+                                name: "always, fits";
+                                lines: 3;
+                                arrows: ScrollBarArrows.always;
+                                visibility: ScrollBarVisibility.always;
+                                track-color: Theme.control;
+                            }
+                        }
+
+                        KitRow {
+                            name: "other";
+
+                            KitScrollDemo {
+                                name: "horizontal";
+                                orientation: Orientation.horizontal;
+                                arrows: ScrollBarArrows.on-hover;
+                                visibility: ScrollBarVisibility.auto;
+                            }
+
+                            KitScrollDemo {
+                                name: "disabled";
+                                orientation: Orientation.horizontal;
+                                visibility: ScrollBarVisibility.auto;
+                                enabled: false;
+                            }
+
+                            KitScrollDemo {
+                                name: "disabled";
+                                visibility: ScrollBarVisibility.auto;
+                                enabled: false;
                             }
                         }
                     }

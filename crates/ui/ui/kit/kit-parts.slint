@@ -1,7 +1,17 @@
 // The Kit's own layout pieces (§ 9): a section with its title, a row with its name, a pane with a frame. Kit only:
 // screens never import them. Texts are the Kit's own, not translated (rule `untranslated` exempts `kit/`).
 
-import { Theme, Size, TypeStep, Label, InkTone } from "@dome-ui";
+import {
+    Theme,
+    Size,
+    TypeStep,
+    Label,
+    InkTone,
+    ScrollBar,
+    ScrollBarArrows,
+    ScrollBarTrackClick,
+    ScrollBarVisibility,
+} from "@dome-ui";
 
 // The Kit's search (top bar): sections whose title does not match collapse. Slint has no substring or regular
 // expression test, so Rust answers both (`src/kit.rs`).
@@ -104,5 +114,85 @@ export component KitPane inherits Rectangle {
         }
 
         @children
+    }
+}
+
+// A pane whose content scrolls under a working ScrollBar with the given options (§ 5.24): numbered lines down a
+// vertical bar, numbered cells along a horizontal one, each line led by the option it shows (`name`). Few enough
+// `lines` to fit show a bar over content that fits.
+export component KitScrollDemo inherits Rectangle {
+    in property <Orientation> orientation: Orientation.vertical;
+    in property <ScrollBarArrows> arrows: ScrollBarArrows.none;
+    in property <ScrollBarTrackClick> track-click: ScrollBarTrackClick.page;
+    in property <ScrollBarVisibility> visibility: ScrollBarVisibility.scroll;
+    in property <color> track-color: Theme.scroll-track;
+    in property <bool> enabled: true;
+    in property <string> name;
+    in property <int> lines: 40;
+
+    property <bool> vertical: root.orientation == Orientation.vertical;
+
+    width: Size.bar-w * 3;
+    height: Size.control-lg * 4;
+    background: Theme.surface;
+    border-radius: Size.radius-panel;
+    clip: true;
+
+    flick := Flickable {
+        width: parent.width;
+        height: parent.height;
+        interactive: root.enabled;
+        content-height: root.vertical ? column.preferred-height : self.height;
+        content-width: root.vertical ? self.width : row.preferred-width;
+
+        column := VerticalLayout {
+            padding: Size.space-8;
+            alignment: start;
+
+            for index in root.vertical ? root.lines : 0: Label {
+                text: root.name + " · " + (index + 1);
+                step: TypeStep.caption;
+                tone: InkTone.muted;
+            }
+        }
+
+        row := HorizontalLayout {
+            padding: Size.space-8;
+            spacing: Size.space-16;
+            alignment: start;
+
+            for index in root.vertical ? 0 : root.lines: Label {
+                text: root.name + " · " + (index + 1);
+                step: TypeStep.caption;
+                tone: InkTone.muted;
+            }
+        }
+    }
+
+    if root.vertical: ScrollBar {
+        x: root.width - self.width;
+        height: root.height;
+        value <=> flick.content-y;
+        content-length: flick.content-height;
+        visible-length: flick.height;
+        arrows: root.arrows;
+        track-click: root.track-click;
+        visibility: root.visibility;
+        track-color: root.track-color;
+        enabled: root.enabled;
+    }
+
+    if !root.vertical: ScrollBar {
+        orientation: Orientation.horizontal;
+        y: root.height - self.height;
+        width: root.width;
+        value <=> flick.content-x;
+        content-length: flick.content-width;
+        visible-length: flick.width;
+        arrows: root.arrows;
+        track-click: root.track-click;
+        visibility: root.visibility;
+        track-color: root.track-color;
+        enabled: root.enabled;
     }
 }

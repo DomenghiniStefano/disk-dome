@@ -77,6 +77,10 @@ export global Size {
     out property <length> scroll-thumb-hover: 8px;
     // Pending design: the shortest the scroll bar's thumb gets on a very long content, so it stays easy to grab.
     out property <length> scroll-thumb-min: 24px;
+    // Pending design: the side of a scroll bar's arrow (a filled triangle, as Windows 11 draws it).
+    out property <length> scroll-arrow: 6px;
+    // Pending design: how far a scroll bar's arrow moves the content, one table row (a page is the visible length).
+    out property <length> scroll-step: row;
     out property <length> swatch: 10px;
     out property <length> bar-w: 56px;
     // The search field narrows to this below 1100 px of window width (§ 2.1).

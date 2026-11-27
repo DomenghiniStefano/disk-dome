@@ -1,0 +1,104 @@
+// The ScrollBar's test window (`tests/scroll_headless.rs`, § 5.24): bars placed at known points, each with other
+// options: arrows and paging through the track, a horizontal bar that jumps, the default bar that hides at rest,
+// arrows that appear under the pointer, a disabled bar, and a bar always shown over content that fits. Kit only.
+
+import {
+    DomeWindow,
+    ScrollBar,
+    ScrollBarArrows,
+    ScrollBarTrackClick,
+    ScrollBarVisibility,
+    Size,
+    Theme,
+} from "@dome-ui";
+
+export component KitScrollHarness inherits DomeWindow {
+    preferred-width: Size.window-min-w;
+    preferred-height: Size.window-min-h;
+
+    // Where the bars are, and how long: the test checks these against its own numbers before using them.
+    out property <length> margin: Size.space-48;
+    out property <length> lower: Size.space-48 * 6;
+    out property <length> vertical-length: Size.dialog-sm / 2;
+    out property <length> horizontal-length: Size.dialog-sm * 3 / 4;
+    out property <length> step: Size.scroll-step;
+    out property <length> thickness: Size.scrollbar;
+
+    // The test sets the offsets as a screen would, and reads what the bars did with them.
+    in-out property <length> arrows-value <=> arrows.value;
+    in-out property <length> wide-value <=> wide.value;
+    in-out property <length> rest-value <=> rest.value;
+    in-out property <length> disabled-value <=> disabled.value;
+    // How many times the bar with arrows said the user scrolled with it.
+    out property <int> arrows-scrolled;
+
+    // Arrows always, paging through the track, always shown while the content overflows, with a track to see.
+    arrows := ScrollBar {
+        x: root.margin;
+        y: root.margin;
+        height: root.vertical-length;
+        content-length: root.vertical-length * 5;
+        visible-length: root.vertical-length;
+        arrows: ScrollBarArrows.always;
+        visibility: ScrollBarVisibility.auto;
+        track-color: Theme.control;
+        scrolled => {
+            root.arrows-scrolled += 1;
+        }
+    }
+
+    // Horizontal, a press on the track jumps the thumb there.
+    wide := ScrollBar {
+        orientation: Orientation.horizontal;
+        x: root.margin * 2;
+        y: root.margin;
+        width: root.horizontal-length;
+        content-length: root.horizontal-length * 3;
+        visible-length: root.horizontal-length;
+        track-click: ScrollBarTrackClick.jump;
+        visibility: ScrollBarVisibility.auto;
+    }
+
+    // Every default: hidden until the content moves or the pointer comes over it.
+    rest := ScrollBar {
+        x: root.margin;
+        y: root.lower;
+        height: root.vertical-length;
+        content-length: root.vertical-length * 5;
+        visible-length: root.vertical-length;
+    }
+
+    // Arrows that appear while the bar is widened under the pointer.
+    hover-arrows := ScrollBar {
+        x: root.margin * 2;
+        y: root.lower;
+        height: root.vertical-length;
+        content-length: root.vertical-length * 5;
+        visible-length: root.vertical-length;
+        arrows: ScrollBarArrows.on-hover;
+        visibility: ScrollBarVisibility.auto;
+    }
+
+    disabled := ScrollBar {
+        x: root.margin * 3;
+        y: root.lower;
+        height: root.vertical-length;
+        content-length: root.vertical-length * 5;
+        visible-length: root.vertical-length;
+        track-click: ScrollBarTrackClick.jump;
+        visibility: ScrollBarVisibility.auto;
+        enabled: false;
+    }
+
+    // Always shown, over content that fits: the track and the arrows, no thumb.
+    ScrollBar {
+        x: root.margin * 4;
+        y: root.lower;
+        height: root.vertical-length;
+        content-length: root.vertical-length;
+        visible-length: root.vertical-length;
+        arrows: ScrollBarArrows.always;
+        visibility: ScrollBarVisibility.always;
+        track-color: Theme.control;
+    }
+}

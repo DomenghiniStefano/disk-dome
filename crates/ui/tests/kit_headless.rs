@@ -16,7 +16,7 @@ use slint::platform::Key;
 
 const WIDTH: u32 = 1280;
 // Tall enough to show every section of the Kit, tokens included, in one shot.
-const HEIGHT: u32 = 8100;
+const HEIGHT: u32 = 8300;
 
 /// The theme switch's «Dark» segment, in the Kit's top bar (logical pixels).
 const DARK_SEGMENT: (f32, f32) = (125.0, 18.0);
