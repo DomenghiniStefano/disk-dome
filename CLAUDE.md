@@ -185,9 +185,10 @@ file, a Kit harness or a headless test.** The project skill `/slint` (`.claude/s
   in worktrees under `C:\PersonalProjects\disk-dome.wt\<name>`) merged into `develop`; always commit and push the
   branch and `develop`; the CI must be green. **No push to `main`**: a release is `develop` merged into `main`
   plus a tag, done by the owner.
-- **Worktrees share the main checkout's `target`**: `C:PersonalProjectsdisk-dome.wt.cargoconfig.toml` (outside
-  the repository, this PC only) sets `target-dir = "../disk-dome/target"` for every folder under `disk-dome.wt`. A
-  new worktree then reuses Slint and every dependency (a build from scratch takes about 15 minutes), and Cargo's
-  lock makes two builds wait for each other. A merged worktree is removed (`git worktree remove`).
+- **Never share a `target` folder between worktrees** (no common `target-dir`): Cargo leaves the path out of the
+  hash of a workspace crate, so two worktrees reuse each other's build script and generated code, and one branch
+  silently compiles another's `.slint` files (it happened, 2026-11-27). A new worktree builds its dependencies
+  from scratch (about 15 minutes, in the background); a faster start is still to be found. A merged worktree is
+  removed (`git worktree remove`).
 - Owner-only actions: anything on `main`, releases and tags, repository settings, code signing, licence
   changes, design decisions.
