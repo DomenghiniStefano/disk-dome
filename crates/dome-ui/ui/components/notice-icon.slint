@@ -1,0 +1,18 @@
+// NoticeIcon (§ 5.19, § 5.20): the kind's icon in the kind's colour, named by its word («Warning», «Error»…), so a
+// screen reader exploring a notice hears what kind it is and the state never rests on colour alone (§ 3.2). Used by
+// `InfoBar` and `Toast`; not exported from `index.slint`.
+
+import { NoticeKind } from "../enums.slint";
+import { NoticeLook } from "../primitives/notice-look.slint";
+import { Icon } from "icon.slint";
+
+export component NoticeIcon inherits Icon {
+    in property <NoticeKind> kind: NoticeKind.info;
+
+    source: NoticeLook.icon(root.kind);
+    tone: NoticeLook.tone(root.kind);
+    label: root.kind == NoticeKind.warning ? @tr("Warning")
+        : root.kind == NoticeKind.danger ? @tr("Error")
+        : root.kind == NoticeKind.success ? @tr("Done")
+        : @tr("Information");
+}

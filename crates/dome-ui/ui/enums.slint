@@ -122,3 +122,11 @@ export enum ChipVariant { filter, toggle }
 // Which segments a breadcrumb folds into «…» when it does not fit (§ 5.13): the `middle` ones, keeping the first
 // and as many of the last as fit, or the ones from its `start`, keeping only the last ones (the map header, § 3.11).
 export enum BreadcrumbCollapse { middle, start }
+
+// What a notice says (§ 5.19, § 5.20): its icon and colour, and how urgently screen readers announce it (assertive for
+// `danger` only, § 7). The same four kinds for the info bar and the toast.
+export enum NoticeKind { info, warning, danger, success }
+
+// Why a toast went away (§ 5.20): its time ran out, it was closed (its `x`, Esc, or the screen's `close()`), one of its
+// actions was chosen, or a newer notice took its place.
+export enum ToastEnd { timeout, dismissed, action, replaced }

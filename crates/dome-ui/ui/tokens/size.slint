@@ -156,6 +156,26 @@ export global Size {
     out property <length> radio-dot: 6px;
     out property <length> toast-w: 360px;
 
+    // Notices (§ 5.19, § 5.20, § 3.11)
+    // The info bar's height for one line of text (§ 5.19: 32 / 28); a wrapped text makes it taller.
+    out property <length> info-bar: compact ? 28px : 32px;
+    // The toast sits this far from the right edge of the area it covers and above the bar under it (§ 3.11).
+    out property <length> notice-margin: 16px;
+    // The toast's close button (§ 5.20).
+    out property <length> toast-close: 20px;
+    // The toast's text stops after this many lines; the whole text is in its tooltip (§ 5.20).
+    out property <int> toast-lines: 3;
+    // Pending design: the info bar's side padding (§ 5.19 gives none; the panels' own).
+    out property <length> info-bar-pad-x: panel-pad;
+    // Pending design: the toast's inner padding, on the sides and at the top and bottom (§ 5.20 gives none).
+    out property <length> toast-pad-x: 10px;
+    out property <length> toast-pad-y: 6px;
+    // Pending design: the gap between the toast's text and its row of actions under it.
+    out property <length> toast-gap: 2px;
+    // Pending design: the side padding of the actions in that row, tighter than a button's so their words line up
+    // with the text above them.
+    out property <length> toast-action-pad-x: 4px;
+
     // Window (§ 2.1)
     out property <length> window-w: 1280px;
     out property <length> window-h: 800px;

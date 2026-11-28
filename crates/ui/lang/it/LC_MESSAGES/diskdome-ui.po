@@ -43,6 +43,34 @@ msgctxt "Breadcrumb"
 msgid "Breadcrumb"
 msgstr "Percorso"
 
+msgctxt "NoticeIcon"
+msgid "Warning"
+msgstr "Avviso"
+
+msgctxt "NoticeIcon"
+msgid "Error"
+msgstr "Errore"
+
+msgctxt "NoticeIcon"
+msgid "Done"
+msgstr "Fatto"
+
+msgctxt "NoticeIcon"
+msgid "Information"
+msgstr "Informazione"
+
+msgctxt "InfoBar"
+msgid "Close"
+msgstr "Chiudi"
+
+msgctxt "InfoBar"
+msgid "{}: {}"
+msgstr "{}: {}"
+
+msgctxt "Toast"
+msgid "Close"
+msgstr "Chiudi"
+
 msgctxt "ProofStatus"
 msgid "{} rows, sorting…"
 msgstr "{} righe, ordinamento…"

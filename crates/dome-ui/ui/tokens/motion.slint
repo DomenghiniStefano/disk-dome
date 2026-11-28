@@ -22,6 +22,14 @@ export global Motion {
     out property <duration> submenu-delay: 400ms;
     // Pending design: letters typed within this time make one search in a menu; a longer pause starts a new one.
     out property <duration> typeahead-reset: 1000ms;
+    // How long a toast stays (§ 5.20): `notice-read` plus `notice-per-character` for each character of its text, at
+    // least `notice-min` (`notice-min-action` with an action, the time to reach it), at most `notice-max`. Reading
+    // takes as long with reduced motion.
+    out property <duration> notice-read: 2500ms;
+    out property <duration> notice-per-character: 60ms;
+    out property <duration> notice-min: 4000ms;
+    out property <duration> notice-min-action: 8000ms;
+    out property <duration> notice-max: 10000ms;
     // The unit the Kit shows durations in (§ 9): a duration divided by it is its number of milliseconds.
     out property <duration> unit: 1ms;
     out property <easing> ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
