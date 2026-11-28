@@ -78,7 +78,11 @@ fn checkbox_radio_and_switch_flip_choose_and_say_why() {
     assert_eq!(harness.get_check_flips(), 1, "a click says `toggled`");
     assert_eq!(harness.get_last_state(), CheckboxState::Checked);
     rest(&mut headless);
-    assert_eq!(headless.pixel(1, check_mid), ACCENT, "a checked box is filled");
+    assert_eq!(
+        headless.pixel(1, check_mid),
+        ACCENT,
+        "a checked box is filled"
+    );
 
     // Space flips it back; Enter does not (it belongs to the dialog's default button, as WAI-ARIA and Radix).
     headless.press_key(Key::Space);
@@ -155,11 +159,19 @@ fn checkbox_radio_and_switch_flip_choose_and_say_why() {
     headless.press_key(Key::LeftArrow);
     settle(&mut headless);
     assert_eq!(harness.get_radio_index(), 2);
-    assert_eq!(harness.get_radio_picks(), 5, "every new choice says `selected`");
+    assert_eq!(
+        harness.get_radio_picks(),
+        5,
+        "every new choice says `selected`"
+    );
     // A click on the disabled item chooses nothing.
     headless.click(BOX / 2.0, item(1.0));
     settle(&mut headless);
-    assert_eq!(harness.get_radio_index(), 2, "a disabled item is not chosen");
+    assert_eq!(
+        harness.get_radio_index(),
+        2,
+        "a disabled item is not chosen"
+    );
 
     // The switch: a click turns it on and moves the knob right; Space off, Enter on (a switch is a button).
     assert_eq!(harness.get_knob_x(), KNOB_OFF);
@@ -167,7 +179,11 @@ fn checkbox_radio_and_switch_flip_choose_and_say_why() {
     settle(&mut headless);
     assert!(harness.get_switch_on(), "a click turns the switch on");
     headless.wait(AFTER_FAST);
-    assert_eq!(harness.get_knob_x(), KNOB_ON, "on, the knob is on the right");
+    assert_eq!(
+        harness.get_knob_x(),
+        KNOB_ON,
+        "on, the knob is on the right"
+    );
     headless.press_key(Key::Space);
     settle(&mut headless);
     assert!(!harness.get_switch_on(), "Space turns it off");

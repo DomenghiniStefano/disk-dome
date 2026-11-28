@@ -58,7 +58,11 @@ fn badge_kbd_chip_and_breadcrumb() {
     settle(&mut headless);
 
     // Badge: its height, and a leading icon.
-    assert_eq!(harness.get_badge_height(), BADGE, "a badge is `badge-h` tall");
+    assert_eq!(
+        harness.get_badge_height(),
+        BADGE,
+        "a badge is `badge-h` tall"
+    );
     assert_eq!(
         harness.get_badge_icon_width() - harness.get_badge_width(),
         BADGE_ICON_LEAD,
@@ -82,7 +86,11 @@ fn badge_kbd_chip_and_breadcrumb() {
     );
 
     // Chip: the `x` and the swatch, then what each part does.
-    assert_eq!(harness.get_filter_height(), CONTROL_SM, "a chip is `control-sm` tall");
+    assert_eq!(
+        harness.get_filter_height(),
+        CONTROL_SM,
+        "a chip is `control-sm` tall"
+    );
     assert_eq!(
         harness.get_filter_width() - harness.get_toggle_width(),
         REMOVE_LEAD,
@@ -110,15 +118,25 @@ fn badge_kbd_chip_and_breadcrumb() {
     assert_eq!(harness.get_removals(), 2, "Delete removes a focused chip");
     headless.press_key(Key::Backspace);
     settle(&mut headless);
-    assert_eq!(harness.get_removals(), 3, "Backspace removes a focused chip");
+    assert_eq!(
+        harness.get_removals(),
+        3,
+        "Backspace removes a focused chip"
+    );
     headless.press_key(Key::Return);
     settle(&mut headless);
     assert_eq!(harness.get_clicks(), 2, "Enter opens a focused filter chip");
 
     headless.click(harness.get_toggle_x() + 4.0, chip_y);
     settle(&mut headless);
-    assert!(harness.get_toggle_checked(), "a click turns a toggle chip on");
-    assert!(harness.get_last_toggled(), "`toggled` carries the new state");
+    assert!(
+        harness.get_toggle_checked(),
+        "a click turns a toggle chip on"
+    );
+    assert!(
+        harness.get_last_toggled(),
+        "`toggled` carries the new state"
+    );
     headless.press_key(Key::Space);
     settle(&mut headless);
     assert!(!harness.get_toggle_checked(), "Space turns it off");
@@ -138,10 +156,17 @@ fn badge_kbd_chip_and_breadcrumb() {
     settle(&mut headless);
     headless.wait(AFTER_DELAY);
     settle(&mut headless);
-    assert!(harness.get_long_tooltip(), "a cut chip says its text in the tooltip");
+    assert!(
+        harness.get_long_tooltip(),
+        "a cut chip says its text in the tooltip"
+    );
 
     // Breadcrumb: the whole path fits the window's width.
-    assert_eq!(harness.get_crumb_height(), CONTROL_SM, "a breadcrumb is `control-sm` tall");
+    assert_eq!(
+        harness.get_crumb_height(),
+        CONTROL_SM,
+        "a breadcrumb is `control-sm` tall"
+    );
     assert_eq!(harness.get_middle_first(), 0, "the whole path shows");
     assert!(!harness.get_middle_collapsed(), "nothing is folded");
     assert!(!harness.get_start_collapsed(), "nothing is folded");

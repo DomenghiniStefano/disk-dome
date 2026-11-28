@@ -125,7 +125,11 @@ fn select_works_by_pointer_and_keyboard() {
     // The closed type-ahead skips a disabled item: «a» finds only Allocated, so nothing changes.
     headless.wait(TYPEAHEAD_RESET);
     headless.type_text("a");
-    assert_eq!(harness.get_current(), NAME, "a disabled item is never chosen");
+    assert_eq!(
+        harness.get_current(),
+        NAME,
+        "a disabled item is never chosen"
+    );
     headless.wait(TYPEAHEAD_RESET);
     headless.type_text("la");
     assert_eq!(

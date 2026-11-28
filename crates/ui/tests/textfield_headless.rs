@@ -66,8 +66,16 @@ fn textfield_typing_errors_focus_and_disabled() {
     settle(&mut headless);
 
     // The label above, the box under it, the help under the box.
-    assert_eq!(harness.get_field_box_y(), LABEL + GAP, "the box sits under its label");
-    assert_eq!(harness.get_field_box_height(), BOX, "the box is `control` tall");
+    assert_eq!(
+        harness.get_field_box_y(),
+        LABEL + GAP,
+        "the box sits under its label"
+    );
+    assert_eq!(
+        harness.get_field_box_height(),
+        BOX,
+        "the box is `control` tall"
+    );
     assert_eq!(harness.get_field_width(), FIELD_W);
     assert_eq!(
         harness.get_field_height(),
@@ -84,7 +92,10 @@ fn textfield_typing_errors_focus_and_disabled() {
     // A click focuses the text: the edge turns `focus`, with no ring (the pointer brought the focus).
     headless.click(TEXT_X, box_middle);
     settle(&mut headless);
-    assert!(harness.get_field_focus(), "a click puts the focus in the text");
+    assert!(
+        harness.get_field_focus(),
+        "a click puts the focus in the text"
+    );
     assert_eq!(edge(&headless), FOCUS, "a focused edge is `focus`");
     assert_eq!(ring(&headless, box_middle), BG, "no ring after a click");
 
@@ -121,7 +132,11 @@ fn textfield_typing_errors_focus_and_disabled() {
         "Tab out of a field is keyboard navigation"
     );
     let other_middle = harness.get_other_y() + BOX / 2.0;
-    assert_eq!(ring(&headless, other_middle), FOCUS, "the keyboard ring shows");
+    assert_eq!(
+        ring(&headless, other_middle),
+        FOCUS,
+        "the keyboard ring shows"
+    );
     save_shot(&headless, "ring");
 
     // A click on the label puts the focus back in its text, and the ring goes with the pointer.
@@ -129,7 +144,11 @@ fn textfield_typing_errors_focus_and_disabled() {
     settle(&mut headless);
     assert!(harness.get_field_focus(), "the label focuses its field");
     assert!(!harness.global::<InputMode>().get_keyboard());
-    assert_eq!(ring(&headless, box_middle), BG, "no ring after the label's click");
+    assert_eq!(
+        ring(&headless, box_middle),
+        BG,
+        "no ring after the label's click"
+    );
 
     // A disabled field takes no typing; a read-only one neither.
     headless.click(TEXT_X, harness.get_off_y() + BOX / 2.0);
