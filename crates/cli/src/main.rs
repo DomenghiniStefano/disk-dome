@@ -17,6 +17,7 @@ mod compare;
 mod export;
 mod inspect;
 mod space;
+mod tools;
 mod verify;
 
 use std::path::PathBuf;
@@ -37,10 +38,12 @@ usage:
   diskdome-cli inspect --dump FILE --path FOLDER [--top N]
   diskdome-cli verify --dump FILE [--top N] [--drive X]
   diskdome-cli space PATH
+  diskdome-cli windows-tool (performance | power | protection | cleanup | recycle-bin)
 
 mft-read, scan C: and mft-dump read the volume directly: run them as administrator.
 scan C: also checks the bytes it found plus Windows' free space against the capacity (within 1 %).
-space prints a volume's capacity and free space, for a drive, a folder or a network share.";
+space prints a volume's capacity and free space, for a drive, a folder or a network share.
+windows-tool opens one of Windows' own tools, never elevated (a tool that needs it asks itself).";
 
 struct Args {
     positional: Vec<String>,
@@ -299,6 +302,7 @@ fn main() -> ExitCode {
         Some("inspect") => cmd_inspect(&args),
         Some("verify") => cmd_verify(&args),
         Some("compare") => compare::run(&args.positional[1..], args.top),
+        Some("windows-tool") => tools::run(args.positional.get(1).map(String::as_str)),
         Some("space") => args
             .positional
             .get(1)

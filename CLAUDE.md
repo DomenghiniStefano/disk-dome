@@ -91,7 +91,7 @@ Full description: `docs/architecture.md`.
 | `crates/ui` | `diskdome-ui` | the Slint app (binary `diskdome`): screens, the Kit |
 | `crates/dome-ui` | `dome-ui` | the design system, Dome UI: a Slint library (`ui/`, imported as `@dome-ui`) and its Rust half; nothing specific to DiskDome |
 | `crates/cli` | `diskdome-cli` | benchmarks and export |
-| `crates/platform` | `diskdome-platform` | OS services outside the scanners (process memory, a volume's free space, the own title bar; later the shell actions) |
+| `crates/platform` | `diskdome-platform` | OS services outside the scanners (process memory, a volume's free space, Windows' own tools, the own title bar; later the shell actions) |
 
 - Data flows one way: scanners write into `core`; `ui`, `treemap` and `cli` read without copying.
 - The data model is one array per field with `u32` indices (for NTFS the index is the MFT record number),
