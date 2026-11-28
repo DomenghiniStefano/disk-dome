@@ -122,3 +122,15 @@ export enum ChipVariant { filter, toggle }
 // Which segments a breadcrumb folds into «…» when it does not fit (§ 5.13): the `middle` ones, keeping the first
 // and as many of the last as fit, or the ones from its `start`, keeping only the last ones (the map header, § 3.11).
 export enum BreadcrumbCollapse { middle, start }
+
+// Whether a progress bar knows how far along it is (§ 5.21): `determinate`, it fills `value` of `maximum`, or
+// `indeterminate` (Radix's `value={null}`: the total is not known yet, the MFT size before it is read), a segment
+// slides across it.
+export enum ProgressBarMode { determinate, indeterminate }
+
+// Where a progress bar stands, as Radix's `data-state`: `indeterminate`, `loading` (short of its maximum) or `complete`.
+export enum ProgressBarState { indeterminate, loading, complete }
+
+// A usage bar's thickness (§ 5.21): `small` in the drive picker, `normal` on the drive cards; the same in both
+// densities.
+export enum UsageBarSize { small, normal }
