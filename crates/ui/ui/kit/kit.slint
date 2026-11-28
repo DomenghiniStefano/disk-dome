@@ -61,6 +61,7 @@ import {
 import { KitTokens } from "kit-tokens.slint";
 import { KitText } from "kit-text.slint";
 import { KitReview, KitIssue, KitReviewCount } from "kit-review.slint";
+import { KitTabsSection } from "kit-tabs-section.slint";
 
 struct KitIcon { name: string, source: image }
 struct KitStep { name: string, step: TypeStep }
@@ -939,6 +940,8 @@ export component KitWindow inherits DomeWindow {
                             }
                         }
                     }
+
+                    KitTabsSection { }
 
                     KitSection {
                         title: "ToggleButton · sizes × states";
