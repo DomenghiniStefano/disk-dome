@@ -34,8 +34,9 @@ component MenuLevel {
     in property <length> row-height;
     in property <string> empty-text;
     in property <int> submenu-index: -1;
-    // The item highlighted on opening.
+    // The item highlighted on opening: the one at `start-index` when it is an item, otherwise `start`.
     in property <MenuStart> start;
+    in property <int> start-index: -1;
     // Raised to move the keyboard focus back into this level's list (a submenu closed with ← or Esc).
     in property <int> focus-request;
 
@@ -85,7 +86,9 @@ component MenuLevel {
 
                 init => {
                     self.focus();
-                    if (root.start != MenuStart.none) {
+                    if (root.start-index >= 0 && root.start-index < root.entries.length) {
+                        self.highlight(root.start-index);
+                    } else if (root.start != MenuStart.none) {
                         self.highlight-edge(root.start == MenuStart.last);
                     }
                 }
@@ -129,13 +132,16 @@ export component Menu {
     in property <string> empty-text;
     // Check box and radio items leave the menu open, for several changes in a row (the «Columns…» menu).
     in property <bool> keep-open-on-check;
+    // The item highlighted when the menu opens, whatever opened it (a select's chosen value); -1 leaves it to the
+    // `start` of the opening call.
+    in property <int> start-index: -1;
 
     out property <bool> is-open: level-1.is-open;
 
     // The entries of an item's submenu.
     pure callback submenu(entry: MenuEntry) -> [MenuEntry];
-    // An enabled item chosen, at any level.
-    callback activated(entry: MenuEntry);
+    // An enabled item chosen, at any level; `index` is its place in its own level's entries.
+    callback activated(entry: MenuEntry, index: int);
     // The menu closed, chosen or dismissed: the screen may move the focus back.
     callback closed();
 
@@ -189,8 +195,8 @@ export component Menu {
         }
     }
 
-    function chosen(entry: MenuEntry) {
-        root.activated(entry);
+    function chosen(entry: MenuEntry, index: int) {
+        root.activated(entry, index);
         if (!root.keep-open-on-check || (entry.kind != MenuEntryKind.checkbox && entry.kind != MenuEntryKind.radio)) {
             root.close-from(1);
         }
@@ -241,10 +247,11 @@ export component Menu {
         empty-text: root.empty-text;
         submenu-index: root.open-1;
         start: root.start;
+        start-index: root.start-index;
         focus-request: root.refocus-1;
 
         activated(entry, index) => {
-            root.chosen(entry);
+            root.chosen(entry, index);
         }
         submenu-requested(entry, index, anchor) => {
             root.close-from(2);
@@ -280,7 +287,7 @@ export component Menu {
         focus-request: root.refocus-2;
 
         activated(entry, index) => {
-            root.chosen(entry);
+            root.chosen(entry, index);
         }
         submenu-requested(entry, index, anchor) => {
             root.close-from(3);
@@ -312,7 +319,7 @@ export component Menu {
         start: InputMode.keyboard ? MenuStart.first : MenuStart.none;
 
         activated(entry, index) => {
-            root.chosen(entry);
+            root.chosen(entry, index);
         }
         unhandled-key(event) => {
             return root.unused-key(3, event);
