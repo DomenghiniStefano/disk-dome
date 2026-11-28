@@ -1,7 +1,8 @@
 // The SearchField's test window (`tests/search_headless.rs`, § 5.4): a field whose error the test sets and whose
-// searches it counts, and a disabled one. Kit only; texts are the Kit's own, not translated.
+// searches it counts, a disabled one, and two holding the same text with and without the leading icon, whose pixels
+// the test reads. Kit only; texts are the Kit's own, not translated.
 
-import { DomeWindow, SearchField, Size } from "@dome-ui";
+import { DomeWindow, SearchField, SearchFieldToggles, Size } from "@dome-ui";
 
 export component KitSearchHarness inherits DomeWindow {
     preferred-width: Size.window-min-w;
@@ -22,6 +23,9 @@ export component KitSearchHarness inherits DomeWindow {
 
     out property <length> off-y: off-row.y;
     out property <string> off-text: off.text;
+
+    out property <length> iconed-y: iconed-row.y;
+    out property <length> bare-y: bare-row.y;
 
     VerticalLayout {
         alignment: start;
@@ -47,6 +51,25 @@ export component KitSearchHarness inherits DomeWindow {
                 placeholder: "Search names";
                 text: "kept";
                 enabled: false;
+            }
+        }
+
+        iconed-row := HorizontalLayout {
+            alignment: start;
+
+            iconed := SearchField {
+                text: "node";
+                toggles: SearchFieldToggles.none;
+            }
+        }
+
+        bare-row := HorizontalLayout {
+            alignment: start;
+
+            SearchField {
+                text: "node";
+                toggles: SearchFieldToggles.none;
+                icon: @image-url("");
             }
         }
     }

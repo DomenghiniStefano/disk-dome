@@ -1053,6 +1053,21 @@ export component KitWindow inherits DomeWindow {
                         }
 
                         KitRow {
+                            name: "icon: another, none";
+
+                            SearchField {
+                                placeholder: "Filter names";
+                                icon: Icons.filter;
+                            }
+
+                            SearchField {
+                                placeholder: "Search names";
+                                text: "node_modules";
+                                icon: @image-url("");
+                            }
+                        }
+
+                        KitRow {
                             name: "case and regex";
 
                             SearchField {

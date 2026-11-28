@@ -1,8 +1,9 @@
 // The TextField's test window (`tests/textfield_headless.rs`, § 5.4): a labelled field with help whose error the
-// test sets and whose edits it counts, a second field to move the focus to, a disabled one and a read-only one.
+// test sets and whose edits it counts, a second field to move the focus to, a disabled one, a read-only one, and two
+// holding the same text with and without a leading icon, whose pixels the test reads.
 // Kit only; texts are the Kit's own, not translated.
 
-import { DomeWindow, TextField, Size } from "@dome-ui";
+import { DomeWindow, TextField, Size, Icons } from "@dome-ui";
 
 export component KitTextFieldHarness inherits DomeWindow {
     preferred-width: Size.window-min-w;
@@ -34,6 +35,9 @@ export component KitTextFieldHarness inherits DomeWindow {
 
     out property <length> fixed-y: fixed-row.y + fixed.box-y;
     out property <string> fixed-text: fixed.text;
+
+    out property <length> plain-y: plain-row.y + plain.box-y;
+    out property <length> iconed-y: iconed-row.y + iconed.box-y;
 
     VerticalLayout {
         padding: root.inset;
@@ -82,6 +86,23 @@ export component KitTextFieldHarness inherits DomeWindow {
             fixed := TextField {
                 text: "fixed";
                 read-only: true;
+            }
+        }
+
+        plain-row := HorizontalLayout {
+            alignment: start;
+
+            plain := TextField {
+                text: "node";
+            }
+        }
+
+        iconed-row := HorizontalLayout {
+            alignment: start;
+
+            iconed := TextField {
+                text: "node";
+                icon: Icons.folder;
             }
         }
     }

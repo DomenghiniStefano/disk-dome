@@ -1,4 +1,4 @@
-// SearchField (§ 5.4): the `search` icon, the text, a clear `x` when not empty, and up to two ToggleButtons inside on
+// SearchField (§ 5.4): the `search` icon (another, or none), the text, a clear `x` when not empty, and up to two ToggleButtons inside on
 // the right, match case (`case-sensitive`) and regular expression (`regex`). Typing applies after `rest-delay` of
 // quiet, Enter at once; Esc clears, a second Esc leaves the field. An invalid pattern turns the edge `danger` and its
 // reason shows in a tooltip under the field: at once while the field has the focus, after the delay on hover.
@@ -38,6 +38,8 @@ export component SearchField {
     // Why the pattern is not valid, set by the owner of the search; empty when it is. A reason is mandatory: the
     // field never turns red without saying why (§ 5.4).
     in property <string> error;
+    // Leads the text, decorative (`ink-faint`); an empty image draws none and the text starts at the padding.
+    in property <image> icon: Icons.search;
     in property <SearchFieldToggles> toggles: SearchFieldToggles.match-case-and-regex;
     // How long the typing must rest before the search applies.
     in property <duration> rest-delay: Motion.search-rest;
@@ -54,6 +56,7 @@ export component SearchField {
 
     property <bool> has-case: root.toggles != SearchFieldToggles.none;
     property <bool> has-regex: root.toggles == SearchFieldToggles.match-case-and-regex;
+    property <bool> has-icon: root.icon.width > 0;
 
     // 320 in the toolbar, down to 200 in a narrow window, up to 400 when there is room (§ 2.1, § 5.4); a screen
     // sets its own widths where the field has another place (a dialog, the command palette).
@@ -120,11 +123,11 @@ export component SearchField {
                     padding-left: Size.field-pad-x;
                     spacing: Size.space-4;
 
-                    VerticalLayout {
+                    if root.has-icon: VerticalLayout {
                         alignment: center;
 
                         Icon {
-                            source: Icons.search;
+                            source: root.icon;
                             size: IconSize.normal;
                             tone: InkTone.faint;
                         }
