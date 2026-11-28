@@ -51,6 +51,15 @@ export enum ToggleSize { small, normal, large }
 // standing alone on a panel, as shadcn's outline Toggle).
 export enum ToggleVariant { ghost, outline }
 
+// `small` sits in a toolbar beside small controls, `normal` in a toolbar or a form, `large` beside a large button
+// (§ 5.5); the heights are the button's of the same name.
+export enum SelectSize { small, normal, large }
+
+// How wide a select is (§ 5.5): as its `longest` item (the default, as Windows' combo box: the width never jumps
+// when the choice changes), as the `chosen` item it shows (hugs it, as a Radix trigger left to its content), or
+// `fill` the width its layout gives it. Short of room it gives way down to the button's minimum and cuts the text.
+export enum SelectWidth { longest, chosen, fill }
+
 // What a scroll bar draws at its ends (§ 5.24): no arrows (the default), arrows that appear while the bar is widened
 // under the pointer (as Windows 11), or arrows always.
 export enum ScrollBarArrows { none, on-hover, always }

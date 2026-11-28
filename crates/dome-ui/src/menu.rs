@@ -74,6 +74,16 @@ pub fn step(entries: &[MenuEntry], from: i32, by: i32, wrap: bool) -> i32 {
 /// narrow the search and keep the current item while it still matches; one letter typed again («s», «s») moves to
 /// the next item starting with it. -1 if none matches.
 pub fn typeahead(entries: &[MenuEntry], from: i32, typed: &str) -> i32 {
+    typeahead_among(entries, from, typed, |_| true)
+}
+
+/// [`typeahead`] over the items `stops` also accepts (the closed Select skips disabled items, § 5.5).
+pub(crate) fn typeahead_among(
+    entries: &[MenuEntry],
+    from: i32,
+    typed: &str,
+    stops: impl Fn(&MenuEntry) -> bool,
+) -> i32 {
     let typed = typed.to_lowercase();
     let mut letters = typed.chars();
     let Some(first) = letters.next() else {
@@ -87,7 +97,15 @@ pub fn typeahead(entries: &[MenuEntry], from: i32, typed: &str) -> i32 {
     };
     // A new search, or one letter repeated, starts after the current item; a longer search starts on it.
     let starts_after = repeated || typed.chars().count() == 1;
-    let items = items(entries);
+    let items: Vec<i32> = items(entries)
+        .into_iter()
+        .filter(|&index| {
+            usize::try_from(index)
+                .ok()
+                .and_then(|i| entries.get(i))
+                .is_some_and(&stops)
+        })
+        .collect();
     let start = items
         .iter()
         .position(|&index| {

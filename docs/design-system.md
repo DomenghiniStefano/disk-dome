@@ -1047,6 +1047,20 @@ from the text). `TextField` draws both; another control (a select, a group of ch
 - `Select`: looks like a `secondary` button with a `chevron-down` on the right; opens a level-1 list
   (`menu-item` rows, the chosen one with `check`). Arrow keys move inside, Enter chooses, Esc closes; typing
   jumps to the first match.
+
+| Select | |
+| --- | --- |
+| Interface | `entries` (`[MenuEntry]`: plain items, with separators, section titles and disabled items as in a menu), `current-index` (-1 for none; written by both the select and the screen), `placeholder`, `size`, `width-mode`, `enabled`, `tooltip`; for the list `side`, `align`, `list-min-width`, `list-max-width`, `wrap-around`; `is-open` out; `selected(index)` when the user chooses another item; `open(start)` |
+| Sizes `SelectSize` | `small`, `normal` (default), `large`: the button's heights of the same name |
+| Width `SelectWidth` | `longest` (default): as wide as its widest item or placeholder would make it, so it never moves when the choice changes; `chosen`: hugs the item it shows; `fill`: the width its layout gives. Short of room it gives way down to the button's minimum, cuts the text with «…» and says it whole in the tooltip |
+| Placeholder | shown while nothing is chosen (`current-index` -1), in the button's own ink; also the accessible name when none is given |
+| List | a `Menu` under the select (flipping above it near the window's bottom), never narrower than the select; every item is drawn as a check box item, checked on the chosen one (an item's own icon is not drawn: the slot holds the `check`) |
+| Opening | a click, Enter, Space, ↓ or ↑; it opens on the chosen item, highlighted; with nothing chosen, on the first item (↓, Enter, Space from the keyboard), the last (↑) or none (the pointer) |
+| Keys in the list | as a menu (§ 5.16): ↑ ↓ (stopping at the ends unless `wrap-around`), Home, End, PgUp, PgDn, type-ahead, Enter and Space choose, Esc and Tab close; a disabled item is highlighted, never chosen. Closing gives the focus back to the select |
+| Closed type-ahead | typing on the focused, closed select chooses the next enabled item starting with the letters, without opening the list; one letter repeated goes through the items starting with it; the letters reset after `typeahead-reset` |
+| `selected` | only when the choice changes: choosing the chosen item again closes the list without it |
+| Accessible | role `combobox`, its value the shown text, expandable and expanded while the list is open |
+| Not done | Radix's `item-aligned` position (the list laid over the select with the chosen item on it, as Windows' combo box): the list always opens under or above it; ↑ ↓ on the closed select changing the choice without opening (Windows); Space typed during a type-ahead counts as a letter (Radix): here it opens the list |
 - `DrivePicker`: the menu of the drive tabs' «+» (§ 5.27): the drives that have no tab (network drives,
   drives hidden by the user) with a 4 px usage bar (`bar-fill`, `warning` above 90 % full), the file system and
   whether the fast scan applies («NTFS · fast»); then «Analyze a folder…» and «Network path…».

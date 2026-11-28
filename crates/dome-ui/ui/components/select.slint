@@ -1,0 +1,205 @@
+// Select (§ 5.5): a `secondary` button showing the chosen item (or the placeholder) with a `chevron-down`, which
+// opens a level-1 list (`Menu`) under it with the chosen item marked by `check` and highlighted. A click, Enter,
+// Space, ↓ or ↑ opens it; in the list the arrows, Home, End, the type-ahead and Enter work as in every menu, Esc
+// closes it and the focus comes back. Closed, typing chooses the next enabled item starting with the letters, as
+// Radix and Windows do.
+//
+// Slint strings have no prefix test, so the marked list and the closed type-ahead are answered by Rust through
+// `SelectNav` (`crates/dome-ui/src/select.rs`, wired by `select_nav!` on every window).
+
+import { Size } from "../tokens/size.slint";
+import { Motion } from "../tokens/motion.slint";
+import { Icons } from "../icons/icons.slint";
+import {
+    ButtonVariant,
+    ButtonSize,
+    ButtonWidth,
+    KitState,
+    MenuEntryKind,
+    MenuStart,
+    PopupSide,
+    PopupAlign,
+    SelectSize,
+    SelectWidth,
+} from "../enums.slint";
+import { InputMode } from "../input-mode.slint";
+import { Button } from "button.slint";
+import { ButtonContent } from "button-content.slint";
+import { Menu } from "menu.slint";
+import { MenuEntry, MenuNav } from "menu-list.slint";
+
+// The answers Slint cannot compute (`crates/dome-ui/src/select.rs`).
+export global SelectNav {
+    // The entries as the list draws them: every item a check box item, checked only at `chosen-index`.
+    pure callback marked(entries: [MenuEntry], chosen-index: int) -> [MenuEntry];
+    // The next enabled item after `from` whose label starts with `typed`, as `MenuNav.typeahead`; -1 if none.
+    pure callback typeahead(entries: [MenuEntry], from: int, typed: string) -> int;
+}
+
+global SelectLook {
+    public pure function button-size(size: SelectSize) -> ButtonSize {
+        return size == SelectSize.small ? ButtonSize.small : size == SelectSize.large ? ButtonSize.large : ButtonSize.normal;
+    }
+}
+
+export component Select {
+    // The choices: plain items, with separators and section titles between them if needed. An item's icon is not
+    // drawn: its slot holds the `check`.
+    in property <[MenuEntry]> entries;
+    // The chosen entry, -1 for none (the placeholder shows). Both sides write it: the user's choice here, and the
+    // screen that sets the value.
+    in-out property <int> current-index: -1;
+    // Shown, in the same ink, while nothing is chosen; also the accessible name unless one is given.
+    in property <string> placeholder;
+    in property <SelectSize> size: SelectSize.normal;
+    in property <SelectWidth> width-mode: SelectWidth.longest;
+    in property <bool> enabled: true;
+    // The Kit window only (§ 9).
+    in property <KitState> kit-state: KitState.live;
+    // Said on hover and keyboard focus; empty, a cut value says itself whole.
+    in property <string> tooltip;
+
+    // The list, as `Menu`'s own properties. It is never narrower than the button.
+    in property <PopupSide> side: PopupSide.bottom;
+    in property <PopupAlign> align: PopupAlign.start;
+    in property <length> list-min-width: Size.menu-min;
+    in property <length> list-max-width: Size.menu-max;
+    // The arrows stop at the ends, as Radix's Select; true goes round as menus do.
+    in property <bool> wrap-around;
+
+    out property <bool> is-open: menu.is-open;
+
+    // The user chose another item (by the list or the closed type-ahead); `current-index` already holds it.
+    callback selected(index: int);
+
+    // Opens the list on the chosen item; with none, on `start`.
+    public function open(start: MenuStart) {
+        menu.open-for(0, 0, root.width, root.height, start);
+    }
+
+    property <bool> chosen: root.current-index >= 0 && root.current-index < root.entries.length;
+    property <string> shown: root.chosen ? root.entries[root.current-index].label : root.placeholder;
+    // Letters typed on the closed select, for the type-ahead; cleared after `Motion.typeahead-reset`.
+    property <string> typed;
+
+    function choose(index: int) {
+        if (index < 0 || index == root.current-index) {
+            return;
+        }
+        root.current-index = index;
+        root.selected(index);
+    }
+
+    function type(text: string) {
+        root.typed += text;
+        typeahead-reset.running = false;
+        typeahead-reset.running = true;
+        root.choose(SelectNav.typeahead(root.entries, root.current-index, root.typed));
+    }
+
+    min-width: button.min-width;
+    // `longest`: as wide as the widest of the items and the placeholder would make the button, so it never jumps.
+    preferred-width: root.width-mode == SelectWidth.chosen ? button.preferred-width : max(button.preferred-width, widest.preferred-width);
+    max-width: root.width-mode == SelectWidth.fill ? Size.unbounded : self.preferred-width;
+    // The button's own height; left unset, the height would come from the undrawn `widest` column.
+    min-height: button.height;
+    preferred-height: button.height;
+    max-height: button.height;
+
+    forward-focus: keys;
+    accessible-role: combobox;
+    accessible-label: root.placeholder;
+    accessible-value: root.shown;
+    accessible-description: root.tooltip;
+    accessible-enabled: root.enabled;
+    accessible-expandable: true;
+    accessible-expanded: root.is-open;
+    accessible-action-default => {
+        root.open(MenuStart.first);
+    }
+    accessible-action-expand => {
+        root.open(MenuStart.first);
+    }
+
+    // The button's content for every item and the placeholder, never drawn: the widest gives the `longest` width.
+    widest := VerticalLayout {
+        visible: false;
+        width: 0;
+        height: 0;
+
+        for entry in root.entries: ButtonContent {
+            text: entry.kind == MenuEntryKind.section ? "" : entry.label;
+            icon-end: Icons.chevron-down;
+        }
+        ButtonContent {
+            text: root.placeholder;
+            icon-end: Icons.chevron-down;
+        }
+    }
+
+    typeahead-reset := Timer {
+        interval: Motion.typeahead-reset;
+        running: false;
+        triggered => {
+            self.running = false;
+            root.typed = "";
+        }
+    }
+
+    keys := FocusScope {
+        enabled: root.enabled;
+        // ↓, ↑ and typed letters arrive here unused from the button; Enter and Space are its own (a click).
+        key-pressed(event) => {
+            if (event.text == Key.DownArrow) {
+                InputMode.keyboard = true;
+                root.open(MenuStart.first);
+                return accept;
+            }
+            if (event.text == Key.UpArrow) {
+                InputMode.keyboard = true;
+                root.open(MenuStart.last);
+                return accept;
+            }
+            if (!event.modifiers.control && !event.modifiers.alt && MenuNav.printable(event.text)) {
+                root.type(event.text);
+                return accept;
+            }
+            return reject;
+        }
+
+        button := Button {
+            // Its height is its own: a button's width reads its height, so tying it to the layout would loop.
+            width: parent.width;
+            text: root.shown;
+            icon-end: Icons.chevron-down;
+            variant: ButtonVariant.secondary;
+            size: SelectLook.button-size(root.size);
+            width-mode: ButtonWidth.fill;
+            enabled: root.enabled;
+            tooltip: root.tooltip;
+            kit-state: root.is-open ? KitState.pressed : root.kit-state;
+            // The select itself is the combo box screen readers see.
+            accessible-role: none;
+            clicked => {
+                root.open(InputMode.keyboard ? MenuStart.first : MenuStart.none);
+            }
+        }
+    }
+
+    menu := Menu {
+        entries: SelectNav.marked(root.entries, root.current-index);
+        start-index: root.chosen ? root.current-index : -1;
+        side: root.side;
+        align: root.align;
+        list-min-width: root.list-min-width;
+        list-max-width: root.list-max-width;
+        match-anchor-width: true;
+        wrap-around: root.wrap-around;
+        activated(entry, index) => {
+            root.choose(index);
+        }
+        closed => {
+            button.focus();
+        }
+    }
+}
