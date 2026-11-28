@@ -27,8 +27,9 @@ const BOX: f32 = 14.0;
 const SWITCH_W: f32 = 28.0;
 const KNOB_OFF: f32 = 2.0;
 const KNOB_ON: f32 = 14.0;
-/// The dark theme's colours (§ 3.2): the box's edge, the `accent` fill, the switch's `control` track.
-const LINE_STRONG: [u8; 4] = [0x66, 0x69, 0x6e, 0xff];
+/// The dark theme's colours (§ 3.2): the box's edge, the `accent` fill, the switch's `control` track. The edge is
+/// `line-strong` as the spec's token table gives it, `#6b6e73` since it was raised to 3:1 on every ground.
+const LINE_STRONG: [u8; 4] = [0x6b, 0x6e, 0x73, 0xff];
 const ACCENT: [u8; 4] = [0x37, 0xc2, 0xbb, 0xff];
 const CONTROL: [u8; 4] = [0x23, 0x25, 0x28, 0xff];
 /// Past `Motion.fast` (90 ms), so colours and the knob have arrived.
