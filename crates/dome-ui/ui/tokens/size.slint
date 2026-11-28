@@ -87,6 +87,12 @@ export global Size {
     out property <length> search-w-min: 200px;
     out property <length> search-w: 320px;
     out property <length> search-w-max: 400px;
+    // Pending design: a text field's width where its layout does not set one, and the narrowest it gets (§ 5.4
+    // gives neither; in a dialog it fills its column).
+    out property <length> field-w: 240px;
+    out property <length> field-w-min: 80px;
+    // Pending design: the gap between a field's label, its box and its help or error message (§ 5.4 gives none).
+    out property <length> field-gap: 4px;
     out property <length> drive-picker-w: 232px;
     out property <length> dialog-sm: 400px;
     out property <length> dialog-md: 520px;

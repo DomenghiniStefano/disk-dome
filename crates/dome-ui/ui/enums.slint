@@ -35,6 +35,14 @@ export enum SegmentedWidth { hug, fill }
 // case only, or match case and regular expression (the files' search).
 export enum SearchFieldToggles { none, match-case, match-case-and-regex }
 
+// Where a text field shows its label (§ 5.4): above the box (as shadcn's form), or not at all, where the place
+// already says what the field is for (a toolbar, a table cell); screen readers read it either way.
+export enum FieldLabelPosition { top, hidden }
+
+// What a field's message under its box says (§ 5.4): `help` (`caption`, `ink-muted`) or an `error` (`caption`,
+// `danger`, with `circle-alert`).
+export enum FieldMessageKind { help, error }
+
 // `small` sits inside a field (the search's `Aa` / `.*`), `normal` in a toolbar, `large` beside a large button
 // (§ 5.3).
 export enum ToggleSize { small, normal, large }

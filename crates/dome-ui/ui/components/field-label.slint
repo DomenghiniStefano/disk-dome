@@ -1,0 +1,41 @@
+// FieldLabel (§ 5.4): the name of a field, above it. A click on it asks for the focus of its field (`clicked`), as
+// a Radix Label does for its control; Slint has no «labelled by», so the field also takes the same text as its
+// accessible name (`TextField` does both).
+
+import { TypeStep } from "../tokens/type.slint";
+import { InkTone, Elide } from "../enums.slint";
+import { Label } from "label.slint";
+
+export component FieldLabel {
+    in property <string> text;
+    // A disabled field's label takes no click; the field around it fades both.
+    in property <bool> enabled: true;
+
+    // The pointer pressed the label: the owner puts the focus in its field.
+    callback clicked();
+
+    // The label of a field may be long in Italian: it is cut with «…» rather than pushing the field wider.
+    min-width: 0;
+    preferred-width: name.preferred-width;
+    min-height: name.min-height;
+    preferred-height: name.preferred-height;
+    accessible-role: AccessibleRole.text;
+    accessible-label: root.text;
+
+    name := Label {
+        width: root.width;
+        height: root.height;
+        text: root.text;
+        step: TypeStep.body;
+        tone: InkTone.normal;
+        elide: Elide.end;
+        accessible-role: none;
+    }
+
+    TouchArea {
+        enabled: root.enabled;
+        clicked => {
+            root.clicked();
+        }
+    }
+}

@@ -1,0 +1,176 @@
+// TextField (§ 5.4): one line of text in a `control`-tall box (`FieldFrame`): `field` ground, 1 px `line` edge,
+// `focus` while focused with the ring when the keyboard brought the focus there, `danger` with an error. Its label
+// above (`FieldLabel`, a click on it focuses the text) and its help and error under it (`FieldMessage`), as
+// shadcn's form field. An optional icon leads the text; the children go at the box's end (a unit, a button).
+
+import { Size } from "../tokens/size.slint";
+import { TypeStep } from "../tokens/type.slint";
+import { InputMode } from "../input-mode.slint";
+import {
+    InkTone,
+    IconSize,
+    KitState,
+    FieldLabelPosition,
+    FieldMessageKind,
+} from "../enums.slint";
+import { TextEntry } from "../primitives/text-entry.slint";
+import { FieldFrame } from "../primitives/field-frame.slint";
+import { Icon } from "icon.slint";
+import { Label } from "label.slint";
+import { FieldLabel } from "field-label.slint";
+import { FieldMessage } from "field-message.slint";
+
+export component TextField {
+    // Written by the user typing and by the screen (to fill or clear it): both sides write.
+    in-out property <string> text;
+    in property <string> placeholder;
+    // What the field is for: shown above the box (`label-position`) and read as its accessible name; with no label
+    // the placeholder is the name.
+    in property <string> label;
+    in property <FieldLabelPosition> label-position: FieldLabelPosition.top;
+    // What to type, under the box.
+    in property <string> help;
+    // What is wrong with the value and what to do, set by the field's owner; empty when the value is valid. A red
+    // edge never shows without its reason (§ 5.4).
+    in property <string> error;
+    // Leads the text, decorative (`ink-faint`); none by default.
+    in property <image> icon;
+    in property <TypeStep> step: TypeStep.body;
+    // `password` hides the characters.
+    in property <InputType> input-type: InputType.text;
+    // The text can be selected and copied, not changed.
+    in property <bool> read-only;
+    in property <bool> enabled: true;
+    // The Kit window only (§ 9): `focus` shows the focused edge and the ring.
+    in property <KitState> kit-state: KitState.live;
+
+    out property <bool> has-focus: entry.has-focus;
+    // Where the box is inside the field, below its label: a list opened under the field lines up with it.
+    out property <length> box-y: box.y;
+    out property <length> box-height: box.height;
+
+    // Every change the user makes to the text, and Enter.
+    callback edited(text: string);
+    callback accepted(text: string);
+
+    property <bool> label-shown: root.label != "" && root.label-position == FieldLabelPosition.top;
+    property <bool> has-icon: root.icon.width > 0;
+
+    // In a dialog or a form the field fills its column; elsewhere it takes `field-w`.
+    min-width: Size.field-w-min;
+    preferred-width: Size.field-w;
+    horizontal-stretch: 1;
+    opacity: root.enabled ? 1 : Size.disabled;
+
+    forward-focus: entry;
+
+    VerticalLayout {
+        alignment: start;
+        spacing: Size.field-gap;
+
+        if root.label-shown: FieldLabel {
+            text: root.label;
+            enabled: root.enabled;
+            // The text already carries it as its name.
+            accessible-role: none;
+            clicked => {
+                InputMode.keyboard = false;
+                entry.focus();
+            }
+        }
+
+        // Tab leaving the text turns the keyboard flag on, so the next control shows its ring (§ 3.7).
+        box := FocusScope {
+            height: Size.control;
+            focus-on-click: false;
+            focus-on-tab-navigation: false;
+            capture-key-pressed(event) => {
+                if (event.text == Key.Tab || event.text == Key.Backtab) {
+                    InputMode.keyboard = true;
+                }
+                return reject;
+            }
+
+            FieldFrame {
+                has-focus: entry.has-focus;
+                invalid: root.error != "";
+                kit-state: root.kit-state;
+            }
+
+            HorizontalLayout {
+                padding-right: Size.field-pad-x;
+                spacing: Size.label-gap;
+
+                // The icon and the text: a click anywhere here puts the focus in the text.
+                TouchArea {
+                    horizontal-stretch: 1;
+                    enabled: root.enabled;
+                    mouse-cursor: MouseCursor.text;
+                    clicked => {
+                        InputMode.keyboard = false;
+                        entry.focus();
+                    }
+
+                    HorizontalLayout {
+                        padding-left: Size.field-pad-x;
+                        spacing: Size.label-gap;
+
+                        if root.has-icon: VerticalLayout {
+                            alignment: center;
+
+                            Icon {
+                                source: root.icon;
+                                size: IconSize.normal;
+                                tone: InkTone.faint;
+                            }
+                        }
+
+                        Rectangle {
+                            horizontal-stretch: 1;
+                            if root.text == "": Label {
+                                width: parent.width;
+                                height: parent.height;
+                                text: root.placeholder;
+                                step: root.step;
+                                tone: InkTone.faint;
+                                accessible-role: none;
+                            }
+                            entry := TextEntry {
+                                width: parent.width;
+                                height: parent.height;
+                                text <=> root.text;
+                                step: root.step;
+                                enabled: root.enabled;
+                                read-only: root.read-only;
+                                input-type: root.input-type;
+                                label: root.label != "" ? root.label : root.placeholder;
+                                placeholder: root.placeholder;
+                                // Slint has no «described by»: the error, or else the help, is read after the name.
+                                description: root.error != "" ? root.error : root.help;
+                                edited => {
+                                    root.edited(root.text);
+                                }
+                                accepted => {
+                                    root.accepted(root.text);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // The box's end: what the screen puts there (a unit, a button), centred by the row.
+                @children
+            }
+        }
+
+        // shadcn's order: the help, then the error under it.
+        if root.help != "": FieldMessage {
+            text: root.help;
+        }
+
+        if root.error != "": FieldMessage {
+            text: root.error;
+            kind: FieldMessageKind.error;
+        }
+    }
+}
