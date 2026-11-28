@@ -62,7 +62,7 @@ export component Breadcrumb {
     in property <KitState> kit-state: KitState.live;
 
     // The first segment shown after the fold, 0 when nothing is folded (the tests read it).
-    out property <int> first-shown: BreadcrumbFit.first-shown(root.widths, root.items.length, root.width, root.ellipsis-width, root.keep-first);
+    out property <int> first-shown: BreadcrumbFit.first-shown(root.widths, root.items.length, root.available, root.ellipsis-width, root.keep-first);
     // Some segments are folded into «…».
     out property <bool> collapsed: root.keep-first ? root.first-shown > 1 : root.first-shown > 0;
     // Whether the last segment's name is cut (the tests read it).
@@ -78,6 +78,16 @@ export component Breadcrumb {
     // The «…» is a small square icon button; with the fold in the middle, a separator comes before it.
     property <length> more-width: Size.control-sm;
     property <length> ellipsis-width: root.keep-first ? root.separator + root.more-width : root.more-width;
+    // The width the fold reads: a copy of `width` taken in `changed`, since a binding to `width` loops through the
+    // segments' sizes, which follow the fold, back into the parent's layout.
+    property <length> available;
+
+    init => {
+        root.available = root.width;
+    }
+    changed width => {
+        root.available = root.width;
+    }
 
     height: Size.control-sm;
     // The whole path; short of room it folds, so it gives way down to the last segment's minimum.

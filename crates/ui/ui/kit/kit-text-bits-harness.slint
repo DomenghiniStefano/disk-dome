@@ -78,11 +78,11 @@ export component KitTextBitsHarness inherits DomeWindow {
     out property <bool> long-tooltip: long.tooltip-shown;
 
     VerticalLayout {
-        alignment: start;
+        alignment: LayoutAlignment.start;
         spacing: Size.group-gap;
 
         HorizontalLayout {
-            alignment: start;
+            alignment: LayoutAlignment.start;
 
             middle := Breadcrumb {
                 width: root.crumb-width;
@@ -95,7 +95,7 @@ export component KitTextBitsHarness inherits DomeWindow {
         }
 
         HorizontalLayout {
-            alignment: start;
+            alignment: LayoutAlignment.start;
 
             start := Breadcrumb {
                 width: root.crumb-width;
@@ -105,7 +105,7 @@ export component KitTextBitsHarness inherits DomeWindow {
         }
 
         HorizontalLayout {
-            alignment: start;
+            alignment: LayoutAlignment.start;
             spacing: Size.group-gap;
 
             badge := Badge {
@@ -121,7 +121,7 @@ export component KitTextBitsHarness inherits DomeWindow {
         }
 
         HorizontalLayout {
-            alignment: start;
+            alignment: LayoutAlignment.start;
             spacing: Size.group-gap;
 
             key := Kbd {
@@ -146,7 +146,7 @@ export component KitTextBitsHarness inherits DomeWindow {
         }
 
         chips := HorizontalLayout {
-            alignment: start;
+            alignment: LayoutAlignment.start;
             spacing: Size.group-gap;
 
             filter := Chip {
@@ -176,7 +176,7 @@ export component KitTextBitsHarness inherits DomeWindow {
         }
 
         narrow := HorizontalLayout {
-            alignment: start;
+            alignment: LayoutAlignment.start;
             width: root.narrow-box;
 
             long := Chip {
