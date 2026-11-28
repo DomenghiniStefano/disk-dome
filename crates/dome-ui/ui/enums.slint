@@ -69,6 +69,10 @@ export enum SelectSize { small, normal, large }
 // `fill` the width its layout gives it. Short of room it gives way down to the button's minimum and cuts the text.
 export enum SelectWidth { longest, chosen, fill }
 
+// Where a select's shown text sits in the room between its icon (or its padding) and its chevron (§ 5.5): at the
+// `start` (the default, as a Radix trigger) or in the `center`.
+export enum SelectTextAlign { start, center }
+
 // What a scroll bar draws at its ends (§ 5.24): no arrows (the default), arrows that appear while the bar is widened
 // under the pointer (as Windows 11), or arrows always.
 export enum ScrollBarArrows { none, on-hover, always }

@@ -1,12 +1,16 @@
 // The Select's test window (`tests/select_headless.rs`, § 5.5): a select in the top-left corner the test drives by
 // pointer and keyboard, counting `selected`; two selects that hug the item they show, to compare the `longest`
-// width with; a disabled one; and a long list near the bottom, which must open on its chosen item.
+// width with; a disabled one; a small and a large one; one with its text in the centre and one with an icon, whose
+// pixels the test reads; and a long list near the bottom, which must open on its chosen item.
 // Kit only; texts are the Kit's own, not translated.
 
 import {
     DomeWindow,
     Select,
     SelectWidth,
+    SelectSize,
+    SelectTextAlign,
+    Icons,
     MenuEntry,
     MenuEntryKind,
     Size,
@@ -71,8 +75,14 @@ export component KitSelectHarness inherits DomeWindow {
     out property <length> sort-height: sort.height;
     out property <length> hug-short-width: hug-short.width;
     out property <length> hug-longest-width: hug-longest.width;
+    out property <length> hug-short-y: hug-short.y;
     out property <length> disabled-y: disabled.y;
     out property <length> long-y: long.y;
+    out property <length> small-height: small.height;
+    out property <length> large-height: large.height;
+    out property <length> centred-y: centred.y;
+    out property <length> centred-width: centred.width;
+    out property <length> iconic-y: iconic.y;
 
     sort := Select {
         x: 0;
@@ -115,6 +125,47 @@ export component KitSelectHarness inherits DomeWindow {
         entries: KitSelectProbe.entries;
         placeholder: "Disabled";
         enabled: false;
+    }
+
+    small := Select {
+        x: 0;
+        y: Size.toolbar * 7;
+        width: self.preferred-width;
+        height: self.preferred-height;
+        entries: KitSelectProbe.entries;
+        size: SelectSize.small;
+        current-index: 0;
+    }
+
+    large := Select {
+        x: 0;
+        y: Size.toolbar * 8;
+        width: self.preferred-width;
+        height: self.preferred-height;
+        entries: KitSelectProbe.entries;
+        size: SelectSize.large;
+        current-index: 0;
+    }
+
+    // `longest` wide, showing the short «Size»: the room around the text shows where it sits.
+    centred := Select {
+        x: 0;
+        y: Size.toolbar * 9;
+        width: self.preferred-width;
+        height: self.preferred-height;
+        entries: KitSelectProbe.entries;
+        text-align: SelectTextAlign.center;
+        current-index: 0;
+    }
+
+    iconic := Select {
+        x: 0;
+        y: Size.toolbar * 10;
+        width: self.preferred-width;
+        height: self.preferred-height;
+        entries: KitSelectProbe.entries;
+        icon: Icons.arrow-down;
+        current-index: 0;
     }
 
     long := Select {

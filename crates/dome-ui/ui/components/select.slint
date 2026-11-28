@@ -2,7 +2,7 @@
 // opens a level-1 list (`Menu`) under it with the chosen item marked by `check` and highlighted. A click, Enter,
 // Space, ↓ or ↑ opens it; in the list the arrows, Home, End, the type-ahead and Enter work as in every menu, Esc
 // closes it and the focus comes back. Closed, typing chooses the next enabled item starting with the letters, as
-// Radix and Windows do.
+// Radix and Windows do. An optional icon leads the text; the text sits at the start or in the centre of its room.
 //
 // Slint strings have no prefix test, so the marked list and the closed type-ahead are answered by Rust through
 // `SelectNav` (`crates/dome-ui/src/select.rs`, wired by `select_nav!` on every window).
@@ -21,6 +21,7 @@ import {
     PopupAlign,
     SelectSize,
     SelectWidth,
+    SelectTextAlign,
 } from "../enums.slint";
 import { InputMode } from "../input-mode.slint";
 import { Button } from "button.slint";
@@ -40,6 +41,10 @@ global SelectLook {
     public pure function button-size(size: SelectSize) -> ButtonSize {
         return size == SelectSize.small ? ButtonSize.small : size == SelectSize.large ? ButtonSize.large : ButtonSize.normal;
     }
+
+    public pure function text-align(align: SelectTextAlign) -> TextHorizontalAlignment {
+        return align == SelectTextAlign.center ? TextHorizontalAlignment.center : TextHorizontalAlignment.left;
+    }
 }
 
 export component Select {
@@ -53,6 +58,10 @@ export component Select {
     in property <string> placeholder;
     in property <SelectSize> size: SelectSize.normal;
     in property <SelectWidth> width-mode: SelectWidth.longest;
+    // Leads the shown text, as a button's icon; none by default.
+    in property <image> icon;
+    // The shown text at the start of its room (the default) or in its centre, between the icon and the chevron.
+    in property <SelectTextAlign> text-align: SelectTextAlign.start;
     in property <bool> enabled: true;
     // The Kit window only (§ 9).
     in property <KitState> kit-state: KitState.live;
@@ -129,10 +138,12 @@ export component Select {
 
         for entry in root.entries: ButtonContent {
             text: entry.kind == MenuEntryKind.section ? "" : entry.label;
+            icon: root.icon;
             icon-end: Icons.chevron-down;
         }
         ButtonContent {
             text: root.placeholder;
+            icon: root.icon;
             icon-end: Icons.chevron-down;
         }
     }
@@ -171,7 +182,11 @@ export component Select {
             // Its height is its own: a button's width reads its height, so tying it to the layout would loop.
             width: parent.width;
             text: root.shown;
+            icon: root.icon;
             icon-end: Icons.chevron-down;
+            // The icon and the chevron at the ends, the text at the start or in the centre between them.
+            spread: true;
+            align: SelectLook.text-align(root.text-align);
             variant: ButtonVariant.secondary;
             size: SelectLook.button-size(root.size);
             width-mode: ButtonWidth.fill;

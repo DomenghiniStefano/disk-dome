@@ -1,11 +1,12 @@
-//! The Select off screen (`docs/design-system.md` § 5.5), on its test window `KitSelectHarness`: its height and
-//! widths, opening by pointer and keyboard on the chosen item, choosing, disabled items, the arrows stopping at the
+//! The Select off screen (`docs/design-system.md` § 5.5), on its test window `KitSelectHarness`: its heights and
+//! widths, the text in the centre, the leading icon, opening by pointer and keyboard on the chosen item, choosing, disabled items, the arrows stopping at the
 //! ends, Esc giving the focus back, the type-ahead on the closed select, and a disabled select.
 //!
 //! `DISKDOME_KIT_SHOTS=<folder>` also saves the select open and the long list open on its chosen item, for a look.
 
 #![cfg(feature = "kit")]
 
+use std::ops::Range;
 use std::path::PathBuf;
 use std::time::Duration;
 
@@ -19,6 +20,22 @@ const WIDTH: u32 = 960;
 const HEIGHT: u32 = 600;
 /// `Size.control` at normal density: the select is a normal `secondary` button (§ 5.2, § 3.5).
 const CONTROL: f32 = 28.0;
+/// `Size.control-sm` and `Size.control-lg` at normal density: the small and large buttons' heights (§ 5.2, § 3.5).
+const CONTROL_SM: f32 = 24.0;
+const CONTROL_LG: f32 = 32.0;
+/// `button-pad-x`, on a side with text only, and `button-pad-x-icon`, on a side with an icon (§ 3.4, § 5.2).
+const PAD_X: usize = 10;
+const PAD_X_ICON: usize = 8;
+/// `Size.icon` at normal density, and `label-gap` between an icon and the text (§ 5.2).
+const ICON: usize = 16;
+const GAP: usize = 6;
+/// Inside the button, in its start padding: its fill, away from any ink.
+const GROUND_X: usize = 3;
+/// The rows the text and the icons are read in: the button's height less its top and bottom few pixels.
+const INK_INSET: f32 = 4.0;
+/// How far the centre of the text's ink may sit from the centre of its room: glyphs' side bearings differ by a
+/// pixel or so.
+const CENTRE_TOLERANCE: f32 = 1.5;
 /// `Size.menu-item` at normal density.
 const ROW: f32 = 24.0;
 /// From the select's bottom edge to the first row's top: `popup-gap` 4, the frame's 1 px edge, `menu-pad` 4.
@@ -39,6 +56,22 @@ fn save_shot(headless: &Headless, name: &str) {
     };
     let path = PathBuf::from(folder).join(format!("select-{name}.bmp"));
     std::fs::write(&path, headless.bmp()).expect("the shots folder is writable");
+}
+
+/// The first and last inked column of the select at `top`, `height` tall, within `columns` of it.
+fn ink(
+    headless: &Headless,
+    top: f32,
+    height: f32,
+    columns: Range<usize>,
+) -> Option<(usize, usize)> {
+    let middle = (top + height / 2.0) as usize;
+    let ground = headless.pixel(GROUND_X, middle);
+    headless.ink_columns(
+        columns,
+        (top + INK_INSET) as usize..(top + height - INK_INSET) as usize,
+        ground,
+    )
 }
 
 fn selections(harness: &KitSelectHarness) -> i32 {
@@ -62,6 +95,50 @@ fn select_works_by_pointer_and_keyboard() {
     assert_eq!(longest, harness.get_hug_longest_width());
     assert!(harness.get_hug_short_width() < longest);
     assert_eq!(harness.get_current(), -1, "nothing chosen: the placeholder");
+
+    // Sizes: the button's heights of the same name.
+    assert_eq!(harness.get_small_height(), CONTROL_SM);
+    assert_eq!(harness.get_large_height(), CONTROL_LG);
+
+    // The text at the start: it begins at the padding (plus its first glyph's side bearing).
+    let plain_top = harness.get_hug_short_y();
+    let (plain_start, _) =
+        ink(&headless, plain_top, CONTROL, 0..WIDTH as usize / 2).expect("the text is drawn");
+    assert!(
+        (PAD_X..PAD_X + 3).contains(&plain_start),
+        "the text starts at the padding, not at {plain_start}"
+    );
+
+    // The leading icon: its ink sits in its slot after the tighter padding, and the same text moves by the icon and
+    // the gap, less the padding the icon's side loses.
+    let icon_top = harness.get_iconic_y();
+    let (icon_start, icon_end) =
+        ink(&headless, icon_top, CONTROL, 0..PAD_X_ICON + ICON).expect("the icon is drawn");
+    assert!(
+        icon_start >= PAD_X_ICON && icon_end < PAD_X_ICON + ICON,
+        "the icon in its slot"
+    );
+    let text_after = PAD_X_ICON + ICON;
+    let (icon_text_start, _) = ink(&headless, icon_top, CONTROL, text_after..WIDTH as usize / 2)
+        .expect("the text is drawn after the icon");
+    assert_eq!(
+        icon_text_start,
+        plain_start + ICON + GAP - (PAD_X - PAD_X_ICON),
+        "the text follows the icon"
+    );
+
+    // The text in the centre of its room, between the padding and the chevron with its gap.
+    let centred_top = harness.get_centred_y();
+    let room_end = harness.get_centred_width() as usize - PAD_X_ICON - ICON - GAP;
+    let (first, last) =
+        ink(&headless, centred_top, CONTROL, PAD_X..room_end).expect("the centred text is drawn");
+    let ink_centre = (first + last) as f32 / 2.0;
+    let room_centre = (PAD_X + room_end) as f32 / 2.0;
+    assert!(
+        (ink_centre - room_centre).abs() <= CENTRE_TOLERANCE,
+        "the text's centre {ink_centre} is the room's {room_centre}"
+    );
+    assert!(first > plain_start, "centred, not at the start");
 
     // Pointer: a click opens the list, a click on an item chooses it and closes the list.
     headless.click(ROW_X, CONTROL / 2.0);
