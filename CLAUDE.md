@@ -54,14 +54,17 @@ feature is specified in `docs/design-system.md` and drawn on the canvas
 (https://claude.ai/artifact/9uEkqjsB82zrQAAr9x97CD), and the logos and icons are in `crates/ui/ui/assets/brand/`.
 The design system is its own crate, Dome UI (`crates/dome-ui`, imported by the app as the Slint library `@dome-ui`,
 name provisional, card https://trello.com/c/9yiz5cgx). Its tokens (`crates/dome-ui/ui/tokens/`) and the source checks of `docs/design-system.md` § 10 are in
-place (`crates/ui/tests/design_conventions.rs`, `design_tokens.rs`). The first components (Label, Icon with the Lucide
-set, Button, SegmentedControl, ToggleButton, SearchField, ScrollBar) are in `crates/dome-ui/ui/components/`; the Kit window shows every token,
+place (`crates/ui/tests/design_conventions.rs`, `design_tokens.rs`). The first components, reviewed to library grade (Label,
+SelectableLabel, Icon with the Lucide set, Button, ToggleButton, SegmentedControl, SearchField, ScrollBar), are in
+`crates/dome-ui/ui/components/`; every other component of § 5 has its own card on top of the Trello Backlog («Dome UI
+1–12», then DiskDome's own). The Kit window shows every token,
 every component and the review board (cards 4.2, 4.3), and checks text and digits (card 4.T7). Slint draws with
 its software renderer only (decision 9); Segoe UI at 400 and 700 only (decision 8). Menus and tooltips are ours (decision 11,
 after test 8). The menu is built (`Menu`, `MenuList`,
 `MenuFrame`, `ContextMenu`, `MenuButton`, § 5.16) with `DomeWindow`, which every window inherits, and
 `design_system::install`, which every window calls; the tooltip too (`Tooltip`, drawn by `DomeWindow`, § 5.17).
-Both wait for the owner's look in the Kit. The plan and its status: https://claude.ai/artifact/6b7K1hVhjpupdAURw4CfFP
+The engine also has the file categories and the totals per extension (`diskdome_core::stats`), a volume's free
+space and Windows' own tools (`diskdome-platform`). The plan and its status: https://claude.ai/artifact/6b7K1hVhjpupdAURw4CfFP
 and the Trello board: https://trello.com/b/BrdLKkTt/diskdome (personal account, workspace DomeHub).
 
 ## Commands
