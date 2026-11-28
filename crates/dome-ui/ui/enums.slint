@@ -122,3 +122,10 @@ export enum ChipVariant { filter, toggle }
 // Which segments a breadcrumb folds into «…» when it does not fit (§ 5.13): the `middle` ones, keeping the first
 // and as many of the last as fit, or the ones from its `start`, keeping only the last ones (the map header, § 3.11).
 export enum BreadcrumbCollapse { middle, start }
+
+// A dialog's width (§ 5.18): `small` 400, `medium` 520, `large` 680.
+export enum DialogSize { small, medium, large }
+
+// Where the focus goes when a dialog opens (§ 5.18): to its `default-action`, as Windows (a delete confirmation's
+// «Cancel»), or to the `first` control in it, as Radix.
+export enum DialogFocus { default-action, first }

@@ -1,0 +1,108 @@
+// The Dialog's test window (`tests/dialog_headless.rs`, § 5.18): a button in the top-left corner opens a delete
+// confirmation covering the whole window, with a check box in its body and two actions (the default first, «Cancel»
+// second); a button in the bottom-left corner, under the scrim, counts the clicks that reach it; a second dialog is
+// taller than the window, so its body must scroll. The dialog gives the focus back to the opening button when it
+// closes, as a screen does. Kit only; texts are the Kit's own, not translated.
+
+import {
+    DomeWindow,
+    Dialog,
+    DialogSize,
+    Button,
+    ButtonVariant,
+    Checkbox,
+    CheckboxState,
+    Label,
+    LabelWrap,
+    Size,
+} from "@dome-ui";
+
+export component KitDialogHarness inherits DomeWindow {
+    preferred-width: Size.window-min-w;
+    preferred-height: Size.window-min-h;
+
+    // Both sides write: the test opens a dialog, the dialog closes itself.
+    in-out property <bool> open;
+    in-out property <bool> tall-open;
+    // The default action can be disabled, to see that Enter then does nothing.
+    in property <bool> default-disabled;
+
+    out property <length> trigger-height: trigger.height;
+    out property <length> behind-y: behind.y;
+    out property <length> panel-x: dialog.panel-x;
+    out property <length> panel-y: dialog.panel-y;
+    out property <length> panel-width: dialog.panel-width;
+    out property <length> panel-height: dialog.panel-height;
+    out property <length> tall-panel-width: tall.panel-width;
+    out property <length> tall-panel-height: tall.panel-height;
+    out property <bool> box-checked: box.state == CheckboxState.checked;
+    // How many times `activated` was called, and the last index it gave; how many times `closed` was.
+    out property <int> activations;
+    out property <int> last-index: -2;
+    out property <int> closings;
+    // Clicks that reached the button under the scrim.
+    out property <int> behind-clicks;
+
+    trigger := Button {
+        x: 0;
+        y: 0;
+        width: self.preferred-width;
+        text: "Delete…";
+        clicked => {
+            root.open = true;
+        }
+    }
+
+    behind := Button {
+        x: 0;
+        y: root.height - self.height;
+        width: self.preferred-width;
+        text: "Behind";
+        clicked => {
+            root.behind-clicks += 1;
+        }
+    }
+
+    dialog := Dialog {
+        open <=> root.open;
+        title: "Move 3 items to the Recycle Bin?";
+        description: "You can restore them from the Recycle Bin.";
+        actions: [
+            {
+                text: "Move to Recycle Bin",
+                variant: ButtonVariant.primary,
+                disabled: root.default-disabled,
+                reason: "Only system items are selected",
+            },
+            { text: "Cancel", variant: ButtonVariant.secondary },
+        ];
+        default-index: 0;
+        cancel-index: 1;
+        activated(index) => {
+            root.activations += 1;
+            root.last-index = index;
+        }
+        closed => {
+            root.closings += 1;
+            trigger.focus();
+        }
+
+        box := Checkbox {
+            text: "Include system items";
+        }
+    }
+
+    tall := Dialog {
+        open <=> root.tall-open;
+        size: DialogSize.small;
+        title: "Open 40 items?";
+        actions: [{ text: "Close", variant: ButtonVariant.secondary }];
+        default-index: 0;
+        cancel-index: 0;
+
+        for line in 40: Label {
+            text: "Line " + line;
+            wrap: LabelWrap.word;
+        }
+    }
+}
