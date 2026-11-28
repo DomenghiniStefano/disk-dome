@@ -16,6 +16,8 @@
 mod compare;
 mod export;
 mod inspect;
+mod space;
+mod tools;
 mod verify;
 
 use std::path::PathBuf;
@@ -35,8 +37,13 @@ usage:
   diskdome-cli compare OURS.csv WIZTREE.csv [--top N]
   diskdome-cli inspect --dump FILE --path FOLDER [--top N]
   diskdome-cli verify --dump FILE [--top N] [--drive X]
+  diskdome-cli space PATH
+  diskdome-cli windows-tool (performance | power | protection | cleanup | recycle-bin)
 
-mft-read, scan C: and mft-dump read the volume directly: run them as administrator.";
+mft-read, scan C: and mft-dump read the volume directly: run them as administrator.
+scan C: also checks the bytes it found plus Windows' free space against the capacity (within 1 %).
+space prints a volume's capacity and free space, for a drive, a folder or a network share.
+windows-tool opens one of Windows' own tools, never elevated (a tool that needs it asks itself).";
 
 struct Args {
     positional: Vec<String>,
@@ -166,7 +173,8 @@ fn cmd_mft_read(args: &Args) -> Result<(), String> {
     Ok(())
 }
 
-fn run_scan(source: &impl Source, args: &Args, drive: char) -> Result<(), String> {
+/// Scans `source` and prints the report; returns the bytes the scan found allocated under the root.
+fn run_scan(source: &impl Source, args: &Args, drive: char) -> Result<u64, String> {
     let opts = options(args);
     let total = Instant::now();
     let (tree, r) = scan(source, &opts).map_err(|e: ScanError| e.to_string())?;
@@ -206,6 +214,14 @@ fn run_scan(source: &impl Source, args: &Args, drive: char) -> Result<(), String
         tree.size[tree.root as usize] as f64 / 1e9,
         tree.alloc_bytes(tree.root) as f64 / 1e9
     );
+    let start = Instant::now();
+    let totals = diskdome_core::stats(&tree);
+    println!(
+        "stats {} extensions, {} categories in {:.3} s",
+        totals.extensions.len(),
+        totals.categories.iter().filter(|c| c.files > 0).count(),
+        secs(start.elapsed())
+    );
     print_memory("memory after the scan");
     if let Some(path) = &args.export {
         let start = Instant::now();
@@ -216,13 +232,13 @@ fn run_scan(source: &impl Source, args: &Args, drive: char) -> Result<(), String
             secs(start.elapsed())
         );
     }
-    Ok(())
+    Ok(tree.alloc_bytes(tree.root))
 }
 
 fn cmd_scan(args: &Args) -> Result<(), String> {
     if let Some(path) = &args.dump {
         let source = DumpSource::open(path.clone()).map_err(|e| e.to_string())?;
-        return run_scan(&source, args, args.drive.unwrap_or('C'));
+        return run_scan(&source, args, args.drive.unwrap_or('C')).map(drop);
     }
     if let Some(records) = args.synthetic {
         let source = SyntheticSource {
@@ -237,10 +253,12 @@ fn cmd_scan(args: &Args) -> Result<(), String> {
                 secs(r.wall)
             );
         }
-        return run_scan(&source, args, args.drive.unwrap_or('S'));
+        return run_scan(&source, args, args.drive.unwrap_or('S')).map(drop);
     }
     let (volume, letter) = open_volume(args)?;
-    run_scan(&volume, args, letter)
+    let used = run_scan(&volume, args, letter)?;
+    space::check_scan(letter, used);
+    Ok(())
 }
 
 fn cmd_inspect(args: &Args) -> Result<(), String> {
@@ -292,6 +310,12 @@ fn main() -> ExitCode {
         Some("inspect") => cmd_inspect(&args),
         Some("verify") => cmd_verify(&args),
         Some("compare") => compare::run(&args.positional[1..], args.top),
+        Some("windows-tool") => tools::run(args.positional.get(1).map(String::as_str)),
+        Some("space") => args
+            .positional
+            .get(1)
+            .ok_or_else(|| r"which path? e.g. C:\ or \\server\share\".to_owned())
+            .and_then(|path| space::run(path)),
         Some(_) | None => {
             println!("diskdome-cli {}\n\n{USAGE}", env!("CARGO_PKG_VERSION"));
             return ExitCode::SUCCESS;

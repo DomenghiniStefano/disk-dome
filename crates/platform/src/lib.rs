@@ -1,8 +1,10 @@
 //! Operating-system services outside the scanners. For now: the process's memory, which every
-//! benchmark reports, and the window's own title bar ([`titlebar`]). The shell actions (Recycle Bin,
+//! benchmark reports, a volume's free space, Windows' own tools ([`windows_tools`]), and the window's own title bar
+//! ([`titlebar`]). The shell actions (Recycle Bin,
 //! Explorer, Properties) will live here too, so no other crate needs `#[cfg(windows)]`.
 
 pub mod titlebar;
+pub mod windows_tools;
 
 /// Memory of the current process, in bytes.
 #[derive(Debug, Clone, Copy, Default)]
@@ -114,6 +116,48 @@ pub fn file_info(_path: &str) -> Option<FileInfo> {
     None
 }
 
+/// A volume's space as Windows reports it (`docs/design-system.md` § 4.4: the map's free block, the drive tabs).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct VolumeSpace {
+    /// The volume's size.
+    pub capacity: u64,
+    /// Free bytes on the volume: what the map shows as free space.
+    pub free: u64,
+    /// Free bytes this user may still write: less than `free` under a disk quota, said in the tooltip.
+    pub free_to_user: u64,
+}
+
+impl VolumeSpace {
+    /// A disk quota leaves this user less room than the volume has.
+    pub fn quota_limited(&self) -> bool {
+        self.free_to_user < self.free
+    }
+}
+
+/// The space of the volume holding `path` (a drive root, a folder, a `\\server\share\`), with the user's own
+/// rights. `None` when Windows cannot answer (no such path, no access).
+#[cfg(windows)]
+pub fn volume_space(path: &str) -> Option<VolumeSpace> {
+    use windows_sys::Win32::Storage::FileSystem::GetDiskFreeSpaceExW;
+
+    let wide: Vec<u16> = path.encode_utf16().chain(std::iter::once(0)).collect();
+    let (mut free_to_user, mut capacity, mut free) = (0u64, 0u64, 0u64);
+    // SAFETY: `wide` is NUL-terminated and outlives the call; the three outputs are local `u64`s.
+    let ok =
+        unsafe { GetDiskFreeSpaceExW(wide.as_ptr(), &mut free_to_user, &mut capacity, &mut free) };
+    (ok != 0).then_some(VolumeSpace {
+        capacity,
+        free,
+        free_to_user,
+    })
+}
+
+/// A volume's space: not implemented on this platform yet.
+#[cfg(not(windows))]
+pub fn volume_space(_path: &str) -> Option<VolumeSpace> {
+    None
+}
+
 /// The current process's memory, or `None` where it is not implemented yet.
 #[cfg(windows)]
 pub fn memory() -> Option<Memory> {
@@ -150,6 +194,41 @@ pub fn memory() -> Option<Memory> {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn volume_space_is_consistent_on_windows() {
+        let here = std::env::current_dir().expect("a working directory");
+        let space = super::volume_space(&here.to_string_lossy());
+        if cfg!(windows) {
+            let s = space.expect("available on Windows");
+            assert!(s.capacity > 0, "a volume has a size");
+            assert!(s.free <= s.capacity, "free within the capacity: {s:?}");
+            assert!(
+                s.free_to_user <= s.free,
+                "the user's share within the free space: {s:?}"
+            );
+        }
+        let missing = here.join("no-such-folder-for-diskdome");
+        assert!(
+            super::volume_space(&missing.to_string_lossy()).is_none(),
+            "no answer for a missing folder"
+        );
+    }
+
+    #[test]
+    fn a_quota_shows_as_less_room_for_the_user() {
+        let open = super::VolumeSpace {
+            capacity: 100,
+            free: 40,
+            free_to_user: 40,
+        };
+        let quota = super::VolumeSpace {
+            free_to_user: 10,
+            ..open
+        };
+        assert!(!open.quota_limited());
+        assert!(quota.quota_limited());
+    }
+
     #[test]
     fn memory_is_reported_on_windows() {
         let m = super::memory();
