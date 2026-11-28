@@ -10,6 +10,10 @@
 //! MFT record number for NTFS), then calls [`Tree::finish`], which links the children of every
 //! folder and sums the folder totals bottom-up.
 
+pub mod category;
+
+pub use category::{FileCategory, category_of};
+
 /// Entry flags (`Tree::flags`).
 pub mod flag {
     /// The slot holds an entry. Slots without it (free MFT records, extension records) are skipped.
