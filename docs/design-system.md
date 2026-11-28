@@ -2398,7 +2398,7 @@ The full path and Windows' message go to the log, never into the sentence (§ 6.
 
 - Contrast (WCAG 2.1, checked by a test on the token values, § 10): text ≥ 4.5:1 on its ground (`ink`,
   `ink-muted`, `accent-text`, the state colours on `bg`, `surface`, `raised`; on a selected row, `accent-soft` over
-  `surface`, `ink` is 9.2:1 / 13.1:1 and `ink-muted` 5.0:1 / 5.8:1, dark / light); `ink-faint` only for disabled
+  `surface`, `ink` is 9.7:1 / 11.6:1 and `ink-muted` 5.3:1 / 5.8:1, dark / light); `ink-faint` only for disabled
   text, placeholders and the dash of missing values (≥ 4.0:1 nonetheless); focus ring and checkbox / radio
   boxes ≥ 3:1; `on-accent` on `accent` ≥ 4.5:1; `on-data` on every category ≥ 4.5:1.
 - Never colour alone: categories also have a name (side panel, treemap header), states an icon and a word, the sorted
@@ -2604,7 +2604,7 @@ spots written beside it:
 | `literal-colour` | `#rgb`, `#rrggbb(aa)`, `rgb(`, `rgba(`, `hsl(`, `Colors.` | everywhere outside Dome UI's `tokens/` |
 | `literal-length` | a number with `px`, `phx`, `rem`, `pt`, `cm`, `mm`, `in` (`0` and `%` allowed) | everywhere outside Dome UI's `tokens/` |
 | `literal-duration` | a number with `ms` or `s` | outside Dome UI's `tokens/` |
-| `font-literal` | `font-size`, `font-weight`, `font-family`, `letter-spacing` | outside `components/label.slint`, `primitives/text-entry.slint` (the editable text) and the tokens |
+| `font-literal` | `font-size`, `font-weight`, `font-family`, `letter-spacing` | outside `components/label.slint`, `components/selectable-label.slint`, `primitives/text-entry.slint` (the editable text) and the tokens |
 | `std-widgets` | `import … from "std-widgets.slint"` | outside Dome UI's `components/` |
 | `boundary` | an import of a Dome UI file other than the library itself (`@dome-ui/…`, or a path into `dome-ui`); the compiler refuses it too | in `screens/` and `app.slint` |
 | `raw-element` | `Text`, `TextInput`, `TouchArea`, `FocusScope`, `Image`, `PopupWindow`, `Flickable` | in `screens/` and `app.slint` |
@@ -2613,11 +2613,12 @@ spots written beside it:
 | `icon-label` | an icon-only `IconButton` or `Button`, or a `ToggleButton`, without `accessible-label` (Narrator would read nothing) | everywhere |
 | `binary-units` | a literal «GiB», «MiB», «TiB» in a string: sizes go through the unit formatter (§ 4.1) | outside `design-system/tokens/` and the units setting |
 
-And tests on the values, through `slint-interpreter` (a dev-dependency) that loads the token globals and reads
-them in both themes and densities:
+And tests on the values:
 
-- contrast of every pair listed in § 7, in dark and light;
-- the minimum ΔE OK between two categories (≥ 0.09) and `on-data` ≥ 4.5:1 on each;
+- contrast of every pair listed in § 7, in dark and light, plus the age labels and the chart marks
+  (`tests/design_contrast.rs`, reading the compiled `Theme` and `Data` globals; the Soft and Vivid palettes join it
+  with their transform);
+- the minimum ΔE OK between two categories (≥ 0.09) and `on-data` ≥ 4.5:1 on each (the same test);
 - density: every compact size ≤ its normal one, `row` ≥ 18, `control` ≥ 20.
 
 **Overlap check** (§ 3.11): a screen test with Slint's testing backend (`ElementHandle`: position and size by

@@ -14,8 +14,15 @@ export { KitReview, KitIssueStatus } from "kit/kit-review.slint";
 // The search over the sections, answered by Rust.
 export { KitSearch } from "kit/kit-parts.slint";
 
-// The run-time switches, so the Kit's headless test can read what the keyboard changed.
+// The run-time switches, so the Kit's headless test can read what the keyboard changed; the colour tokens and the data
+// colours, for the contrast test (`tests/design_contrast.rs`).
 export { Theme, Size, Type } from "@dome-ui";
+export {
+    Data,
+    FileCategory,
+    DataShade,
+    AgeBucket,
+} from "@dome-ui";
 export { InputMode } from "@dome-ui";
 // The Menu's test window (`tests/menu_headless.rs`).
 export {
