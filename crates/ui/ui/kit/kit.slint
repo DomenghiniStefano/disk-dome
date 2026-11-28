@@ -68,6 +68,7 @@ import { KitSelectSection } from "kit-select-section.slint";
 import { KitTabsSection } from "kit-tabs-section.slint";
 import { KitDialogSection } from "kit-dialog-section.slint";
 import { KitAlertsSection } from "kit-alerts-section.slint";
+import { KitProgressSection } from "kit-progress-section.slint";
 
 struct KitIcon { name: string, source: image }
 struct KitStep { name: string, step: TypeStep }
@@ -1471,6 +1472,9 @@ export component KitWindow inherits DomeWindow {
                             }
                         }
                     }
+
+                    // ProgressBar and UsageBar (§ 5.21).
+                    KitProgressSection { }
                 }
             }
 

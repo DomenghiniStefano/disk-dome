@@ -1421,6 +1421,26 @@ and a 20 px `x` to close it. «Undo» sits right of the text; other actions, at 
 - `UsageBar`: drive usage, 4 px (picker) or 6 px (drive cards), radius `bar`, `bar-track` / `bar-fill`, `warning`
   fill above 90 %.
 
+| ProgressBar | |
+| --- | --- |
+| Interface | `value` of `maximum` (100 by default, as Radix), `mode`, `label` and `value-label` (for screen readers), `thickness` (`progress-h`), `fill-color` (`accent`), `track-color` (`transparent`), `segment` (`progress-segment`), `sweep` (`progress-sweep`), `ease-duration` (`base`); `state`, `said-value`, `fill-width`, `segment-x`, `segment-width` out |
+| Modes `ProgressBarMode` | `determinate` (default: fills `value` of `maximum` from the start, easing to each new value with `ease-out`), `indeterminate` (Radix's `value={null}`: a segment `progress-segment` of the track crosses it from just off the start to just off the end every `progress-sweep`, linear, and starts over; still over the start with reduced motion) |
+| State `ProgressBarState` | `indeterminate`, `loading` (short of the maximum), `complete`, as Radix's `data-state` |
+| Values | outside 0…`maximum` the bar shows empty or full; a `maximum` of 0 or less fills nothing |
+| Size | `thickness` tall, as wide as its layout gives it |
+| Motion | the fill changes its width and the segment its `x`, clipped by the track: the software renderer draws no scale |
+| Pointer | none, and no focus |
+| Accessibility | a progress indicator named `label`; its value the number (kept within 0…`maximum`) or `value-label` («1.2 of 4.2 GB», Radix's `getValueLabel`), none while indeterminate; minimum 0, maximum `maximum` |
+
+| UsageBar | |
+| --- | --- |
+| Interface | `value` (used) of `maximum` (the drive's size; 100 by default), `size`, `label` and `value-label` (for screen readers), `warning-above` (`usage-warning`, 0.90), `track-color` (`bar-track`), `fill-color` (`bar-fill`), `warning-color` (`warning`); `warning`, `said-value`, `fill-width` out |
+| Sizes `UsageBarSize` | `small` (`usage-h-sm`, 4: the drive picker), `normal` (default, `usage-h`, 6: the drive cards), the same in both densities |
+| Warning | the fill turns `warning-color` when the share used is strictly above `warning-above`; exactly at it, it does not. The screen writes the numbers beside the bar, so the colour is never the only sign (§ 3.2) |
+| Values | as `ProgressBar`'s; a new value is drawn at once: it is data, and the data never moves (§ 3.10) |
+| Pointer | none, and no focus: the drive row or card it sits on keeps its clicks |
+| Accessibility | a progress indicator (Slint has no meter role) named `label`, its value as `ProgressBar`'s |
+
 ### 5.22 EmptyState
 
 Centred in its area: a 32 px icon `ink-faint`, `display` title, `body` `ink-muted` one-line explanation, one action.

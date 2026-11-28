@@ -136,3 +136,14 @@ export enum NoticeKind { info, warning, danger, success }
 // Why a toast went away (§ 5.20): its time ran out, it was closed (its `x`, Esc, or the screen's `close()`), one of its
 // actions was chosen, or a newer notice took its place.
 export enum ToastEnd { timeout, dismissed, action, replaced }
+// Whether a progress bar knows how far along it is (§ 5.21): `determinate`, it fills `value` of `maximum`, or
+// `indeterminate` (Radix's `value={null}`: the total is not known yet, the MFT size before it is read), a segment
+// slides across it.
+export enum ProgressBarMode { determinate, indeterminate }
+
+// Where a progress bar stands, as Radix's `data-state`: `indeterminate`, `loading` (short of its maximum) or `complete`.
+export enum ProgressBarState { indeterminate, loading, complete }
+
+// A usage bar's thickness (§ 5.21): `small` in the drive picker, `normal` on the drive cards; the same in both
+// densities.
+export enum UsageBarSize { small, normal }

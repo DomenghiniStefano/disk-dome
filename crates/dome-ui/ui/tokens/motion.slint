@@ -7,6 +7,9 @@ export global Motion {
     out property <duration> fast: reduced ? 0ms : 90ms;
     out property <duration> base: reduced ? 0ms : 140ms;
     out property <duration> slow: reduced ? 0ms : 200ms;
+    // The indeterminate progress segment crosses the whole track in this time, at an even pace (§ 5.21: `slow` × 6);
+    // 0 with reduced motion, and the segment stays still.
+    out property <duration> progress-sweep: slow * 6;
     // The search applies after the typing rests this long; Enter applies at once (§ 5.4).
     out property <duration> search-rest: 150ms;
     // Pending design: how long the scroll bar stays after the scrolling stops (§ 5.24 says only «while scrolling»).

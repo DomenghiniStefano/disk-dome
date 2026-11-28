@@ -1,0 +1,113 @@
+// The test window of ProgressBar and UsageBar (`tests/progress_headless.rs`, § 5.21): a determinate progress bar the
+// test drives, an indeterminate one it watches slide, and usage bars below, at, and above the warning share, normal
+// and small. Every bar is `bar-width` wide at x = `inset`, one `inset` below the other, so the test computes where
+// each one is. Kit only; texts are the Kit's own, not translated.
+
+import {
+    DomeWindow,
+    ProgressBar,
+    ProgressBarMode,
+    ProgressBarState,
+    UsageBar,
+    UsageBarSize,
+    Motion,
+    Size,
+} from "@dome-ui";
+
+export component KitProgressHarness inherits DomeWindow {
+    preferred-width: Size.window-min-w;
+    preferred-height: Size.window-min-h;
+
+    // Windows' «Animation effects» off: the test turns it on and off here, since `Motion` is not exported to Rust.
+    in property <bool> reduced;
+    changed reduced => {
+        Motion.reduced = self.reduced;
+    }
+
+    // What the test drives: the determinate bar's value, maximum and words, and the first usage bar's value.
+    in property <float> progress-value: 25;
+    in property <float> progress-maximum: 100;
+    in property <string> progress-words;
+    in property <ProgressBarMode> progress-mode: ProgressBarMode.determinate;
+    in property <float> usage-value: 50;
+
+    out property <length> inset: Size.space-32;
+    out property <length> bar-width: Size.dialog-sm;
+
+    out property <length> progress-x: progress.x;
+    out property <length> progress-y: progress.y;
+    out property <length> progress-height: progress.height;
+    out property <length> progress-fill: progress.fill-width;
+    out property <ProgressBarState> progress-state: progress.state;
+    out property <string> progress-said: progress.said-value;
+
+    out property <length> sweep-y: sweep.y;
+    out property <length> sweep-x: sweep.segment-x;
+    out property <length> sweep-width: sweep.segment-width;
+    out property <ProgressBarState> sweep-state: sweep.state;
+    out property <string> sweep-said: sweep.said-value;
+
+    out property <length> used-y: used.y;
+    out property <length> used-height: used.height;
+    out property <length> used-fill: used.fill-width;
+    out property <bool> used-warning: used.warning;
+    out property <string> used-said: used.said-value;
+    out property <length> edge-y: edge.y;
+    out property <bool> edge-warning: edge.warning;
+    out property <length> full-y: full.y;
+    out property <bool> full-warning: full.warning;
+    out property <length> picker-y: picker.y;
+    out property <length> picker-height: picker.height;
+    out property <length> picker-fill: picker.fill-width;
+
+    progress := ProgressBar {
+        x: root.inset;
+        y: root.inset;
+        width: root.bar-width;
+        value: root.progress-value;
+        maximum: root.progress-maximum;
+        value-label: root.progress-words;
+        mode: root.progress-mode;
+        label: "Analysis of C:";
+    }
+
+    sweep := ProgressBar {
+        x: root.inset;
+        y: root.inset * 2;
+        width: root.bar-width;
+        mode: ProgressBarMode.indeterminate;
+        label: "Reading the MFT";
+    }
+
+    used := UsageBar {
+        x: root.inset;
+        y: root.inset * 3;
+        width: root.bar-width;
+        value: root.usage-value;
+        label: "C: used";
+    }
+
+    // Exactly at the warning share (90 of 100): not above it.
+    edge := UsageBar {
+        x: root.inset;
+        y: root.inset * 4;
+        width: root.bar-width;
+        value: 90;
+    }
+
+    // Above it.
+    full := UsageBar {
+        x: root.inset;
+        y: root.inset * 5;
+        width: root.bar-width;
+        value: 91;
+    }
+
+    picker := UsageBar {
+        x: root.inset;
+        y: root.inset * 6;
+        width: root.bar-width;
+        size: UsageBarSize.small;
+        value: 50;
+    }
+}

@@ -1,0 +1,73 @@
+// UsageBar (§ 5.21): how full a drive is, `value` (the space used) of `maximum` (its size), as Radix's Progress used
+// as a meter. `usage-h-sm` tall in the drive picker or `usage-h` on the drive cards (`UsageBarSize`, the same in both
+// densities), radius `bar`, a `bar-fill` fill on a `bar-track` track, as wide as its layout gives it; the fill turns
+// `warning` above `usage-warning` of the drive. It shows data, and the data never moves (§ 3.10): a new value is
+// drawn at once. A colour is never the only sign (§ 3.2): the screen writes the numbers beside it. It takes no
+// pointer and no focus, so the row or card it sits on keeps its clicks.
+
+import { Size } from "../tokens/size.slint";
+import { Theme } from "../tokens/theme.slint";
+import { UsageBarSize } from "../enums.slint";
+import { BarValue } from "../primitives/bar-value.slint";
+
+// Size → thickness, in one place.
+global UsageBarLook {
+    public pure function thickness(size: UsageBarSize) -> length {
+        return size == UsageBarSize.small ? Size.usage-h-sm : Size.usage-h;
+    }
+}
+
+export component UsageBar {
+    // The space used, out of `maximum` (the drive's size; Radix's default, 100). Outside 0…maximum the bar shows empty
+    // or full.
+    in property <float> value;
+    in property <float> maximum: 100;
+    in property <UsageBarSize> size: UsageBarSize.normal;
+    // What a screen reader calls the bar («C: used»); nothing is drawn.
+    in property <string> label;
+    // What a screen reader says as the value instead of the number («931 GB of 953 GB»), as Radix's `getValueLabel`.
+    in property <string> value-label;
+    // The share of the drive above which the fill warns (strictly above: exactly at it, it does not).
+    in property <float> warning-above: Size.usage-warning;
+    in property <color> track-color: Theme.bar-track;
+    in property <color> fill-color: Theme.bar-fill;
+    in property <color> warning-color: Theme.warning;
+
+    // Whether the fill warns (the tests read it).
+    out property <bool> warning: root.ratio > root.warning-above;
+    // What a screen reader says as the value (the tests read it).
+    out property <string> said-value: BarValue.said(root.value, root.maximum, root.value-label);
+    // How wide the fill is drawn (the tests read it).
+    out property <length> fill-width: fill.width;
+
+    property <float> ratio: BarValue.ratio(root.value, root.maximum);
+
+    height: UsageBarLook.thickness(root.size);
+    preferred-width: Size.bar-w;
+    horizontal-stretch: 1;
+    vertical-stretch: 0;
+
+    accessible-role: progress-indicator;
+    accessible-label: root.label;
+    accessible-value: root.said-value;
+    accessible-value-minimum: 0;
+    accessible-value-maximum: max(root.maximum, 0);
+
+    Rectangle {
+        x: 0;
+        y: 0;
+        width: root.width;
+        height: root.height;
+        border-radius: Size.radius-bar;
+        background: root.track-color;
+
+        fill := Rectangle {
+            x: 0;
+            y: 0;
+            width: root.width * root.ratio;
+            height: root.height;
+            border-radius: Size.radius-bar;
+            background: root.warning ? root.warning-color : root.fill-color;
+        }
+    }
+}

@@ -1,0 +1,18 @@
+// The value of a bar (§ 5.21): how much of its track it fills and what a screen reader says, shared by `ProgressBar`
+// and `UsageBar` so both read `value` of `maximum` the same way.
+//
+// Not a component of the design system: screens never use it (it is not exported from `index.slint`).
+
+export global BarValue {
+    // The share of the track filled, from 0 to 1: a value below 0 fills nothing, one past the maximum fills it all,
+    // and a maximum of 0 or less (nothing to measure) fills nothing.
+    public pure function ratio(value: float, maximum: float) -> float {
+        return maximum > 0 ? clamp(value / maximum, 0.0, 1.0) : 0.0;
+    }
+
+    // What a screen reader says as the value: the screen's own words when it gives them («1.2 of 4.2 GB», as Radix's
+    // `getValueLabel`), else the number, kept between 0 and the maximum (the range it is said against).
+    public pure function said(value: float, maximum: float, value-label: string) -> string {
+        return value-label != "" ? value-label : "" + clamp(value, 0.0, max(maximum, 0.0));
+    }
+}

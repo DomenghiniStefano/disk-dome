@@ -112,6 +112,15 @@ export global Size {
     // Pending design: how narrow the last breadcrumb segment may get before its name is cut with «…».
     out property <length> breadcrumb-min-w: 48px;
 
+    // Bars (§ 5.21): the scan line under the toolbar and the share of its track the indeterminate segment covers; the
+    // drive usage bar in the drive picker (`-sm`) and on the drive cards, the same in both densities, and the share
+    // of the drive above which its fill turns `warning`.
+    out property <length> progress-h: 2px;
+    out property <float> progress-segment: 0.30;
+    out property <length> usage-h-sm: 4px;
+    out property <length> usage-h: 6px;
+    out property <float> usage-warning: 0.90;
+
     // Fixed sizes (§ 3.5)
     out property <length> side-panel: 300px;
     out property <length> side-panel-min: 220px;
