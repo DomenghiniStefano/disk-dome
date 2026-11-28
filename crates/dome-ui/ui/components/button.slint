@@ -64,6 +64,10 @@ export component Button {
     in property <ButtonVariant> variant: ButtonVariant.secondary;
     in property <ButtonSize> size: ButtonSize.normal;
     in property <ButtonWidth> width-mode: ButtonWidth.hug;
+    // On a button wider than its content (`fill`, a select's `longest` width): by default the content stays together
+    // in the centre; `spread`, the label takes the room, the icons go to the ends and the text sits by `align`.
+    in property <bool> spread;
+    in property <TextHorizontalAlignment> align: TextHorizontalAlignment.left;
     in property <bool> enabled: true;
     // The Kit window only (§ 9).
     in property <KitState> kit-state: KitState.live;
@@ -112,6 +116,8 @@ export component Button {
         text: root.text;
         icon: root.icon;
         icon-end: root.icon-end;
+        align: root.align;
+        spread: root.spread;
         icon-size: root.hero ? IconSize.hero : IconSize.normal;
         step: ButtonLook.step(root.variant, root.size);
         tone: ButtonLook.tone(root.variant);
