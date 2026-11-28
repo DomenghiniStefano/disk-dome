@@ -1,0 +1,44 @@
+// The frame every text field shares (§ 5.4): the `field` ground, a 1 px edge in `line`, `focus` while focused and
+// `danger` while the value is invalid, radius `control`, and the keyboard ring (§ 3.7) outside it when the keyboard
+// brought the focus. `TextField` and `SearchField` draw it; the content goes on top.
+//
+// Not a component of the design system: screens never use it (it is not exported from `index.slint`).
+
+import { Size } from "../tokens/size.slint";
+import { Theme } from "../tokens/theme.slint";
+import { InputMode } from "../input-mode.slint";
+import { KitState } from "../enums.slint";
+import { FocusRing } from "focus-ring.slint";
+
+// The edge's colour: an invalid value wins over the focus, so the error stays visible while typing.
+export global FieldLook {
+    public pure function edge(invalid: bool, focused: bool) -> color {
+        return invalid ? Theme.danger : focused ? Theme.focus : Theme.line;
+    }
+}
+
+export component FieldFrame {
+    // The field's text has the keyboard focus.
+    in property <bool> has-focus;
+    in property <bool> invalid;
+    // The Kit window only (§ 9): `focus` shows the focused edge and the ring.
+    in property <KitState> kit-state: KitState.live;
+
+    out property <bool> focused: root.kit-state == KitState.focus
+        || (root.kit-state == KitState.live && root.has-focus);
+
+    // Laid under the field's content, at its size.
+    width: 100%;
+    height: 100%;
+
+    Rectangle {
+        background: Theme.field;
+        border-width: Size.border-hairline;
+        border-color: FieldLook.edge(root.invalid, root.focused);
+        border-radius: Size.radius-control;
+    }
+
+    if root.focused && (root.kit-state == KitState.focus || InputMode.keyboard): FocusRing {
+        radius: Size.radius-control;
+    }
+}

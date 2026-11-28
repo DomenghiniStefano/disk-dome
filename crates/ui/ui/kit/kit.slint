@@ -62,6 +62,7 @@ import { KitTokens } from "kit-tokens.slint";
 import { KitText } from "kit-text.slint";
 import { KitReview, KitIssue, KitReviewCount } from "kit-review.slint";
 import { KitChoiceSection } from "kit-choice-section.slint";
+import { KitTextFieldSection } from "kit-textfield-section.slint";
 
 struct KitIcon { name: string, source: image }
 struct KitStep { name: string, step: TypeStep }
@@ -1102,6 +1103,8 @@ export component KitWindow inherits DomeWindow {
                             }
                         }
                     }
+
+                    KitTextFieldSection { }
 
                     KitSection {
                         title: "MenuList · entries and states";

@@ -1,0 +1,219 @@
+// The Kit's TextField sections (§ 5.4, § 9): the field in every state, with its label, help and error, the long
+// Italian texts, the leading icon and the end slot, and FieldLabel and FieldMessage on their own. Every field
+// takes typing; the «number» one checks what is typed. Texts are the Kit's own, not translated.
+
+import {
+    Size,
+    Icons,
+    Label,
+    InkTone,
+    Button,
+    ButtonVariant,
+    ButtonSize,
+    KitState,
+    TextField,
+    FieldLabel,
+    FieldMessage,
+    FieldLabelPosition,
+    FieldMessageKind,
+} from "@dome-ui";
+import { KitSection, KitRow } from "kit-parts.slint";
+
+export component KitTextFieldSection inherits VerticalLayout {
+    // The «number» sample's text, checked as it is typed.
+    property <string> number: "250";
+    // The «clear» sample's text, emptied by its button.
+    property <string> clearable: "node_modules";
+
+    KitSection {
+        title: "TextField · states";
+
+        KitRow {
+            name: "rest";
+
+            TextField {
+                placeholder: "Folder name";
+            }
+
+            TextField {
+                placeholder: "Folder name";
+                text: "Backups 2026";
+            }
+        }
+
+        KitRow {
+            name: "hover (as rest)";
+
+            TextField {
+                placeholder: "Folder name";
+                kit-state: KitState.hover;
+            }
+        }
+
+        KitRow {
+            name: "focus";
+
+            TextField {
+                placeholder: "Folder name";
+                kit-state: KitState.focus;
+            }
+
+            TextField {
+                placeholder: "Folder name";
+                text: "Backups 2026";
+                kit-state: KitState.focus;
+            }
+        }
+
+        KitRow {
+            name: "error, live";
+
+            TextField {
+                label: "Larger than (MB)";
+                text <=> root.number;
+                error: root.number.is-float() ? "" : "Type a number, as 250";
+            }
+
+            TextField {
+                label: "Name";
+                text: "con";
+                error: "Windows keeps this name for itself: choose another";
+                kit-state: KitState.focus;
+            }
+        }
+
+        KitRow {
+            name: "disabled";
+
+            TextField {
+                placeholder: "Folder name";
+                enabled: false;
+            }
+
+            TextField {
+                label: "Name";
+                text: "Backups 2026";
+                help: "Shown in the drive's list";
+                enabled: false;
+            }
+        }
+
+        KitRow {
+            name: "read-only";
+
+            TextField {
+                label: "Path";
+                text: "C:\\Users\\stefa\\Documents\\Backups";
+                read-only: true;
+            }
+        }
+    }
+
+    KitSection {
+        title: "TextField · content";
+
+        KitRow {
+            name: "label and help";
+
+            TextField {
+                label: "Network path";
+                placeholder: "\\\\server\\share";
+                help: "A shared folder on another PC";
+            }
+
+            TextField {
+                label: "Network path";
+                label-position: FieldLabelPosition.hidden;
+                placeholder: "\\\\server\\share";
+            }
+        }
+
+        KitRow {
+            name: "help and error";
+
+            TextField {
+                label: "Network path";
+                text: "server\\share";
+                help: "A shared folder on another PC";
+                error: "Start the path with \\\\";
+            }
+        }
+
+        KitRow {
+            name: "long Italian";
+
+            TextField {
+                label: "Cartella in cui salvare l'esportazione dei risultati della scansione";
+                text: "C:\\Utenti\\stefa\\Documenti\\Esportazioni\\Analisi del disco di sistema";
+                help: "I file esportati vanno qui, con la data della scansione nel nome";
+                error: "Questa cartella non esiste più: scegline un'altra o creala";
+            }
+
+            TextField {
+                placeholder: "Scrivi il nome della cartella da analizzare";
+            }
+        }
+
+        KitRow {
+            name: "icon, end, password";
+
+            TextField {
+                placeholder: "Folder name";
+                icon: Icons.folder;
+            }
+
+            TextField {
+                text <=> root.clearable;
+                icon: Icons.filter;
+
+                if root.clearable != "": Button {
+                    icon: Icons.x;
+                    variant: ButtonVariant.ghost;
+                    size: ButtonSize.small;
+                    accessible-label: "Clear";
+                    clicked => {
+                        root.clearable = "";
+                    }
+                }
+            }
+
+            TextField {
+                text: "2048";
+
+                Label {
+                    text: "MB";
+                    tone: InkTone.faint;
+                }
+            }
+
+            TextField {
+                label: "Password";
+                text: "secret";
+                input-type: InputType.password;
+            }
+        }
+    }
+
+    KitSection {
+        title: "FieldLabel · FieldMessage";
+
+        KitRow {
+            name: "parts";
+
+            FieldLabel {
+                text: "Network path";
+            }
+
+            FieldMessage {
+                width: Size.field-w;
+                text: "A shared folder on another PC";
+            }
+
+            FieldMessage {
+                width: Size.field-w;
+                text: "Start the path with \\\\";
+                kind: FieldMessageKind.error;
+            }
+        }
+    }
+}

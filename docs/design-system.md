@@ -1015,6 +1015,24 @@ the panel toggles and the search's `Aa` / `.*`. Accessible as a toggle (`accessi
   150 ms of rest. Esc clears, a second Esc leaves the field.
 - `mono` step for the field's text while regex is on.
 
+| TextField | |
+| --- | --- |
+| Interface | `text` (written by both the field and the screen), `placeholder`, `label`, `label-position`, `help`, `error`, `icon`, `step` (default `body`), `input-type` (Slint's `InputType`: `password` hides the characters), `read-only`, `enabled`; `has-focus`, `box-y` and `box-height` out (where the box sits under its label, for a list opened under it); `edited(text)` on every change the user makes, `accepted(text)` on Enter |
+| Label `FieldLabelPosition` | `top` (default: `FieldLabel` above the box, `field-gap` under it), `hidden` (the place already says what the field is for: a toolbar, a table cell). Either way it is the accessible name; with no label, the placeholder is |
+| Help and error | `help` (what to type) and `error` (what is wrong and what to do) under the box, each a `FieldMessage`, `field-gap` apart, the help first and the error under it (shadcn's order); they wrap between words at the field's width. An error also turns the edge `danger`, over the focus; screen readers read the error, or else the help, as the description |
+| Pointer | a click anywhere on the icon, the text or the label puts the focus in the text (text cursor over the box) and turns the focus ring off |
+| Keyboard | Tab out of the field turns the keyboard flag on (§ 3.7), so the next control shows its ring; Enter reports `accepted`. No Esc of its own: a control built on the field (a combobox) takes the keys it needs around it |
+| Content | an optional `icon` leads the text (`ink-faint`); the field's children go at the box's end, centred by the row (a unit, a clear button), `label-gap` from the text and `field-pad-x` from the edge |
+| States | hover changes nothing (as shadcn's input); disabled fades the whole field, label and messages; read-only keeps the look and lets the text be selected and copied |
+| Width | `field-w` where the layout sets none, never under `field-w-min`; it stretches to fill a dialog's column. A long label is cut with «…» |
+| Accessibility | the text is the `text-input`, named by the label and described by the error or the help, with the placeholder as its placeholder text. Slint 1.19 has no «labelled by», «described by» or «invalid» state: the label's text is copied as the name, the message as the description, and the invalid state is said only by the message |
+
+`FieldLabel` is a field's name (`body`, `ink`), cut with «…»; a click on it reports `clicked` so its owner focuses
+the field, as a Radix Label does. `FieldMessage` is the line under a field, `kind: FieldMessageKind`: `help`
+(`caption`, `ink-muted`) or `error` (`caption`, `danger`, led by a 12 px `circle-alert` on its first line, `label-gap`
+from the text). `TextField` draws both; another control (a select, a group of checkboxes) uses them on its own.
+`TextField` and `SearchField` share their box (`FieldFrame`: ground, edge and ring).
+
 | SearchField | |
 | --- | --- |
 | Interface | `text`, `match-case`, `regex` (written by both the field and the screen), `placeholder`, `label` (the accessible name; the placeholder when empty), `error`, `toggles`, `rest-delay` (default `search-rest`, 150 ms), `enabled`; `has-focus` out; `search-requested(text)` after the rest, on Enter, on a toggle and on clearing |

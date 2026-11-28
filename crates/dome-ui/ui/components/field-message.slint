@@ -1,0 +1,53 @@
+// FieldMessage (§ 5.4): the line under a field. `help` says what to type, in `caption` `ink-muted`; an `error` says
+// what is wrong and what to do, in `caption` `danger` led by `circle-alert`, so the state never rests on colour
+// alone (§ 3.2). Both wrap between words at the field's width.
+
+import { Size } from "../tokens/size.slint";
+import { Type, TypeStep } from "../tokens/type.slint";
+import { Icons } from "../icons/icons.slint";
+import { InkTone, IconSize, LabelWrap, FieldMessageKind } from "../enums.slint";
+import { Icon } from "icon.slint";
+import { Label } from "label.slint";
+
+export component FieldMessage {
+    in property <string> text;
+    in property <FieldMessageKind> kind: FieldMessageKind.help;
+
+    property <bool> error: root.kind == FieldMessageKind.error;
+    property <TypeStep> step: TypeStep.caption;
+
+    // As wide as its field: the text wraps to it instead of widening it.
+    min-width: 0;
+    preferred-width: 0;
+    accessible-role: AccessibleRole.text;
+    accessible-label: root.text;
+
+    HorizontalLayout {
+        spacing: Size.label-gap;
+
+        // The icon centred on the first line of the text.
+        if root.error: VerticalLayout {
+            alignment: start;
+
+            Rectangle {
+                width: Size.icon-sm;
+                height: Type.line(root.step);
+
+                Icon {
+                    source: Icons.circle-alert;
+                    size: IconSize.small;
+                    tone: InkTone.danger;
+                }
+            }
+        }
+
+        Label {
+            horizontal-stretch: 1;
+            text: root.text;
+            step: root.step;
+            tone: root.error ? InkTone.danger : InkTone.muted;
+            wrap: LabelWrap.word;
+            accessible-role: none;
+        }
+    }
+}

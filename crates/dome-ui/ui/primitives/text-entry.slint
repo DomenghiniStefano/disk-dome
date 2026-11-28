@@ -10,8 +10,15 @@ export component TextEntry {
     in-out property <string> text <=> input.text;
     in property <TypeStep> step: TypeStep.body;
     in property <bool> enabled <=> input.enabled;
+    // The text can be selected and copied, not changed.
+    in property <bool> read-only <=> input.read-only;
+    // `password` hides the characters.
+    in property <InputType> input-type <=> input.input-type;
     // What the field is for, for Narrator.
     in property <string> label;
+    // For Narrator: the hint shown while the field is empty, and the help or error said after the name.
+    in property <string> placeholder;
+    in property <string> description;
     out property <bool> has-focus: input.has-focus;
 
     // Every change of the text, and Enter.
@@ -27,6 +34,8 @@ export component TextEntry {
         vertical-alignment: center;
         single-line: true;
         accessible-label: root.label;
+        accessible-placeholder-text: root.placeholder;
+        accessible-description: root.description;
         color: Theme.ink;
         selection-background-color: Theme.accent-soft;
         selection-foreground-color: Theme.ink;
