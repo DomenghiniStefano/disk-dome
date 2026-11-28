@@ -967,9 +967,22 @@ paths (Slint elides only at the end) and passed in ready.
 | `max-lines` | a wrapped text stops after that many lines, the last one cut with «…»; 0 (default) for no limit |
 | `cut` (out) | the text does not fit its box. The control holding the label then says it whole in its tooltip (§ 3.3): a pointer area on the label itself would take the clicks of the row under it. `Button` and `SegmentedControl` read it |
 
-**Library-grade (§ 8.0).** Like Radix Themes' `Text`, with the wrap modes, a line limit and the cut readable from
-outside. Not here: the middle elision of paths (with the Table: it needs the text measured in Rust), selectable and
-copyable text (its own card), a form field's label (`FieldLabel`, with the TextField).
+**SelectableLabel**: a label whose text can be selected and copied (details, messages, dialogs; never where a click
+belongs to a row, the map or a control). Same `text`, `step`, `tone`, `category`, `align` and `wrap` as `Label`.
+
+| SelectableLabel | |
+| --- | --- |
+| Pointer | drag selects, double click a word, triple click a line; I-beam pointer; the selection is `accent-soft` under the label's own ink; no caret |
+| Keyboard | Tab reaches it, as Windows' read-only fields; Ctrl+A selects it all, Ctrl+C copies the selection |
+| Context menu | `has-selection` (out), `copy()`, `select-all()`, `clear-selection()`: the screen's `ContextMenu` offers «Copy» (disabled with nothing selected) and «Select all»; a right click keeps the selection |
+| Overflow | it wraps (`word`, `anywhere`) or clips at its edge: never «…», so a long one-line text (a path) wraps `anywhere` |
+
+It is a component of its own, not an option of `Label`, so the many labels of tables and the map stay a plain text
+without the weight of an input.
+
+**Library-grade (§ 8.0).** Like Radix Themes' `Text`, with the wrap modes, a line limit, the cut readable from
+outside, and selectable text in `SelectableLabel`. Not here: the middle elision of paths (with the Table: it needs
+the text measured in Rust), a form field's label (`FieldLabel`, with the TextField).
 
 ### 5.2 Button
 

@@ -134,6 +134,16 @@ impl Headless {
             .dispatch_event(WindowEvent::KeyReleased { text: held });
     }
 
+    /// A character key pressed while a modifier is held (Ctrl+A, Ctrl+C).
+    pub fn press_text_with(&self, modifier: slint::platform::Key, text: &str) {
+        let held = SharedString::from(modifier);
+        self.window
+            .dispatch_event(WindowEvent::KeyPressed { text: held.clone() });
+        self.type_text(text);
+        self.window
+            .dispatch_event(WindowEvent::KeyReleased { text: held });
+    }
+
     /// Types text, one key per character (a menu's type-ahead).
     pub fn type_text(&self, text: &str) {
         for c in text.chars() {

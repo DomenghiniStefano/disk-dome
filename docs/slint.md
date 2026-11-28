@@ -146,6 +146,10 @@ UI tests run off screen (`crates/ui/src/headless.rs`: Slint's software renderer 
   turns is two icons; a growing element changes its size.
 - Off-screen shots do not advance time: animations and `Timer`s stay where they started, so a colour caught
   mid-animation in a shot is not a bug.
+- `Text` has no `selectable` in 1.19: only `StyledText` has it, without font weight, letter spacing, wrap modes or
+  elision. Selectable text is a read-only `TextInput` with no caret (`SelectableLabel`); it cannot elide.
+- A `FocusScope` takes the focus on a click unless `focus-on-click: false`: an area that wraps content (the
+  `ContextMenu`) sets it, or its right click would take the focus from a selectable text and clear its selection.
 - Segoe UI Semibold (600) has proportional digits; 400 and 700 are tabular, so the design uses only those (§ 3.3).
 - A large window built in a debug build needs a deep stack: the Kit overflowed Windows' 1 MB main thread while the
   off-screen tests (2 MB test threads) passed. `crates/ui/build.rs` links the binary with an 8 MB stack on MSVC; a
