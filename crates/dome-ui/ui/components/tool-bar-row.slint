@@ -63,6 +63,10 @@ export global ToolBarFit {
     pure callback entries(items: [ToolBarItem], shown-count: int, more-entries: [MenuEntry]) -> [MenuEntry];
     // The index of the folded item with `id`, -1 when the id is one of `more-entries`.
     pure callback folded-index(items: [ToolBarItem], shown-count: int, id: string) -> int;
+    // Set by `tool_bar_fit!` once the callbacks above are wired. A window measures its items as it is created, before
+    // Rust can wire anything, and an unwired `with-width` answers an empty list: the items hand their widths over
+    // again when this turns true, or a bar built with its window would never fold.
+    in property <bool> wired;
 }
 
 // How wide the items get: whole when the room allows, otherwise what the children leave them at their own minimum,
@@ -147,11 +151,15 @@ export component ToolBarRow {
             property <length> natural: self.lead + (self.separator ? Size.group-gap + Size.border-hairline : self.control-width);
             property <bool> shown: index < root.shown-count;
             property <int> flips: root.flip-count;
+            property <bool> wired: ToolBarFit.wired;
 
             init => {
                 root.widths = ToolBarFit.with-width(root.widths, index, self.natural);
             }
             changed natural => {
+                root.widths = ToolBarFit.with-width(root.widths, index, self.natural);
+            }
+            changed wired => {
                 root.widths = ToolBarFit.with-width(root.widths, index, self.natural);
             }
             changed flips => {
