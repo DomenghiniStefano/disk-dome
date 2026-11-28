@@ -1,6 +1,7 @@
-// Icon (§ 3.12): draws one of `Icons` at a token size, tinted with an `InkTone`. A faded icon fades its
-// container (one `opacity` on the parent), never its colour: Lucide strokes overlap and a translucent tint
-// darkens every joint.
+// Icon (§ 3.12): draws one of `Icons` at a token size or a side of its own, tinted with an `InkTone`. A faded icon
+// fades its container (one `opacity` on the parent), never its colour: Lucide strokes overlap and a translucent tint
+// darkens every joint. It cannot turn: Slint's software renderer draws no rotation, so an icon that changes
+// direction (a chevron that opens) is two icons.
 
 import { Size } from "../tokens/size.slint";
 import { FileCategory } from "../tokens/data.slint";
@@ -10,20 +11,20 @@ import { Tones } from "../tones.slint";
 export component Icon {
     in property <image> source;
     in property <IconSize> size: IconSize.normal;
-    in property <InkTone> tone: InkTone.muted;
-    // The fill the icon sits on, for `InkTone.on-data`.
-    in property <FileCategory> category: FileCategory.other;
-    // What the icon means, for Narrator. Empty for a decorative icon next to a text that says it already.
-    in property <string> label;
-
-    property <length> side: root.size == IconSize.small ? Size.icon-sm
+    // The side; by default the token of `size`. Lucide draws on a 24 grid: other sides soften its 2 px stroke a little.
+    in property <length> side: root.size == IconSize.small ? Size.icon-sm
         : root.size == IconSize.hero ? Size.icon-hero
         : Size.icon;
+    in property <InkTone> tone: InkTone.muted;
+    // The category whose colour the icon takes (`InkTone.data`) or sits on (`InkTone.on-data`).
+    in property <FileCategory> category: FileCategory.other;
+    // What the icon means, for screen readers. Empty, the icon is decorative (beside a text that says it already)
+    // and screen readers skip it.
+    in property <string> label;
 
     width: root.side;
     height: root.side;
-    accessible-role: image;
-    accessible-label: root.label;
+    accessible-role: none;
 
     Image {
         source: root.source;
@@ -31,5 +32,13 @@ export component Icon {
         width: root.side;
         height: root.side;
         accessible-role: none;
+    }
+
+    // `accessible-role` must be a constant: a labelled icon is an image through an element of its own.
+    if root.label != "": Rectangle {
+        width: 100%;
+        height: 100%;
+        accessible-role: image;
+        accessible-label: root.label;
     }
 }

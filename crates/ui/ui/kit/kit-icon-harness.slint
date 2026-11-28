@@ -1,0 +1,57 @@
+// The Icon's test window (`tests/icon_headless.rs`, § 3.12): the three token sizes, a side of its own, and a large
+// square in a category's colour (`InkTone.data`) whose stroke is wide enough to read its colour from a pixel. Kit only.
+
+import {
+    DomeWindow,
+    Icon,
+    Icons,
+    IconSize,
+    InkTone,
+    Size,
+    Data,
+    DataShade,
+    FileCategory,
+} from "@dome-ui";
+
+export component KitIconHarness inherits DomeWindow {
+    preferred-width: Size.window-min-w;
+    preferred-height: Size.window-min-h;
+
+    out property <length> normal-side: normal.width;
+    out property <length> small-side: small.width;
+    out property <length> hero-side: hero.width;
+    out property <length> free-side: free.width;
+    // Where the large square is, and the colour its stroke must have.
+    out property <length> free-x: free.x;
+    out property <length> free-y: free.y;
+    out property <color> video: Data.colour(FileCategory.video, DataShade.base);
+
+    normal := Icon {
+        x: Size.space-16;
+        y: Size.space-16;
+        source: Icons.folder;
+    }
+
+    small := Icon {
+        x: Size.space-48;
+        y: Size.space-16;
+        source: Icons.folder;
+        size: IconSize.small;
+    }
+
+    hero := Icon {
+        x: Size.space-48 * 2;
+        y: Size.space-16;
+        source: Icons.folder;
+        size: IconSize.hero;
+    }
+
+    free := Icon {
+        x: Size.space-16;
+        y: Size.space-48 * 2;
+        source: Icons.square;
+        side: Size.space-48;
+        tone: InkTone.data;
+        category: FileCategory.video;
+    }
+}

@@ -45,6 +45,7 @@ import {
     MenuEntryKind,
     MenuItemVariant,
     PopupAlign,
+    FileCategory,
 } from "@dome-ui";
 import {
     KitSection,
@@ -62,6 +63,7 @@ import { KitReview, KitIssue, KitReviewCount } from "kit-review.slint";
 struct KitIcon { name: string, source: image }
 struct KitStep { name: string, step: TypeStep }
 struct KitTone { name: string, tone: InkTone }
+struct KitFileIcon { name: string, source: image, category: FileCategory }
 struct KitVariant { name: string, variant: ButtonVariant }
 struct KitButtonSize { name: string, size: ButtonSize }
 struct KitStateItem { name: string, state: KitState, enabled: bool }
@@ -86,6 +88,21 @@ global KitData {
         { name: "mono", step: TypeStep.mono },
         { name: "map-name", step: TypeStep.map-name },
         { name: "map-name-xs", step: TypeStep.map-name-xs },
+    ];
+    // A file's icon in its category's colour (§ 3.12), one per category.
+    out property <[KitFileIcon]> file-icons: [
+        { name: "video", source: Icons.file-video, category: FileCategory.video },
+        { name: "image", source: Icons.file-image, category: FileCategory.image },
+        { name: "audio", source: Icons.file-audio, category: FileCategory.audio },
+        { name: "document", source: Icons.file-text, category: FileCategory.document },
+        { name: "game", source: Icons.gamepad-2, category: FileCategory.game },
+        { name: "app", source: Icons.app-window, category: FileCategory.app },
+        { name: "data", source: Icons.database, category: FileCategory.data },
+        { name: "code", source: Icons.file-code, category: FileCategory.code },
+        { name: "build", source: Icons.package, category: FileCategory.build },
+        { name: "archive", source: Icons.file-archive, category: FileCategory.archive },
+        { name: "system", source: Icons.cpu, category: FileCategory.system },
+        { name: "other", source: Icons.file-question, category: FileCategory.other },
     ];
     out property <[KitTone]> tones: [
         { name: "normal", tone: InkTone.normal },
@@ -553,6 +570,35 @@ export component KitWindow inherits DomeWindow {
                             for item in KitData.tones: Icon {
                                 source: Icons.hard-drive;
                                 tone: item.tone;
+                            }
+                        }
+
+                        KitRow {
+                            name: "data: categories";
+                            for item in KitData.file-icons: Icon {
+                                source: item.source;
+                                tone: InkTone.data;
+                                category: item.category;
+                                label: item.name;
+                            }
+                        }
+
+                        KitRow {
+                            name: "side: 24, 32, 48";
+
+                            Icon {
+                                source: Icons.folder;
+                                side: Size.space-24;
+                            }
+
+                            Icon {
+                                source: Icons.folder;
+                                side: Size.space-32;
+                            }
+
+                            Icon {
+                                source: Icons.folder;
+                                side: Size.space-48;
                             }
                         }
                     }

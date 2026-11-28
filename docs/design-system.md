@@ -536,6 +536,17 @@ Checked on the screens by a test (§ 10, overlap check) in every state where two
   at 16 px, matching Segoe UI's stems at 13 px.
 - No emoji. Folder icons `ink-muted`; file icons tinted with their category colour; the shield of protected
   items `warning`.
+
+| Icon | |
+| --- | --- |
+| Interface | `source` (one of `Icons`), `size` (`small` 12, `normal` `icon`, `hero` 18), `side` (any side; by default the token of `size`; Lucide's 24 grid softens a little at other sides), `tone`, `category` (for `data`: the category's own colour, a file's icon; for `on-data`: the ink on that colour), `label` |
+| Accessibility | with a `label`, an image of that name; without one, decorative (beside a text that says it already), skipped by screen readers |
+| Fading | a faded icon fades its container (one `opacity`), never its colour: Lucide's strokes overlap and a translucent tint darkens every joint |
+| Direction | an icon does not turn: Slint 1.19's software renderer draws no rotation or scale, so a chevron that opens is two icons (`chevron-right`, `chevron-down`) |
+
+**Library-grade (§ 8.0).** Like Lucide's icon components, with the token sizes and a free side, the colour roles,
+the category colours and decorative icons. Not here: the stroke width (the icons are SVG drawn as images) and
+rotation (see above).
 - The set for v1 (Lucide names, to confirm against the pinned version): `hard-drive`, `folder`, `folder-open`,
   `file`, `file-video`, `file-image`, `file-audio`, `file-text`, `file-archive`, `file-code`, `package`
   (build output), `app-window`, `gamepad-2`, `database`, `cpu` (system), `file-question` (other), `play`,
@@ -946,7 +957,7 @@ States, with the same meaning everywhere:
 
 The only text primitive. Properties: `text`, `step: TypeStep` (`display`, `title`, `body`, `body-strong`,
 `caption`, `caption-strong`, `overline`, `mono`, `map-name`, `map-name-xs`), `tone: InkTone` (`normal`, `muted`, `faint`, `accent`, `danger`,
-`warning`, `success`, `on-accent`, `on-data`), `align`, `elide: Elide` (`none`, `end`, `middle`). Overline
+`warning`, `success`, `on-accent`, `on-danger`, `data` (a category's own colour), `on-data` (the ink on it)), `align`, `elide: Elide` (`none`, `end`, `middle`). Overline
 upper-cases its text (the translation stays lower-case in the `.po`). Middle elision is computed in Rust for
 paths (Slint elides only at the end) and passed in ready.
 
