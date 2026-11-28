@@ -1,0 +1,176 @@
+// The Kit's sections of the bars (§ 9): ProgressBar and UsageBar (§ 5.21), in every mode, size and state, working:
+// the buttons move a progress bar and a drive's usage (watch the fill ease, and turn `warning` past 90 %), the
+// segmented control switches the progress bar between determinate and indeterminate. Texts are the Kit's own, not
+// translated (rule `untranslated` exempts `kit/`).
+
+import {
+    Size,
+    ProgressBar,
+    ProgressBarMode,
+    UsageBar,
+    UsageBarSize,
+    Button,
+    ButtonSize,
+    SegmentedControl,
+    SegmentedItem,
+    SegmentedSize,
+    Label,
+    TypeStep,
+    InkTone,
+} from "@dome-ui";
+import { KitSection, KitRow } from "kit-parts.slint";
+
+struct KitShare { name: string, value: float }
+
+global KitProgressData {
+    out property <[SegmentedItem]> modes: [{ text: "determinate" }, { text: "indeterminate" }];
+    // Below, at and above the warning share, and the ends.
+    out property <[KitShare]> shares: [
+        { name: "0 %", value: 0 },
+        { name: "30 %", value: 30 },
+        { name: "90 %", value: 90 },
+        { name: "91 %", value: 91 },
+        { name: "100 %", value: 100 },
+    ];
+    // How wide the samples are, and how far a button moves them.
+    out property <length> wide: Size.bar-w * 4;
+    out property <float> progress-step: 10;
+    out property <float> usage-step: 5;
+}
+
+// A bar centred on its row's height, so it lines up with the row's name and buttons.
+component KitBarCell inherits VerticalLayout {
+    alignment: center;
+
+    @children
+}
+
+export component KitProgressSection inherits VerticalLayout {
+    // The working samples: the progress bar's value and mode, and the drive's usage.
+    property <float> progress: 40;
+    property <int> mode-index: 0;
+    property <float> usage: 85;
+
+    KitSection {
+        title: "ProgressBar · determinate, indeterminate";
+
+        KitRow {
+            name: "buttons, mode";
+
+            KitBarCell {
+                ProgressBar {
+                    width: KitProgressData.wide;
+                    value: root.progress;
+                    mode: root.mode-index == 0 ? ProgressBarMode.determinate : ProgressBarMode.indeterminate;
+                    label: "Kit progress";
+                }
+            }
+
+            Button {
+                text: "−10";
+                size: ButtonSize.small;
+                clicked => {
+                    root.progress = max(0, root.progress - KitProgressData.progress-step);
+                }
+            }
+
+            Button {
+                text: "+10";
+                size: ButtonSize.small;
+                clicked => {
+                    root.progress = min(100, root.progress + KitProgressData.progress-step);
+                }
+            }
+
+            SegmentedControl {
+                size: SegmentedSize.small;
+                items: KitProgressData.modes;
+                current-index <=> root.mode-index;
+            }
+
+            Label {
+                text: "" + root.progress + " %";
+                step: TypeStep.caption;
+                tone: InkTone.muted;
+            }
+        }
+
+        for share in KitProgressData.shares: KitRow {
+            name: share.name;
+
+            KitBarCell {
+                ProgressBar {
+                    width: KitProgressData.wide;
+                    value: share.value;
+                }
+            }
+        }
+
+        KitRow {
+            name: "indeterminate";
+
+            KitBarCell {
+                ProgressBar {
+                    width: KitProgressData.wide;
+                    mode: ProgressBarMode.indeterminate;
+                }
+            }
+        }
+    }
+
+    KitSection {
+        title: "UsageBar · normal, small, warning";
+
+        KitRow {
+            name: "buttons";
+
+            KitBarCell {
+                UsageBar {
+                    width: KitProgressData.wide;
+                    value: root.usage;
+                }
+            }
+
+            Button {
+                text: "−5";
+                size: ButtonSize.small;
+                clicked => {
+                    root.usage = max(0, root.usage - KitProgressData.usage-step);
+                }
+            }
+
+            Button {
+                text: "+5";
+                size: ButtonSize.small;
+                clicked => {
+                    root.usage = min(100, root.usage + KitProgressData.usage-step);
+                }
+            }
+
+            Label {
+                text: "" + root.usage + " %";
+                step: TypeStep.caption;
+                tone: InkTone.muted;
+            }
+        }
+
+        for share in KitProgressData.shares: KitRow {
+            name: share.name;
+
+            KitBarCell {
+                UsageBar {
+                    width: KitProgressData.wide;
+                    value: share.value;
+                }
+            }
+
+            KitBarCell {
+                UsageBar {
+                    width: Size.drive-picker-w;
+                    size: UsageBarSize.small;
+                    value: share.value;
+                }
+            }
+        }
+    }
+}
