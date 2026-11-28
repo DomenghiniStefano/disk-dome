@@ -122,3 +122,7 @@ export enum ChipVariant { filter, toggle }
 // Which segments a breadcrumb folds into «…» when it does not fit (§ 5.13): the `middle` ones, keeping the first
 // and as many of the last as fit, or the ones from its `start`, keeping only the last ones (the map header, § 3.11).
 export enum BreadcrumbCollapse { middle, start }
+
+// What an option card draws beside its title (§ 5.9): the radio button's circle (§ 5.8: the radio is used inside the
+// option card), or nothing, the edge and the fill alone saying the choice (as a Radix radio card without indicator).
+export enum OptionCardIndicator { radio, none }

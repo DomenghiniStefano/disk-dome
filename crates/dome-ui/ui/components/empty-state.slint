@@ -1,0 +1,131 @@
+// EmptyState (§ 5.22): what an area says when it has nothing to show («No matches», a view without its data, a
+// drive not scanned yet), as shadcn's Empty. Centred in the whole area it is given: a 32 px icon in `ink-faint`, a
+// `display` title, a `body` `ink-muted` description, one action, then the screen's own content (the drive cards, the
+// scan mode's line, § 6.7, § 6.16). Title and description are centred and wrap between words within `text-width`,
+// so a wide area keeps them a readable block; the content under them may be wider. The action is a large button;
+// the screen's call to action takes the `hero` size (§ 5.2: one per screen).
+
+import { Size } from "../tokens/size.slint";
+import { TypeStep } from "../tokens/type.slint";
+import { ButtonSize, ButtonVariant, InkTone, LabelWrap } from "../enums.slint";
+import { Label } from "label.slint";
+import { Icon } from "icon.slint";
+import { Button } from "button.slint";
+
+export component EmptyState {
+    // One of `Icons`; none when empty.
+    in property <image> icon;
+    in property <string> title;
+    // What happened and what to do, in one sentence (§ 6.9).
+    in property <string> description;
+    // The action's text; no action when empty.
+    in property <string> action;
+    in property <image> action-icon;
+    in property <ButtonVariant> action-variant: ButtonVariant.secondary;
+    // `large` (§ 3.5: empty-state actions); `hero` for the screen's call to action.
+    in property <ButtonSize> action-size: ButtonSize.large;
+    in property <bool> action-enabled: true;
+    // On a disabled action, why.
+    in property <string> action-tooltip;
+    // How wide the title and the description run before they wrap.
+    in property <length> text-width: Size.empty-w;
+    // The room kept around the content, inside the area.
+    in property <length> inset: Size.section-gap;
+
+    // The action was pressed.
+    callback action-clicked;
+
+    property <bool> has-icon: root.icon.width > 0;
+    property <bool> has-title: root.title != "";
+    property <bool> has-description: root.description != "";
+    property <bool> has-action: root.action != "";
+
+    min-width: frame.min-width;
+    preferred-width: frame.preferred-width;
+    min-height: frame.min-height;
+    preferred-height: frame.preferred-height;
+    // It takes the whole area and centres its content there (§ 5.22: «centred in its area»).
+    max-width: Size.unbounded;
+    max-height: Size.unbounded;
+    horizontal-stretch: 1;
+    vertical-stretch: 1;
+
+    accessible-role: groupbox;
+    accessible-label: root.title;
+    accessible-description: root.description;
+    // It usually appears in place of content that went (a search with no match): screen readers say it.
+    accessible-live-region: AccessibleLiveness.polite;
+
+    frame := VerticalLayout {
+        padding: root.inset;
+        alignment: center;
+
+        HorizontalLayout {
+            alignment: center;
+
+            VerticalLayout {
+                spacing: Size.empty-gap;
+
+                if root.has-icon: HorizontalLayout {
+                    alignment: center;
+
+                    Icon {
+                        source: root.icon;
+                        side: Size.empty-icon;
+                        tone: InkTone.faint;
+                    }
+                }
+
+                // The texts stop at `text-width`; the content under them may be wider (a row of drive cards).
+                if root.has-title: HorizontalLayout {
+                    alignment: center;
+
+                    Label {
+                        max-width: root.text-width;
+                        text: root.title;
+                        step: TypeStep.display;
+                        align: TextHorizontalAlignment.center;
+                        wrap: LabelWrap.word;
+                        // The empty state carries it as its accessible name.
+                        accessible-role: none;
+                    }
+                }
+
+                if root.has-description: HorizontalLayout {
+                    alignment: center;
+
+                    Label {
+                        max-width: root.text-width;
+                        text: root.description;
+                        step: TypeStep.body;
+                        tone: InkTone.muted;
+                        align: TextHorizontalAlignment.center;
+                        wrap: LabelWrap.word;
+                        // The empty state carries it as its accessible description.
+                        accessible-role: none;
+                    }
+                }
+
+                // The action stands apart from the text: `section-gap` above it, in all.
+                if root.has-action: HorizontalLayout {
+                    alignment: center;
+                    padding-top: Size.section-gap - Size.empty-gap;
+
+                    Button {
+                        text: root.action;
+                        icon: root.action-icon;
+                        variant: root.action-variant;
+                        size: root.action-size;
+                        enabled: root.action-enabled;
+                        tooltip: root.action-tooltip;
+                        clicked => {
+                            root.action-clicked();
+                        }
+                    }
+                }
+
+                @children
+            }
+        }
+    }
+}

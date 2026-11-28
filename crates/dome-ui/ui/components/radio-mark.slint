@@ -1,0 +1,37 @@
+// The radio button's circle (§ 5.8): `checkbox` side, a 1 px `line-strong` edge; chosen, an `accent` fill with an
+// `on-accent` dot; hover and press change it as the check box's box (`ChoiceLook`). Drawn by `OptionCardGroup`
+// (§ 5.9: «Radio … used inside OptionCard»); the control around it owns the pointer, the focus and the ring.
+//
+// Not exported from `index.slint`: screens use the controls.
+
+import { Size } from "../tokens/size.slint";
+import { Theme } from "../tokens/theme.slint";
+import { Motion } from "../tokens/motion.slint";
+import { ChoiceLook } from "choice-row.slint";
+
+export component RadioMark {
+    in property <bool> chosen;
+    in property <bool> hovered;
+    in property <bool> pressed;
+
+    width: Size.checkbox;
+    height: Size.checkbox;
+    accessible-role: none;
+
+    Rectangle {
+        width: 100%;
+        height: 100%;
+        border-radius: self.width / 2;
+        border-width: Size.border-hairline;
+        border-color: ChoiceLook.edge(root.chosen, root.hovered, root.pressed);
+        background: ChoiceLook.fill(root.chosen, root.hovered, root.pressed);
+        animate background, border-color { duration: Motion.fast; }
+
+        if root.chosen: Rectangle {
+            width: Size.radio-mark;
+            height: Size.radio-mark;
+            border-radius: self.width / 2;
+            background: Theme.on-accent;
+        }
+    }
+}
