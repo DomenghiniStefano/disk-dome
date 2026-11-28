@@ -544,9 +544,6 @@ Checked on the screens by a test (§ 10, overlap check) in every state where two
 | Fading | a faded icon fades its container (one `opacity`), never its colour: Lucide's strokes overlap and a translucent tint darkens every joint |
 | Direction | an icon does not turn: Slint 1.19's software renderer draws no rotation or scale, so a chevron that opens is two icons (`chevron-right`, `chevron-down`) |
 
-**Library-grade (§ 8.0).** Like Lucide's icon components, with the token sizes and a free side, the colour roles,
-the category colours and decorative icons. Not here: the stroke width (the icons are SVG drawn as images) and
-rotation (see above).
 - The set for v1 (Lucide names, to confirm against the pinned version): `hard-drive`, `folder`, `folder-open`,
   `file`, `file-video`, `file-image`, `file-audio`, `file-text`, `file-archive`, `file-code`, `package`
   (build output), `app-window`, `gamepad-2`, `database`, `cpu` (system), `file-question` (other), `play`,
@@ -980,10 +977,6 @@ belongs to a row, the map or a control). Same `text`, `step`, `tone`, `category`
 It is a component of its own, not an option of `Label`, so the many labels of tables and the map stay a plain text
 without the weight of an input.
 
-**Library-grade (§ 8.0).** Like Radix Themes' `Text`, with the wrap modes, a line limit, the cut readable from
-outside, and selectable text in `SelectableLabel`. Not here: the middle elision of paths (with the Table: it needs
-the text measured in Rust), a form field's label (`FieldLabel`, with the TextField).
-
 ### 5.2 Button
 
 | | |
@@ -995,10 +988,6 @@ the text measured in Rust), a form field's label (`FieldLabel`, with the TextFie
 | Radius | `button` (4) |
 | Rules | one `primary` per view; destructive actions never icon-only; a dialog's quiet way out («Cancel») is `secondary` |
 | Keyboard | Enter and Space activate; the dialog's default button takes Enter from anywhere in the dialog |
-
-**Library-grade (§ 8.0).** Like shadcn's Button, with the overflow (shrink, cut, full text in the tooltip), the full
-width, the trailing icon, the tooltip and the disabled reason (§ 5.17). Not here: a `loading` state (it needs a
-design: a spinner and whether the label stays); the dialog's default button comes with the Dialog (§ 5.18).
 
 ### 5.3 ToggleButton
 
@@ -1013,10 +1002,6 @@ the panel toggles and the search's `Aa` / `.*`. Accessible as a toggle (`accessi
 | Content | text; icon + text (icon 16, `label-gap`, the icon's side padded `button-pad-x-icon`); icon only (square, `accessible-label` mandatory: accessible name + tooltip). The content is the Button's (`ButtonContent`) |
 | Width | hugs its content; short of room it gives way down to a square and cuts the label with «…», and the tooltip says the full text |
 | Keyboard | Enter and Space flip it; Esc puts the tooltip away |
-
-**Library-grade (§ 8.0).** Like shadcn's Toggle (Radix `Toggle`): text, icon + text, `outline`, three sizes,
-`checked` controlled from both sides, the tooltip and the disabled reason. Not here: a group with a shared choice
-(that is the `SegmentedControl`, § 5.6), a full width.
 
 ### 5.4 TextField and SearchField
 
@@ -1038,11 +1023,6 @@ the panel toggles and the search's `Aa` / `.*`. Accessible as a toggle (`accessi
 | Pointer | a click anywhere on the icon or the text puts the focus in the text (text cursor over both) |
 | Clear | the `x` shows with text on an enabled field; its tooltip says «Clear the search» with the key «Esc» |
 | Width | 200 / 320 / 400 (`search-w-min`, `search-w`, `search-w-max`); a screen sets other widths where the field has another place |
-
-**Library-grade (§ 8.0).** Like shadcn's Input and Command input, with the error's reason, optional toggles, an
-accessible name, the rest delay as a parameter, the focus readable from outside and the click on the icon. Not here,
-each with its own card: the suggestions list and the chips of written filters (§ 6.6: a combobox, with the parsing
-in the app), a history of searches (not in the spec), a busy state (it needs a design).
 
 ### 5.5 Select and DrivePicker
 
@@ -1069,11 +1049,6 @@ and in the settings (theme, density, units).
 | Keyboard | one Tab stop; ← ↑ / → ↓ choose the previous / next enabled segment, Home / End the first / last; `wrap-around` (default on, as Radix and the Menu) goes round the ends; Esc puts the tooltip away |
 | Tooltip | a segment's `tooltip`, or the text of an icon-only or cut one; on hover, and at once for the chosen segment under keyboard focus |
 | Nothing chosen | `current-index` out of range: no segment is chosen; an arrow chooses the first (→) or last (←) enabled one |
-
-**Library-grade (§ 8.0).** Like Radix's ToggleGroup (single) and RadioGroup, with icon segments, per-segment
-tooltips, disabled segments, `wrap-around`, the full width and the overflow. Not here, until a second use asks: a
-vertical orientation, multiple choice (that is a row of `ToggleButton`s), equal widths without filling (as wide as
-the widest segment).
 
 ### 5.7 Tabs
 
@@ -1235,7 +1210,7 @@ style's colours are fixed, the menu stays light in our dark theme, radius 7, at 
 shortcut text outside a menu bar, no `danger` item, no section title). Decision 11: `Menu` is ours on a `PopupWindow`, with the same keyboard behaviour (arrows, Enter, Esc,
 → / ← for submenus, the Menu key and Shift+F10 to open).
 
-**Library-grade (§ 8.0).** `MenuFrame` is the level-1 surface with free content (the map's
+`MenuFrame` is the level-1 surface with free content (the map's
 options, the DrivePicker); `MenuList` draws `[MenuEntry]` (`kind`: item, checkbox, radio, separator, section; `icon`,
 `hint`, `shortcut`, `variant`, `disabled` with its `reason`, `checked`, `submenu`), hides leading, trailing and
 repeated separators, elides long labels and scrolls; `Menu` is the popup, three levels deep, placed by `Placement`
@@ -1246,9 +1221,9 @@ opens one under a button (↓ on the first item, ↑ on the last) and takes the 
 (skipping separators and titles, going round), Home, End, PgUp, PgDn, type-ahead, Enter and Space, → and ← for
 submenus, Esc (the top level only) and Tab; a disabled item is highlighted but not chosen, as in Windows. The menu
 never changes its entries: a screen keeps them with `entries = MenuNav.toggled(entries, entry.id)` in `activated`
-(a check box flips; a radio item is checked and the radio items next to it cleared), as every Kit menu does. Still
-open on the card: the tooltip with a disabled item's reason and a cut label's full text (Tooltip card), the exit
-fade (Slint closes a popup at once), touch long press.
+(a check box flips; a radio item is checked and the radio items next to it cleared), as every Kit menu does. Not done:
+the tooltip with a disabled item's reason and a cut label's full text (a tooltip inside a popup is drawn under it,
+§ 5.17), the exit fade (Slint closes a popup at once), touch long press.
 
 ### 5.17 Tooltip
 
@@ -1259,7 +1234,7 @@ with the mouse, at once on keyboard focus; never on rows of the table (they have
 pointer, without the fade and rise; with a `text` it draws the style's own light box. Decision 11: the tooltip is
 ours, with the keyboard behaviour above.
 
-**Library-grade (§ 8.0).** Not on a `PopupWindow`: Slint gives every popup but its own tooltip
+Not on a `PopupWindow`: Slint gives every popup but its own tooltip
 the keyboard focus, so ours would take it from the control it describes and from a field being typed in. A
 `Tooltip` inside the control writes the window's one tooltip (`TooltipLayer`), and `DomeWindow` draws it as its
 last layer, over every content, with no pointer area. It opens after `delay` (`tooltip-delay`), at once on keyboard
@@ -1339,11 +1314,6 @@ the action button.
 | Pointer | dragging the thumb moves the content with it; the wheel over the bar scrolls along its axis, and a vertical wheel over a horizontal bar scrolls it too (Windows) |
 | Disabled | faded (`disabled` opacity), takes no pointer |
 | Accessibility | none of its own: Slint 1.19 has no scroll bar role, so screen readers and the keyboard scroll the content itself (as with Radix) |
-
-**Library-grade (§ 8.0).** Like Radix's ScrollArea scroll bar and Windows 11's, with both orientations, optional
-arrows, paging or jumping on the track with repeat while held, the visibility modes, and every size, colour and delay
-as a parameter. Not here: Radix's `hover` visibility (shown while the pointer is anywhere over the scrolled area) and
-the corner between two bars, which come with the ScrollArea.
 
 ### 5.25 ToolBar, StatusBar, PanelHeader
 
