@@ -1,0 +1,414 @@
+// The Kit's Dialog section (§ 9, § 5.18): the three sizes, the delete confirmations of § 6.4 (the default on
+// «Cancel» for what cannot be undone, the primary disabled with its reason), a long text that wraps and a body that
+// scrolls, drawn as still pictures in frames the size of a window's content; and a working one: the Recycle Bin
+// confirmation that asks twice for system items, and the permanent delete, opened from buttons and answered with
+// the keyboard or the pointer. Kit only; texts are the Kit's own, not translated (rule `untranslated` exempts
+// `kit/`); the long ones are Italian, ~25 % longer than English (§ 3.3).
+
+import {
+    Theme,
+    Size,
+    Icons,
+    Icon,
+    Label,
+    InkTone,
+    LabelWrap,
+    KitState,
+    Button,
+    ButtonVariant,
+    Checkbox,
+    CheckboxState,
+    Dialog,
+    DialogAction,
+    DialogSize,
+} from "@dome-ui";
+import { KitSection, KitRow } from "kit-parts.slint";
+
+struct KitDeleteRow { name: string, size: string, icon: image }
+
+global KitDialogData {
+    out property <[DialogAction]> ok-cancel: [
+        { text: "Open 12 items", variant: ButtonVariant.primary },
+        { text: "Cancel", variant: ButtonVariant.secondary },
+    ];
+    out property <[DialogAction]> permanent: [
+        { text: "Delete permanently", variant: ButtonVariant.danger },
+        { text: "Cancel", variant: ButtonVariant.secondary },
+    ];
+    out property <[DialogAction]> only-system: [
+        {
+            text: "Move to Recycle Bin",
+            variant: ButtonVariant.primary,
+            disabled: true,
+            reason: "Only system items are selected",
+        },
+        { text: "Cancel", variant: ButtonVariant.secondary },
+    ];
+    out property <[DialogAction]> italian: [
+        { text: "Sposta nel Cestino", variant: ButtonVariant.primary },
+        { text: "Annulla", variant: ButtonVariant.secondary },
+    ];
+    out property <[DialogAction]> close: [{ text: "Close", variant: ButtonVariant.secondary }];
+    out property <[DialogAction]> system: [
+        { text: "Delete system files", variant: ButtonVariant.danger },
+        { text: "Cancel", variant: ButtonVariant.secondary },
+    ];
+    out property <[KitDeleteRow]> selection: [
+        { name: "Montaggio vacanze 2025.mp4", size: "3.9 GB", icon: Icons.file-video },
+        { name: "pagefile.sys", size: "16.0 GB", icon: Icons.cpu },
+        { name: "hiberfil.sys", size: "6.4 GB", icon: Icons.cpu },
+    ];
+    out property <[KitDeleteRow]> system-items: [
+        { name: "pagefile.sys", size: "16.0 GB", icon: Icons.cpu },
+        { name: "hiberfil.sys", size: "6.4 GB", icon: Icons.cpu },
+    ];
+    out property <string> long-title: "Spostare nel Cestino i 3 elementi selezionati nella cartella Download?";
+    out property <string> long-text: "Gli elementi restano nel Cestino finché non lo svuoti: puoi ripristinarli da lì o con Annulla nella notifica che compare quando l'azione è finita.";
+    out property <string> body-line: "Ogni elemento si apre con il proprio programma: potrebbero aprirsi molte finestre.";
+}
+
+// One row of a deleted item: icon, name, size.
+component KitDeleteLine inherits HorizontalLayout {
+    in property <KitDeleteRow> row;
+
+    spacing: Size.label-gap;
+
+    VerticalLayout {
+        alignment: center;
+
+        Icon {
+            source: root.row.icon;
+        }
+    }
+
+    Label {
+        text: root.row.name;
+        horizontal-stretch: 1;
+    }
+
+    Label {
+        text: root.row.size;
+        tone: InkTone.muted;
+    }
+}
+
+// The stand-in for the `warning` InfoBar (§ 5.19, not built yet): its icon and its sentence.
+component KitWarningLine inherits HorizontalLayout {
+    in property <string> text;
+
+    spacing: Size.label-gap;
+
+    VerticalLayout {
+        alignment: start;
+
+        Icon {
+            source: Icons.triangle-alert;
+            tone: InkTone.warning;
+        }
+    }
+
+    Label {
+        text: root.text;
+        wrap: LabelWrap.word;
+        horizontal-stretch: 1;
+    }
+}
+
+// A frame the size of a window's content around one dialog, which covers it.
+component KitDialogFrame inherits Rectangle {
+    in property <DialogSize> size;
+
+    width: (root.size == DialogSize.small ? Size.dialog-sm : root.size == DialogSize.large ? Size.dialog-lg : Size.dialog-md) + 2 * Size.dialog-margin;
+    height: Size.space-48 * 4;
+    background: Theme.bg;
+    border-radius: Size.radius-panel;
+    clip: true;
+
+    @children
+}
+
+export component KitDialogSection inherits VerticalLayout {
+    // The working dialogs and what was chosen.
+    property <bool> recycle-open;
+    property <bool> system-open;
+    property <bool> permanent-open;
+    // The «Include system items» box: ticked, the system items join and a second dialog asks again.
+    property <CheckboxState> system-state;
+    property <bool> include-system: root.system-state == CheckboxState.checked;
+    property <string> chosen: "nothing yet";
+
+    KitSection {
+        title: "Dialog · sizes";
+
+        KitRow {
+            name: "small, medium";
+
+            KitDialogFrame {
+                size: DialogSize.small;
+
+                Dialog {
+                    open: true;
+                    kit-state: KitState.focus;
+                    size: DialogSize.small;
+                    title: "Open 12 items?";
+                    description: "Each one opens with its program: there may be 12 windows.";
+                    actions: KitDialogData.ok-cancel;
+                    default-index: 0;
+                    cancel-index: 1;
+                }
+            }
+
+            KitDialogFrame {
+                size: DialogSize.medium;
+
+                Dialog {
+                    open: true;
+                    kit-state: KitState.focus;
+                    title: "Move 3 items to the Recycle Bin?";
+                    description: "You can restore them from the Recycle Bin, or with Undo in the notice.";
+                    actions: KitDialogData.italian;
+                    default-index: 0;
+                    cancel-index: 1;
+                }
+            }
+        }
+
+        KitRow {
+            name: "large";
+
+            KitDialogFrame {
+                size: DialogSize.large;
+
+                Dialog {
+                    open: true;
+                    kit-state: KitState.focus;
+                    size: DialogSize.large;
+                    title: "About DiskDome";
+                    description: "A fast, lightweight disk space analyzer. Licensed under the GPL, version 3 or later.";
+                    actions: KitDialogData.close;
+                    default-index: 0;
+                    cancel-index: 0;
+                }
+            }
+        }
+    }
+
+    KitSection {
+        title: "Dialog · delete confirmations (§ 6.4)";
+
+        KitRow {
+            name: "permanent, only system";
+
+            KitDialogFrame {
+                size: DialogSize.medium;
+
+                // Irreversible: Enter does not delete, «Cancel» is the default.
+                Dialog {
+                    open: true;
+                    kit-state: KitState.focus;
+                    title: "Delete 3 items permanently?";
+                    description: "You won't be able to recover them.";
+                    actions: KitDialogData.permanent;
+                    default-index: 1;
+                    cancel-index: 1;
+                }
+            }
+
+            KitDialogFrame {
+                size: DialogSize.medium;
+
+                Dialog {
+                    open: true;
+                    kit-state: KitState.focus;
+                    title: "Move 2 items to the Recycle Bin?";
+                    actions: KitDialogData.only-system;
+                    default-index: 0;
+                    cancel-index: 1;
+
+                    KitWarningLine {
+                        text: "2 items are system files: Windows may stop working.";
+                    }
+                }
+            }
+        }
+    }
+
+    KitSection {
+        title: "Dialog · overflow";
+
+        KitRow {
+            name: "wraps, scrolls";
+
+            KitDialogFrame {
+                size: DialogSize.small;
+
+                Dialog {
+                    open: true;
+                    kit-state: KitState.focus;
+                    size: DialogSize.small;
+                    title: KitDialogData.long-title;
+                    description: KitDialogData.long-text;
+                    actions: KitDialogData.italian;
+                    default-index: 0;
+                    cancel-index: 1;
+                }
+            }
+
+            KitDialogFrame {
+                size: DialogSize.small;
+
+                // Taller than its frame: the body scrolls between the title and the buttons.
+                Dialog {
+                    open: true;
+                    kit-state: KitState.focus;
+                    size: DialogSize.small;
+                    title: "Aprire 12 elementi?";
+                    actions: KitDialogData.italian;
+                    default-index: 0;
+                    cancel-index: 1;
+
+                    for line in KitDialogData.selection: KitDeleteLine {
+                        row: line;
+                    }
+
+                    for line in KitDialogData.selection: KitDeleteLine {
+                        row: line;
+                    }
+
+                    Label {
+                        text: KitDialogData.body-line;
+                        wrap: LabelWrap.word;
+                    }
+                }
+            }
+        }
+    }
+
+    KitSection {
+        title: "Dialog · working";
+
+        KitRow {
+            name: "asks twice";
+
+            Rectangle {
+                width: Size.dialog-md + 2 * Size.dialog-margin;
+                height: Size.space-48 * 8;
+                background: Theme.bg;
+                border-radius: Size.radius-panel;
+                clip: true;
+
+                VerticalLayout {
+                    padding: Size.panel-pad;
+                    spacing: Size.space-8;
+                    alignment: start;
+
+                    HorizontalLayout {
+                        spacing: Size.group-gap;
+                        alignment: start;
+
+                        recycle-button := Button {
+                            text: "Move to Recycle Bin…";
+                            icon: Icons.trash-2;
+                            clicked => {
+                                root.system-state = CheckboxState.unchecked;
+                                root.recycle-open = true;
+                            }
+                        }
+
+                        permanent-button := Button {
+                            text: "Delete permanently…";
+                            variant: ButtonVariant.danger-ghost;
+                            clicked => {
+                                root.permanent-open = true;
+                            }
+                        }
+                    }
+
+                    Label {
+                        text: "chosen: " + root.chosen;
+                        tone: InkTone.muted;
+                    }
+                }
+
+                // Unticked, the system items are left out and the button says so; ticked, it reads «Continue» and a
+                // second dialog asks again.
+                Dialog {
+                    open <=> root.recycle-open;
+                    title: root.include-system ? "Move 3 items to the Recycle Bin?" : "Move 1 item to the Recycle Bin?";
+                    actions: [
+                        {
+                            text: root.include-system ? "Continue" : "Move the other 1 to the Recycle Bin",
+                            variant: ButtonVariant.primary,
+                        },
+                        { text: "Cancel", variant: ButtonVariant.secondary },
+                    ];
+                    default-index: 0;
+                    cancel-index: 1;
+                    activated(index) => {
+                        if (index == 0 && root.include-system) {
+                            root.system-open = true;
+                        } else {
+                            root.chosen = index == 0 ? "moved 1 to the Recycle Bin" : "cancelled";
+                        }
+                    }
+                    closed => {
+                        if (!root.system-open) {
+                            recycle-button.focus();
+                        }
+                    }
+
+                    for line in KitDialogData.selection: KitDeleteLine {
+                        row: line;
+                    }
+
+                    KitWarningLine {
+                        text: "2 items are system files: Windows may stop working.";
+                    }
+
+                    Checkbox {
+                        text: "Include system items";
+                        state <=> root.system-state;
+                    }
+                }
+
+                Dialog {
+                    open <=> root.system-open;
+                    title: "Delete system files?";
+                    description: "pagefile.sys and hiberfil.sys are usually locked while Windows runs: to shrink them, use Windows' own settings (virtual memory, hibernation).";
+                    actions: KitDialogData.system;
+                    default-index: 1;
+                    cancel-index: 1;
+                    activated(index) => {
+                        root.chosen = index == 0 ? "deleted the system files" : "cancelled at the second question";
+                    }
+                    closed => {
+                        recycle-button.focus();
+                    }
+
+                    for line in KitDialogData.system-items: KitDeleteLine {
+                        row: line;
+                    }
+                }
+
+                Dialog {
+                    open <=> root.permanent-open;
+                    title: "Delete 3 items permanently?";
+                    description: "You won't be able to recover them.";
+                    actions: KitDialogData.permanent;
+                    default-index: 1;
+                    cancel-index: 1;
+                    activated(index) => {
+                        root.chosen = index == 0 ? "deleted permanently" : "cancelled";
+                    }
+                    closed => {
+                        permanent-button.focus();
+                    }
+
+                    for line in KitDialogData.selection: KitDeleteLine {
+                        row: line;
+                    }
+                }
+            }
+        }
+    }
+}
