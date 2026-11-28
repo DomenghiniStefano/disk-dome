@@ -1,0 +1,401 @@
+// The Kit's sections of the small text components (§ 9): Badge (§ 5.14), Kbd (§ 5.26), Chip (§ 5.15) and Breadcrumb
+// (§ 5.13), in every variant and state, working: chips go when removed and flip when toggled, the path goes to the
+// segment chosen and folds as its box narrows. Texts are the Kit's own, not translated (rule `untranslated` exempts
+// `kit/`); the long ones are Italian, ~25 % longer than English (§ 3.3).
+
+import {
+    Size,
+    Data,
+    DataShade,
+    FileCategory,
+    AgeBucket,
+    Icons,
+    KitState,
+    Badge,
+    BadgeVariant,
+    Kbd,
+    KbdGroup,
+    Chip,
+    ChipVariant,
+    Breadcrumb,
+    BreadcrumbItem,
+    BreadcrumbCollapse,
+    Button,
+    ButtonSize,
+    SegmentedControl,
+    SegmentedItem,
+    SegmentedSize,
+    Label,
+    TypeStep,
+    InkTone,
+} from "@dome-ui";
+import { KitSection, KitRow } from "kit-parts.slint";
+
+struct KitBadge { name: string, variant: BadgeVariant }
+struct KitChipState { name: string, state: KitState, enabled: bool }
+struct KitFilter { text: string, gone: bool }
+struct KitSwatch { name: string, colour: color }
+
+global KitTextBitsData {
+    out property <[KitBadge]> badges: [
+        { name: "neutral", variant: BadgeVariant.neutral },
+        { name: "accent", variant: BadgeVariant.accent },
+        { name: "warning", variant: BadgeVariant.warning },
+        { name: "danger", variant: BadgeVariant.danger },
+        { name: "success", variant: BadgeVariant.success },
+    ];
+    out property <[KitChipState]> states: [
+        { name: "rest", state: KitState.live, enabled: true },
+        { name: "hover", state: KitState.hover, enabled: true },
+        { name: "pressed", state: KitState.pressed, enabled: true },
+        { name: "focus", state: KitState.focus, enabled: true },
+        { name: "disabled", state: KitState.live, enabled: false },
+    ];
+    // Windows' own Italian key names (§ 5.26), and the English ones.
+    out property <[string]> keys-it: ["Ctrl", "Maiusc", "Alt", "Canc", "Invio", "Esc", "Tab", "Backspace"];
+    out property <[string]> keys-en: ["Ctrl", "Shift", "Alt", "Del", "Enter", "Esc", "Tab", "Backspace"];
+    out property <[KitSwatch]> categories: [
+        { name: "Video", colour: Data.colour(FileCategory.video, DataShade.base) },
+        { name: "Immagini", colour: Data.colour(FileCategory.image, DataShade.base) },
+        { name: "Audio", colour: Data.colour(FileCategory.audio, DataShade.base) },
+        { name: "Documenti", colour: Data.colour(FileCategory.document, DataShade.base) },
+        { name: "Giochi", colour: Data.colour(FileCategory.game, DataShade.base) },
+        { name: "Programmi", colour: Data.colour(FileCategory.app, DataShade.base) },
+        { name: "Dati", colour: Data.colour(FileCategory.data, DataShade.base) },
+        { name: "Codice", colour: Data.colour(FileCategory.code, DataShade.base) },
+        { name: "Compilati", colour: Data.colour(FileCategory.build, DataShade.base) },
+        { name: "Archivi", colour: Data.colour(FileCategory.archive, DataShade.base) },
+        { name: "Sistema", colour: Data.colour(FileCategory.system, DataShade.base) },
+        { name: "Altro", colour: Data.colour(FileCategory.other, DataShade.base) },
+    ];
+    out property <[KitSwatch]> ages: [
+        { name: "7 giorni", colour: Data.age(AgeBucket.d7) },
+        { name: "1 mese", colour: Data.age(AgeBucket.m1) },
+        { name: "6 mesi", colour: Data.age(AgeBucket.m6) },
+        { name: "1 anno", colour: Data.age(AgeBucket.y1) },
+        { name: "3 anni", colour: Data.age(AgeBucket.y3) },
+        { name: "più vecchi", colour: Data.age(AgeBucket.older) },
+    ];
+    // The filter bar's chips (§ 6.6); a removed one is gone until «Restore».
+    in-out property <[KitFilter]> filters: [
+        { text: "Tipo: Video" },
+        { text: "Dimensione: ≥ 1 GB" },
+        { text: "Modificati: più di un anno fa" },
+        { text: "Senza elementi di sistema" },
+        { text: "Percorso: Download" },
+    ];
+    out property <[SegmentedItem]> widths: [{ text: "wide" }, { text: "medium" }, { text: "narrow" }, { text: "tiny" }];
+
+    // The path down to `depth` segments: Slint cannot slice an array, so each depth is written out.
+    public pure function path(depth: int) -> [BreadcrumbItem] {
+        return depth <= 1 ? [{ text: "C:", icon: Icons.hard-drive }]
+            : depth == 2 ? [{ text: "C:", icon: Icons.hard-drive }, { text: "Utenti" }]
+            : depth == 3 ? [{ text: "C:", icon: Icons.hard-drive }, { text: "Utenti" }, { text: "stefa" }]
+            : depth == 4 ? [
+                { text: "C:", icon: Icons.hard-drive },
+                { text: "Utenti" },
+                { text: "stefa" },
+                { text: "Documenti condivisi" },
+            ]
+            : depth == 5 ? [
+                { text: "C:", icon: Icons.hard-drive },
+                { text: "Utenti" },
+                { text: "stefa" },
+                { text: "Documenti condivisi" },
+                { text: "Progetti personali 2026" },
+            ]
+            : [
+                { text: "C:", icon: Icons.hard-drive },
+                { text: "Utenti" },
+                { text: "stefa" },
+                { text: "Documenti condivisi" },
+                { text: "Progetti personali 2026" },
+                { text: "Fotografie delle vacanze in montagna" },
+            ];
+    }
+
+    // The box the working breadcrumbs sit in.
+    public pure function box(index: int) -> length {
+        return index == 0 ? Size.dialog-lg : index == 1 ? Size.dialog-sm : index == 2 ? Size.side-panel-min : Size.bar-w * 2;
+    }
+}
+
+export component KitTextBitsSection inherits VerticalLayout {
+    // The working breadcrumbs: how deep the path goes, and the box they sit in.
+    property <int> depth: 6;
+    property <int> width-index: 1;
+    property <string> went;
+
+    KitSection {
+        title: "Badge · variants";
+        for row in KitTextBitsData.badges: KitRow {
+            name: row.name;
+
+            Badge {
+                text: "Consigliato";
+                variant: row.variant;
+            }
+
+            Badge {
+                text: "di sistema";
+                icon: Icons.shield-alert;
+                variant: row.variant;
+            }
+
+            Badge {
+                text: "3";
+                variant: row.variant;
+            }
+
+            Badge {
+                text: "128";
+                variant: row.variant;
+                tooltip: "Filters active";
+            }
+        }
+
+        KitRow {
+            name: "cut, hover it";
+
+            HorizontalLayout {
+                width: Size.bar-w;
+                alignment: start;
+
+                Badge {
+                    text: "Ricostruibile in automatico";
+                    variant: BadgeVariant.success;
+                }
+            }
+        }
+    }
+
+    KitSection {
+        title: "Kbd · keys and shortcuts";
+
+        KitRow {
+            name: "Italian";
+            for key in KitTextBitsData.keys-it: Kbd {
+                text: key;
+            }
+        }
+
+        KitRow {
+            name: "English";
+            for key in KitTextBitsData.keys-en: Kbd {
+                text: key;
+            }
+        }
+
+        KitRow {
+            name: "one letter, shortcut";
+
+            Kbd {
+                text: "F";
+            }
+
+            KbdGroup {
+                keys: ["Ctrl", "Maiusc", "F"];
+            }
+
+            KbdGroup {
+                keys: ["Ctrl", "K"];
+            }
+        }
+    }
+
+    KitSection {
+        title: "Chip · filter";
+
+        KitRow {
+            name: "click, x, Del";
+
+            HorizontalLayout {
+                alignment: start;
+                for item[index] in KitTextBitsData.filters: HorizontalLayout {
+                    padding-right: item.gone ? 0 : Size.tool-gap;
+
+                    if !item.gone: Chip {
+                        text: item.text;
+                        remove-label: "Remove filter";
+                        clicked => {
+                            root.went = "Open the panel at «" + item.text + "»";
+                        }
+                        removed => {
+                            KitTextBitsData.filters[index] = { text: item.text, gone: true };
+                            root.went = "Removed «" + item.text + "»";
+                        }
+                    }
+                }
+            }
+
+            Button {
+                text: "Restore";
+                size: ButtonSize.small;
+                clicked => {
+                    KitTextBitsData.filters = [
+                        { text: "Tipo: Video" },
+                        { text: "Dimensione: ≥ 1 GB" },
+                        { text: "Modificati: più di un anno fa" },
+                        { text: "Senza elementi di sistema" },
+                        { text: "Percorso: Download" },
+                    ];
+                }
+            }
+        }
+
+        for state in KitTextBitsData.states: KitRow {
+            name: state.name;
+
+            Chip {
+                text: "Tipo: Video";
+                kit-state: state.state;
+                enabled: state.enabled;
+                tooltip: state.enabled ? "" : "Not while the scan is running";
+            }
+
+            Chip {
+                text: "Salvato: File grandi";
+                icon: Icons.bookmark;
+                kit-state: state.state;
+                enabled: state.enabled;
+            }
+        }
+
+        KitRow {
+            name: "cut, not a Tab stop";
+
+            HorizontalLayout {
+                width: Size.bar-w * 2;
+                alignment: start;
+
+                Chip {
+                    text: "Modificati: più di un anno fa";
+                }
+            }
+
+            Chip {
+                text: "In a field: pointer only";
+                focusable: false;
+            }
+        }
+    }
+
+    KitSection {
+        title: "Chip · toggle";
+
+        for state in KitTextBitsData.states: KitRow {
+            name: state.name;
+
+            Chip {
+                text: "Off";
+                variant: ChipVariant.toggle;
+                kit-state: state.state;
+                enabled: state.enabled;
+            }
+
+            Chip {
+                text: "On";
+                variant: ChipVariant.toggle;
+                checked: true;
+                kit-state: state.state;
+                enabled: state.enabled;
+            }
+
+            Chip {
+                text: "Video";
+                variant: ChipVariant.toggle;
+                swatch: Data.colour(FileCategory.video, DataShade.base);
+                checked: true;
+                kit-state: state.state;
+                enabled: state.enabled;
+            }
+        }
+
+        KitRow {
+            name: "categories, click";
+            for item in KitTextBitsData.categories: Chip {
+                text: item.name;
+                variant: ChipVariant.toggle;
+                swatch: item.colour;
+            }
+        }
+
+        KitRow {
+            name: "ages, Space";
+            for item in KitTextBitsData.ages: Chip {
+                text: item.name;
+                variant: ChipVariant.toggle;
+                swatch: item.colour;
+            }
+        }
+    }
+
+    KitSection {
+        title: "Breadcrumb · fold, go";
+
+        KitRow {
+            name: "box, then click";
+
+            SegmentedControl {
+                size: SegmentedSize.small;
+                items: KitTextBitsData.widths;
+                current-index <=> root.width-index;
+            }
+
+            Button {
+                text: "Deepest";
+                size: ButtonSize.small;
+                clicked => {
+                    root.depth = 6;
+                    root.went = "";
+                }
+            }
+
+            Label {
+                text: root.went;
+                step: TypeStep.caption;
+                tone: InkTone.muted;
+            }
+        }
+
+        KitRow {
+            name: "middle";
+
+            Breadcrumb {
+                width: KitTextBitsData.box(root.width-index);
+                items: KitTextBitsData.path(root.depth);
+                activated(index) => {
+                    root.depth = index + 1;
+                    root.went = "Went to level " + (index + 1);
+                }
+            }
+        }
+
+        KitRow {
+            name: "start";
+
+            Breadcrumb {
+                width: KitTextBitsData.box(root.width-index);
+                items: KitTextBitsData.path(root.depth);
+                collapse: BreadcrumbCollapse.start;
+                activated(index) => {
+                    root.depth = index + 1;
+                    root.went = "Went to level " + (index + 1);
+                }
+            }
+        }
+    }
+
+    KitSection {
+        title: "Breadcrumb · states";
+        for state in KitTextBitsData.states: KitRow {
+            name: state.name;
+
+            Breadcrumb {
+                items: KitTextBitsData.path(3);
+                kit-state: state.state;
+                enabled: state.enabled;
+            }
+        }
+    }
+}
