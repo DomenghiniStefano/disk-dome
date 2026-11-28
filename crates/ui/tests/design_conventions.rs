@@ -169,8 +169,8 @@ const RULES: &[Rule] = &[
     Rule {
         name: "icon-label",
         check: |s| {
-            // An `IconButton` or a `ToggleButton` (always icon only, § 5.3), or a `Button` or `MenuButton` with an
-            // `icon` and no `text`. Blind spot: a button whose text is bound to an empty string is not recognised.
+            // An `IconButton`, or a `Button`, `ToggleButton` or `MenuButton` with an `icon` and no `text`. Blind
+            // spot: a button whose text is bound to an empty string is not recognised.
             let mut found = vec![];
             for m in Regex::new(r"\b(?:IconButton|ToggleButton|MenuButton|Button)\s*\{")
                 .expect("test data is valid")
@@ -182,7 +182,6 @@ const RULES: &[Rule] = &[
                 }
                 let body = block_after(&s.bare, m.end());
                 let icon_only = m.as_str().starts_with("Icon")
-                    || m.as_str().starts_with("Toggle")
                     || (has_property(body, "icon") && !has_property(body, "text"));
                 if icon_only && !body.contains("accessible-label") {
                     found.push(m.as_str().to_owned());
@@ -388,4 +387,8 @@ fn icon_label_catches_an_icon_only_button() {
         0
     );
     assert_eq!(count(r#"Button { text: @tr("Scan"); }"#), 0);
+    assert_eq!(
+        count(r#"ToggleButton { icon: Icons.filter; text: @tr("Filters"); }"#),
+        0
+    );
 }

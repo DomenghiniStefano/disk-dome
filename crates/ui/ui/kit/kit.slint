@@ -27,6 +27,7 @@ import {
     KitState,
     ToggleButton,
     ToggleSize,
+    ToggleVariant,
     SearchField,
     SearchFieldToggles,
     ScrollBar,
@@ -193,7 +194,8 @@ global KitData {
         { name: "x", source: Icons.x },
     ];
     out property <[SegmentedItem]> two-options: [{ text: "Extensions" }, { text: "Categories" }];
-    out property <[ToggleSize]> toggle-sizes: [ToggleSize.small, ToggleSize.normal];
+    out property <[ToggleSize]> toggle-sizes: [ToggleSize.small, ToggleSize.normal, ToggleSize.large];
+    out property <[ToggleVariant]> toggle-variants: [ToggleVariant.ghost, ToggleVariant.outline];
     // The scroll bar at rest is hidden: `live` shows nothing until the content moves.
     out property <[KitState]> scroll-states: [KitState.live, KitState.focus, KitState.hover, KitState.pressed];
     out property <[SegmentedItem]> three-options: [{ text: "Dark" }, { text: "Light" }, { text: "System" }];
@@ -889,6 +891,62 @@ export component KitWindow inherits DomeWindow {
                                 kit-state: state.state;
                                 enabled: state.enabled;
                                 accessible-label: "Side panel";
+                            }
+                            for variant in KitData.toggle-variants: ToggleButton {
+                                text: "Panel";
+                                icon: Icons.panel-right;
+                                variant: variant;
+                                kit-state: state.state;
+                                enabled: state.enabled;
+                            }
+                            for variant in KitData.toggle-variants: ToggleButton {
+                                text: "Panel";
+                                icon: Icons.panel-right;
+                                variant: variant;
+                                checked: true;
+                                kit-state: state.state;
+                                enabled: state.enabled;
+                            }
+                        }
+                    }
+
+                    KitSection {
+                        title: "ToggleButton · content and width";
+                        for variant[index] in KitData.toggle-variants: KitRow {
+                            name: index == 0 ? "ghost" : "outline";
+
+                            ToggleButton {
+                                text: "Filters";
+                                variant: variant;
+                            }
+
+                            ToggleButton {
+                                text: "Filters";
+                                icon: Icons.filter;
+                                variant: variant;
+                                checked: true;
+                            }
+
+                            ToggleButton {
+                                icon: Icons.case-sensitive;
+                                variant: variant;
+                                accessible-label: "Match case";
+                            }
+
+                            ToggleButton {
+                                text: "Large";
+                                size: ToggleSize.large;
+                                variant: variant;
+                            }
+
+                            HorizontalLayout {
+                                alignment: start;
+                                width: Size.button-min-w;
+
+                                ToggleButton {
+                                    text: "Mostra i file nascosti";
+                                    variant: variant;
+                                }
                             }
                         }
                     }

@@ -989,8 +989,21 @@ design: a spinner and whether the label stays); the dialog's default button come
 
 ### 5.3 ToggleButton
 
-A `ghost` icon button with `checked`: checked = `accent-soft` fill, icon `accent-text`. Used for the panel toggles
-and the search's `Aa` / `.*`. Accessible as a toggle (`accessible-checked`).
+A button with `checked`: checked = `accent-soft` fill, icon and text `accent-text`; unchecked `ink-muted`. Used for
+the panel toggles and the search's `Aa` / `.*`. Accessible as a toggle (`accessible-checked`).
+
+| ToggleButton | |
+| --- | --- |
+| Interface | `text`, `icon`, `checked` (written by both the button and the screen), `variant`, `size`, `enabled`, `tooltip`, `tooltip-shortcut`; `toggled(checked)` when the user flips it |
+| Variants `ToggleVariant` | `ghost` (default: transparent, hover `control-hover`), `outline` (the same with a 1 px `line` edge, a toggle standing alone on a panel) |
+| Sizes `ToggleSize` | `small` (control-sm, inside a field), `normal` (control, a toolbar), `large` (control-lg, beside a large button) |
+| Content | text; icon + text (icon 16, `label-gap`, the icon's side padded `button-pad-x-icon`); icon only (square, `accessible-label` mandatory: accessible name + tooltip). The content is the Button's (`ButtonContent`) |
+| Width | hugs its content; short of room it gives way down to a square and cuts the label with «…», and the tooltip says the full text |
+| Keyboard | Enter and Space flip it; Esc puts the tooltip away |
+
+**Library-grade (§ 8.0).** Like shadcn's Toggle (Radix `Toggle`): text, icon + text, `outline`, three sizes,
+`checked` controlled from both sides, the tooltip and the disabled reason. Not here: a group with a shared choice
+(that is the `SegmentedControl`, § 5.6), a full width.
 
 ### 5.4 TextField and SearchField
 

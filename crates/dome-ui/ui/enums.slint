@@ -35,8 +35,13 @@ export enum SegmentedWidth { hug, fill }
 // case only, or match case and regular expression (the files' search).
 export enum SearchFieldToggles { none, match-case, match-case-and-regex }
 
-// `small` sits inside a field (the search's `Aa` / `.*`), `normal` in a toolbar (§ 5.3).
-export enum ToggleSize { small, normal }
+// `small` sits inside a field (the search's `Aa` / `.*`), `normal` in a toolbar, `large` beside a large button
+// (§ 5.3).
+export enum ToggleSize { small, normal, large }
+
+// A toggle's look at rest (§ 5.3): `ghost`, transparent (toolbars, fields), or `outline`, with a hairline edge (a toggle
+// standing alone on a panel, as shadcn's outline Toggle).
+export enum ToggleVariant { ghost, outline }
 
 // What a scroll bar draws at its ends (§ 5.24): no arrows (the default), arrows that appear while the bar is widened
 // under the pointer (as Windows 11), or arrows always.
