@@ -65,7 +65,8 @@ The look itself (tokens, components, screens) is `docs/design-system.md`; this f
   `slint::invoke_from_event_loop`; their error (the event loop has ended) is logged, never dropped with `let _`.
 - **What Slint cannot compute** (no loops, no recursion, no substring or regex) is answered in Rust by a
   `pure callback` on a global, wired on every window (`MenuNav`: `dome_ui::menu`, wired by `menu_nav!`;
-  `SegmentedNav`: `dome_ui::segmented`, by `segmented_nav!`) and unit tested in Rust.
+  `SegmentedNav`, `RadioNav`, `TabNav`: `dome_ui::roving`, by `segmented_nav!`, `radio_nav!`, `tab_nav!`) and unit
+  tested in Rust.
 
 ## The Kit
 

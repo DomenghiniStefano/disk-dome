@@ -2570,7 +2570,7 @@ name is provisional.
 ```
 crates/dome-ui/                  the design system (package `dome-ui`)
   README.md                      the map (this document's short version)
-  src/                           the Rust half: pure functions (menu.rs, segmented.rs) and the macros that wire them (menu_nav!, segmented_nav!)
+  src/                           the Rust half: pure functions (menu.rs, roving.rs, select.rs, breadcrumb.rs…) and the macros that wire them (menu_nav!, segmented_nav!, radio_nav!, tab_nav!…)
   ui/
     slint-project.json           the library: main file index.slint
     index.slint                  the only file apps import, as `@dome-ui`
