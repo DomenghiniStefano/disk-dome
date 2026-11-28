@@ -13,6 +13,8 @@ export component Pressable {
     // False for a part whose focus belongs to its control (a segment: the SegmentedControl is one Tab stop).
     in property <bool> focusable: true;
     in property <KitState> kit-state: KitState.live;
+    // False where only Space activates (a check box): see `FocusTarget`.
+    in property <bool> enter-activates: true;
 
     out property <bool> hovered: enabled && (kit-state == KitState.hover || (live && touch.has-hover));
     out property <bool> pressed: enabled && (kit-state == KitState.pressed || (live && touch.pressed));
@@ -34,6 +36,7 @@ export component Pressable {
     focus := FocusTarget {
         enabled: root.enabled && root.focusable;
         kit-state: root.kit-state;
+        enter-activates: root.enter-activates;
         activated => {
             root.activated();
         }
