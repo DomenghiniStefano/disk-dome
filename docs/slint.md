@@ -111,18 +111,16 @@ UI tests run off screen (`crates/ui/src/headless.rs`: Slint's software renderer 
   `preferred-width` / `preferred-height` and let the placement set the length.
 - `&&` next to `||` needs parentheses.
 - An enum value whose name matches a property is written in full (`AccessibleRole.text`).
-- A window builds and measures its elements as it is created, before Rust can wire a global's callbacks: a
-  `pure callback` called from an `init` or an early `changed` answers its type's default (an empty list, 0). What it
-  hands over is lost unless the element hands it over again once wired (`ToolBarFit.wired`, set by
-  `tool_bar_fit!`).
+- A window builds and measures its elements as it is created (a component reading its `width` in `init` or
+  `changed width` lays it out then), before `design_system::install` wires the globals: a `pure callback` called
+  from an `init` or an early `changed` answers its type's default (an empty list, 0). What it hands over is lost
+  unless the element hands it over again once the global says it is wired (`BreadcrumbFit.wired`,
+  `ToolBarFit.wired`, set last by their `install` macros).
 - `Flickable` takes `content-height` and `content-y`, not the deprecated `viewport-*`.
 - `visible: false` keeps the element's place in a layout: to take no room, bind its min / preferred / max height
   to 0 (as `KitSection`) or use `if`.
 - Properties of an element inside an `if` cannot be read from outside it: copy what is needed to the parent in a
   `changed` handler and in `init` (as `Button` does with its label's `cut`).
-- A component that reads its `width` in `init` or `changed width` lays the window out while it is built, before
-  `design_system::install` wires the globals: a pure callback answered by Rust returns its default there. What a
-  child hands over through one in `init` is handed again once the global says it is wired (`BreadcrumbFit.wired`).
 - A property named like a built-in one cannot be declared (`row` in a layout child, `padding` on a component):
   pick another name (`inset`).
 - Strings have no `contains`, prefix test or regex, and functions have no loops and no recursion: see «Screens and
