@@ -31,6 +31,15 @@ export enum SegmentedSize { small, normal }
 // labels cut by «…»), or `fill` the width its layout gives it, split equally between the segments.
 export enum SegmentedWidth { hug, fill }
 
+// When a tab is chosen from the keyboard (§ 5.7): `automatic`, as soon as the arrow keys reach it (Radix's default),
+// or `manual`, the arrows only move the focus and Enter or Space choose (a tab whose panel is slow to show).
+export enum TabActivation { automatic, manual }
+
+// What the tabs do when they do not fit (§ 5.7): `shrink` down to `tab-min-w`, cutting their labels with «…» (the
+// tooltip says the full text), or keep their labels whole and end the bar with a «⋯» `menu` of every tab, sliding so
+// the focused tab stays in view.
+export enum TabOverflow { shrink, menu }
+
 // Which toggles a search field holds on its right (§ 5.4): none (the command palette, the shortcuts dialog), match
 // case only, or match case and regular expression (the files' search).
 export enum SearchFieldToggles { none, match-case, match-case-and-regex }

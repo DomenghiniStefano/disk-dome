@@ -1,0 +1,338 @@
+// Tabs (§ 5.7): a row of text tabs that chooses which panel shows (the section bar, a dialog's tabs). Text `body`
+// `ink-muted`, the current tab `ink` with a `tab-indicator` `accent` underline inside the bar's bottom; no icons. One
+// Tab stop: ← → move between the tabs, Home and End go to the first and last, skipping disabled tabs, and
+// `wrap-around` goes round the ends (as Radix). `activation` chooses as the arrows arrive (automatic) or only on
+// Enter / Space (manual). A disabled tab is faded and says why in its tooltip. Short of room the tabs `shrink`,
+// cutting their labels with «…» (the tooltip says the full text), or keep them whole and end with a «⋯» `menu` of
+// every tab. `TabPanel` is the content a screen shows for the current tab.
+//
+// Slint functions have no loops, so skipping the disabled tabs and listing them in the menu are answered by Rust
+// through `TabNav` (`crates/dome-ui/src/roving.rs`, wired by `tab_nav!` on every window).
+
+import { Size } from "../tokens/size.slint";
+import { Theme } from "../tokens/theme.slint";
+import { Motion } from "../tokens/motion.slint";
+import {
+    ButtonSize,
+    InkTone,
+    KitState,
+    PopupAlign,
+    TabActivation,
+    TabOverflow,
+} from "../enums.slint";
+import { InputMode } from "../input-mode.slint";
+import { Icons } from "../icons/icons.slint";
+import { Pressable } from "../primitives/pressable.slint";
+import { FocusTarget } from "../primitives/focus-target.slint";
+import { FocusRing } from "../primitives/focus-ring.slint";
+import { ButtonContent } from "button-content.slint";
+import { Tooltip } from "tooltip.slint";
+import { MenuButton } from "menu-button.slint";
+import { MenuEntry } from "menu-list.slint";
+
+// One tab. Only `text` is needed.
+export struct TabItem {
+    // Shown, and its accessible name.
+    text: string,
+    // Said on hover and keyboard focus (§ 5.17); on a disabled tab, why.
+    tooltip: string,
+    disabled: bool,
+}
+
+// The answers Slint cannot compute (`crates/dome-ui/src/roving.rs`, `tab_nav!`).
+export global TabNav {
+    // The nearest enabled tab after `from` (`forward`) or before it; `wrap` goes round the ends, otherwise it stays.
+    // With `from` out of range, the first (forward) or last enabled one. -1 with none enabled.
+    pure callback step(items: [TabItem], from: int, forward: bool, wrap: bool) -> int;
+    // The first or the last enabled tab, -1 with none.
+    pure callback edge(items: [TabItem], last: bool) -> int;
+    // The overflow menu: one radio item per tab, the current one checked, the tab's index as the entry's `id`.
+    pure callback entries(items: [TabItem], current-index: int) -> [MenuEntry];
+}
+
+export component Tabs {
+    in property <[TabItem]> items;
+    // Written by the tabs when the user chooses, and by the screen to set the tab (its Ctrl+1…6): both sides write.
+    // Out of range, no tab is current.
+    in-out property <int> current-index: 0;
+    in property <TabActivation> activation: TabActivation.automatic;
+    in property <TabOverflow> overflow-mode: TabOverflow.shrink;
+    in property <bool> enabled: true;
+    // The arrow keys go round the ends.
+    in property <bool> wrap-around: true;
+    // The Kit window only (§ 9): hover and pressed are shown on the tab after the current one.
+    in property <KitState> kit-state: KitState.live;
+
+    // The tab the keyboard is on: the current one, or with `manual` activation the one the arrows reached.
+    out property <int> focus-index;
+    // The tab whose tooltip shows, -1 with none (the tests read it).
+    out property <int> tooltip-index: -1;
+    // The tabs do not fit and the «⋯» menu shows (`TabOverflow.menu` only).
+    out property <bool> overflowing: root.menu-mode && row.preferred-width > root.width;
+    // How far the tabs slide left to keep the focused one in view (`TabOverflow.menu` only).
+    out property <length> shift;
+
+    // The user chose another tab.
+    callback selected(index: int);
+
+    property <bool> menu-mode: root.overflow-mode == TabOverflow.menu;
+    property <bool> has-focus: group.has-focus;
+    property <int> kit-tab: Math.mod(root.current-index + 1, max(1, root.items.length));
+    // The tab whose tooltip Esc put away, until the pointer and the focus leave it.
+    property <int> hushed: -1;
+    // Where the focused tab is in the row, copied from it (an element in a `for` cannot be read from outside).
+    property <length> focus-x;
+    property <length> focus-w;
+
+    function choose(index: int) {
+        if (index >= 0 && index < root.items.length && index != root.current-index && !root.items[index].disabled) {
+            root.current-index = index;
+            root.selected(index);
+        }
+    }
+
+    // Where the arrows, Home or End arrived.
+    function move-to(index: int) {
+        if (index < 0) {
+            return;
+        }
+        if (root.activation == TabActivation.automatic) {
+            root.choose(index);
+        } else {
+            root.focus-index = index;
+        }
+    }
+
+    function report(x: length, width: length) {
+        root.focus-x = x;
+        root.focus-w = width;
+        root.reveal();
+    }
+
+    // Slides the row so the focused tab is whole in view, never past either end.
+    function reveal() {
+        if (!root.menu-mode) {
+            root.shift = 0;
+            return;
+        }
+        if (root.focus-x < root.shift) {
+            root.shift = root.focus-x;
+        } else if (root.focus-x + root.focus-w > root.shift + strip.width) {
+            root.shift = root.focus-x + root.focus-w - strip.width;
+        }
+        root.shift = max(0, min(root.shift, row.preferred-width - strip.width));
+    }
+
+    init => {
+        root.focus-index = root.current-index;
+    }
+    changed current-index => {
+        root.focus-index = root.current-index;
+    }
+    // Leaving with `manual` activation, the keyboard's place goes back to the current tab.
+    changed has-focus => {
+        if (!root.has-focus) {
+            root.focus-index = root.current-index;
+        }
+    }
+    changed menu-mode => {
+        root.reveal();
+    }
+
+    height: Size.tabbar;
+    min-width: root.menu-mode ? more.min-width + Size.tab-min-w : row.min-width;
+    preferred-width: row.preferred-width;
+    max-width: row.preferred-width;
+    opacity: root.enabled ? 1 : Size.disabled;
+
+    forward-focus: group;
+    accessible-role: tab-list;
+    accessible-enabled: root.enabled;
+    accessible-item-count: root.items.length;
+
+    group := FocusTarget {
+        enabled: root.enabled;
+        kit-state: root.kit-state;
+        // Enter or Space: with `manual` activation, the focused tab becomes the current one.
+        activated => {
+            root.choose(root.focus-index);
+        }
+        key-pressed(event) => {
+            if (event.text == Key.LeftArrow) {
+                root.move-to(TabNav.step(root.items, root.focus-index, false, root.wrap-around));
+            } else if (event.text == Key.RightArrow) {
+                root.move-to(TabNav.step(root.items, root.focus-index, true, root.wrap-around));
+            } else if (event.text == Key.Home) {
+                root.move-to(TabNav.edge(root.items, false));
+            } else if (event.text == Key.End) {
+                root.move-to(TabNav.edge(root.items, true));
+            } else if (event.text == Key.Escape && root.tooltip-index >= 0) {
+                // Esc puts the tooltip away (§ 5.17).
+                root.hushed = root.tooltip-index;
+            } else {
+                return reject;
+            }
+            InputMode.keyboard = true;
+            return accept;
+        }
+    }
+
+    strip := Rectangle {
+        x: 0;
+        width: root.width - (root.overflowing ? more.width + Size.tool-gap : 0);
+        height: 100%;
+        clip: true;
+
+        changed width => {
+            root.reveal();
+        }
+
+        row := HorizontalLayout {
+            x: -root.shift;
+            // Shrinking, the tabs share the strip; with the menu they keep their whole labels and slide.
+            width: root.menu-mode ? self.preferred-width : parent.width;
+            height: parent.height;
+
+            for item[index] in root.items: Rectangle {
+                property <bool> chosen: index == root.current-index;
+                property <bool> focus-here: index == root.focus-index;
+                property <bool> live: root.enabled && !item.disabled;
+                // The pointer or the keyboard asks for its tooltip, before Esc is heard.
+                property <bool> asked: root.kit-state == KitState.live && (tab.hovered || (self.focus-here && group.show-focus));
+
+                changed asked => {
+                    if (!self.asked && root.hushed == index) {
+                        root.hushed = -1;
+                    }
+                }
+                changed focus-here => {
+                    if (self.focus-here) {
+                        root.report(self.x, self.width);
+                    }
+                }
+                changed x => {
+                    if (self.focus-here) {
+                        root.report(self.x, self.width);
+                    }
+                }
+                changed width => {
+                    if (self.focus-here) {
+                        root.report(self.x, self.width);
+                    }
+                }
+                init => {
+                    if (self.focus-here) {
+                        root.report(self.x, self.width);
+                    }
+                }
+
+                // The label, giving way down to the minimum (or the label, when that is smaller) unless the menu
+                // takes the overflow.
+                horizontal-stretch: 1;
+                min-width: root.menu-mode ? content.preferred-width : min(Size.tab-min-w, content.preferred-width);
+                preferred-width: content.preferred-width;
+                border-radius: Size.radius-control;
+                background: tab.pressed ? Theme.control-pressed : tab.hovered ? Theme.hover : transparent;
+                animate background { duration: Motion.fast; }
+
+                accessible-role: AccessibleRole.tab;
+                accessible-label: item.text;
+                accessible-description: item.tooltip;
+                accessible-enabled: self.live;
+                accessible-item-index: index;
+                accessible-item-selectable: true;
+                accessible-item-selected: self.chosen;
+                accessible-action-default => {
+                    root.choose(index);
+                }
+
+                content := ButtonContent {
+                    text: item.text;
+                    pad-x: Size.tab-pad-x;
+                    tone: chosen ? InkTone.normal : InkTone.muted;
+                    align: TextHorizontalAlignment.center;
+                    opacity: item.disabled ? Size.disabled : 1;
+                }
+
+                if chosen: Rectangle {
+                    x: Size.tab-pad-x;
+                    y: parent.height - self.height;
+                    width: max(0, parent.width - 2 * Size.tab-pad-x);
+                    height: Size.tab-indicator;
+                    background: Theme.accent;
+                    opacity: item.disabled ? Size.disabled : 1;
+                }
+
+                tab := Pressable {
+                    enabled: live;
+                    focusable: false;
+                    kit-state: index == root.kit-tab && root.kit-state != KitState.focus ? root.kit-state : KitState.live;
+                    activated => {
+                        group.focus();
+                        root.focus-index = index;
+                        root.choose(index);
+                    }
+                }
+
+                // After the pointer area, so over a disabled tab it can watch the pointer itself.
+                Tooltip {
+                    text: item.tooltip != "" ? item.tooltip : content.cut ? item.text : "";
+                    hovered: asked && tab.hovered && root.hushed != index;
+                    focused: asked && focus-here && group.show-focus && root.hushed != index;
+                    pressed: tab.pressed;
+                    watch-pointer: !live;
+
+                    changed shown => {
+                        if (self.shown) {
+                            root.tooltip-index = index;
+                        } else if (root.tooltip-index == index) {
+                            root.tooltip-index = -1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Outside the strip, so its clip does not cut the ring.
+    if group.show-focus && root.focus-index >= 0 && root.focus-index < root.items.length: Rectangle {
+        x: strip.x + root.focus-x - root.shift;
+        width: root.focus-w;
+        height: root.height;
+
+        FocusRing {
+            radius: Size.radius-control;
+        }
+    }
+
+    // Every tab, for those the bar cannot show; a separate Tab stop after the tabs.
+    more := MenuButton {
+        x: root.width - self.width;
+        y: (root.height - self.height) / 2;
+        visible: root.overflowing;
+        enabled: root.enabled && root.overflowing;
+        icon: Icons.ellipsis;
+        size: ButtonSize.small;
+        align: PopupAlign.end;
+        entries: TabNav.entries(root.items, root.current-index);
+        accessible-label: @tr("More tabs");
+        activated(entry) => {
+            root.choose(Math.round(entry.id.to-float()));
+        }
+    }
+}
+
+// The content a screen shows for the current tab (`if tabs.current-index == 1: TabPanel { … }`): it lays out its
+// children in a column and tells screen readers it is a tab panel. Give it the tab's text as `accessible-label`.
+export component TabPanel {
+    min-width: box.min-width;
+    preferred-width: box.preferred-width;
+    min-height: box.min-height;
+    preferred-height: box.preferred-height;
+
+    accessible-role: tab-panel;
+
+    box := VerticalLayout {
+        @children
+    }
+}

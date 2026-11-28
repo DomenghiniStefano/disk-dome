@@ -3,6 +3,7 @@
 //! components ask Rust for, as pure functions, and the macro that wires them to an app's generated globals.
 
 pub mod menu;
+pub mod roving;
 pub mod segmented;
 
 /// Writes `pub fn install_menu_nav(window)` in the calling module: it wires a window's `MenuNav` global (`§ 5.16`) to
@@ -77,24 +78,78 @@ macro_rules! menu_nav {
 #[macro_export]
 macro_rules! segmented_nav {
     ($nav:ident, $item:ident) => {
-        /// Wires the window's `SegmentedNav` global to `dome_ui::segmented`.
-        pub fn install_segmented_nav<'a, T>(window: &'a T)
+        $crate::roving_nav!(install_segmented_nav, $nav, $item);
+    };
+}
+
+/// Writes `pub fn install_tab_nav(window)` in the calling module: it wires a window's `TabNav` global (§ 5.7) to
+/// [`roving`], and builds the overflow menu's entries (one radio item per tab, the current one checked, its index as
+/// the entry's `id`) with the app's own `MenuEntry`:
+///
+/// ```ignore
+/// use crate::generated::{MenuEntry, MenuEntryKind, TabItem, TabNav};
+/// dome_ui::tab_nav!(TabNav, TabItem, MenuEntry, MenuEntryKind);
+/// ```
+#[macro_export]
+macro_rules! tab_nav {
+    ($nav:ident, $item:ident, $entry:ident, $kind:ident) => {
+        $crate::roving_nav!(install_tab_nav_walk, $nav, $item);
+
+        /// Wires the window's `TabNav` global: the walk over the tabs and the overflow menu.
+        pub fn install_tab_nav<'a, T>(window: &'a T)
         where
             T: slint::ComponentHandle,
             $nav<'a>: slint::Global<'a, T>,
         {
+            install_tab_nav_walk(window);
+            window.global::<$nav>().on_entries(|items, current| {
+                let entries: Vec<$entry> = slint::Model::iter(&items)
+                    .enumerate()
+                    .map(|(index, item)| $entry {
+                        id: index.to_string().into(),
+                        kind: $kind::Radio,
+                        label: item.text,
+                        disabled: item.disabled,
+                        // A tab's tooltip says why it is disabled; an enabled one's adds nothing to the menu.
+                        reason: if item.disabled {
+                            item.tooltip
+                        } else {
+                            slint::SharedString::default()
+                        },
+                        checked: i32::try_from(index).is_ok_and(|index| index == current),
+                        ..Default::default()
+                    })
+                    .collect();
+                slint::ModelRc::new(slint::VecModel::from(entries))
+            });
+        }
+    };
+}
+
+/// Writes `pub fn $install(window)`: it wires the `step` and `edge` callbacks of a row with one Tab stop (a
+/// `SegmentedNav`, a `TabNav`) to [`roving`]. Shared by [`segmented_nav!`] and [`tab_nav!`]; not for apps.
+#[doc(hidden)]
+#[macro_export]
+macro_rules! roving_nav {
+    ($install:ident, $nav:ident, $item:ident) => {
+        /// Wires the window's walk over its items to `dome_ui::roving`.
+        pub fn $install<'a, T>(window: &'a T)
+        where
+            T: slint::ComponentHandle,
+            $nav<'a>: slint::Global<'a, T>,
+        {
+            /// Which items are disabled, as `dome_ui::roving` reads them.
+            fn disabled(items: &slint::ModelRc<$item>) -> Vec<bool> {
+                slint::Model::iter(items)
+                    .map(|item| item.disabled)
+                    .collect()
+            }
+
             let nav = window.global::<$nav>();
             nav.on_step(|items, from, forward, wrap| {
-                $crate::segmented::step(&dome_ui_disabled(&items), from, forward, wrap)
+                $crate::roving::step(&disabled(&items), from, forward, wrap)
             });
-            nav.on_edge(|items, last| $crate::segmented::edge(&dome_ui_disabled(&items), last));
-        }
-
-        /// Which segments are disabled, as `dome_ui::segmented` reads them.
-        fn dome_ui_disabled(items: &slint::ModelRc<$item>) -> Vec<bool> {
-            slint::Model::iter(items)
-                .map(|item| item.disabled)
-                .collect()
+            nav.on_edge(|items, last| $crate::roving::edge(&disabled(&items), last));
         }
     };
 }

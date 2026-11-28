@@ -64,6 +64,12 @@ export global Size {
     out property <length> segment-inset: 2px;
     // Pending design: how narrow a text segment may get before its label is cut with «…» (§ 5.6).
     out property <length> segment-min-w: 40px;
+    // The active tab's underline, drawn inside the bar's bottom (§ 5.7).
+    out property <length> tab-indicator: 2px;
+    // Pending design: a tab's side padding around its label (§ 5.7 gives the text, not the room around it).
+    out property <length> tab-pad-x: 10px;
+    // Pending design: how narrow a tab may get before its label is cut with «…» (§ 5.7).
+    out property <length> tab-min-w: 40px;
 
     // Fixed sizes (§ 3.5)
     out property <length> side-panel: 300px;

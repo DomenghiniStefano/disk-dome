@@ -26,11 +26,13 @@ The Slint half, in `ui/`:
   property per file.
 - `components/` — one file per component of § 5, each exported through `index.slint`: `Label`, `SelectableLabel` (text
   that can be selected and copied), `Icon`, `Button`,
-  `SegmentedControl`, `ToggleButton`, `SearchField`, `ScrollBar` (vertical or horizontal), `DomeWindow` (the window
+  `SegmentedControl`, `Tabs` and `TabPanel` (§ 5.7), `ToggleButton`, `SearchField`, `ScrollBar` (vertical or horizontal), `DomeWindow` (the window
   every screen inherits: it tells the popups its size), and the menu (§ 5.16): `MenuFrame` (the level-1 surface),
   `MenuList` (entries from `[MenuEntry]`), `Menu` (the popup, three levels), `ContextMenu` (right click, Menu key,
   Shift+F10), `MenuButton`, and the tooltip (§ 5.17): `Tooltip` (inside a control; `Button` and `ToggleButton`
   have it through `tooltip`) and `TooltipBubble`, drawn by `DomeWindow` from `primitives/tooltip-layer.slint`.
+- `SegmentedNav` and `TabNav` — the walk over a row with one Tab stop, skipping disabled items, answered by
+  `src/roving.rs` and wired by `segmented_nav!` and `tab_nav!` (which also builds the tabs' «⋯» menu).
 - `MenuNav` (in `menu-list.slint`) — what Slint cannot compute (no loops, no prefix test): the walk over a menu's
   entries, its type-ahead and `toggled`, answered by `src/menu.rs` and wired by `menu_nav!`.
 - `primitives/` — the behaviour components share, never used by screens: `FocusTarget` (one keyboard stop),
