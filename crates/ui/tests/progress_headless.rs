@@ -217,7 +217,11 @@ fn progress_and_usage_bars_fill_slide_and_warn() {
 
     // 50 of 100 fills half, `bar-fill` on `bar-track`; a new value is drawn at once (the data never moves, § 3.10).
     assert_eq!(harness.get_used_fill(), BAR / 2.0, "half the drive");
-    assert_eq!(harness.get_picker_fill(), BAR / 2.0, "half the drive, small");
+    assert_eq!(
+        harness.get_picker_fill(),
+        BAR / 2.0,
+        "half the drive, small"
+    );
     assert_eq!(
         harness.get_used_said(),
         "50",
