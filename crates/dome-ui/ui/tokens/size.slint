@@ -120,6 +120,22 @@ export global Size {
     out property <length> usage-h-sm: 4px;
     out property <length> usage-h: 6px;
     out property <float> usage-warning: 0.90;
+    // OptionCard, EmptyState, Card (§ 5.9, § 5.22, § 5.23)
+    // Pending design: the gap between option cards, stacked or side by side.
+    out property <length> option-card-gap: 8px;
+    // Pending design: the gap between an option card's title line and its description.
+    out property <length> option-card-text-gap: 2px;
+    // Pending design: the width an option card asks for; side by side the cards share the row equally from it.
+    out property <length> option-card-w: 240px;
+    // The empty state's icon (§ 5.22).
+    out property <length> empty-icon: 32px;
+    // Pending design: the gap between the empty state's icon, title, description and content.
+    out property <length> empty-gap: 8px;
+    // Pending design: how wide the empty state's title and description run before they wrap, so a wide area keeps
+    // them a readable block (a small dialog's width).
+    out property <length> empty-w: dialog-sm;
+    // Pending design: the gap between a card's header and its content, and between the blocks of its content.
+    out property <length> card-gap: 8px;
 
     // Fixed sizes (§ 3.5)
     out property <length> side-panel: 300px;

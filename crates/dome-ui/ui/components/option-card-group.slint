@@ -1,0 +1,312 @@
+// OptionCard (§ 5.9): a large choice, a card-sized radio (the scan modes, § 6.7). Each card has a `surface` fill, a
+// 1 px `line` edge, radius `card`, `card-pad` inside; the radio's circle beside its title (`body-strong`), an optional
+// badge after the title, a description under it (`caption`, `ink-muted`, wrapping). Chosen: a 1 px `accent` edge and
+// an `accent-soft` fill. The cards come as a group, stacked (the default) or side by side sharing the row equally,
+// and behave as a Radix RadioGroup: one Tab stop on the chosen card (the first enabled one with none chosen), the
+// arrow keys choose the previous / next enabled card and `wrap-around` goes round the ends, Space chooses the focused
+// card, a click chooses a card. A disabled card is faded, skipped by the keyboard and says why in its tooltip; a
+// title that does not fit is cut with «…» and said whole in the tooltip.
+//
+// Slint functions have no loops, so skipping the disabled cards is answered by Rust through `OptionCardNav`
+// (`crates/dome-ui/src/roving.rs`, the walk the radio group shares, wired by `option_card_nav!` on every window).
+
+import { Size } from "../tokens/size.slint";
+import { Theme } from "../tokens/theme.slint";
+import { Motion } from "../tokens/motion.slint";
+import { Type, TypeStep } from "../tokens/type.slint";
+import {
+    BadgeVariant,
+    InkTone,
+    KitState,
+    LabelWrap,
+    OptionCardIndicator,
+} from "../enums.slint";
+import { InputMode } from "../input-mode.slint";
+import { Pressable } from "../primitives/pressable.slint";
+import { FocusTarget } from "../primitives/focus-target.slint";
+import { FocusRing } from "../primitives/focus-ring.slint";
+import { Label } from "label.slint";
+import { Badge } from "badge.slint";
+import { RadioMark } from "radio-mark.slint";
+import { Tooltip } from "tooltip.slint";
+
+// One card. Only `title` is needed.
+export struct OptionCardItem {
+    // Shown, and its accessible name.
+    title: string,
+    // Under the title, wrapping; read by screen readers as the description.
+    description: string,
+    // A badge after the title («Recommended»), none when empty.
+    badge: string,
+    badge-variant: BadgeVariant,
+    // Said on hover and keyboard focus (§ 5.17); on a disabled card, why.
+    tooltip: string,
+    disabled: bool,
+}
+
+// The answers Slint cannot compute (`crates/dome-ui/src/roving.rs`).
+export global OptionCardNav {
+    // The nearest enabled card after `from` (`forward`) or before it; `wrap` goes round the ends, otherwise the
+    // choice stays. With `from` out of range, the first (forward) or last enabled one. -1 with none enabled.
+    pure callback step(items: [OptionCardItem], from: int, forward: bool, wrap: bool) -> int;
+    // The first or the last enabled card, -1 with none.
+    pure callback edge(items: [OptionCardItem], last: bool) -> int;
+}
+
+// State → look, in one place.
+global OptionCardLook {
+    // Chosen keeps its `accent-soft` under the pointer: the circle's own hover says the card is under it.
+    public pure function fill(chosen: bool, hovered: bool, pressed: bool) -> color {
+        return chosen ? Theme.accent-soft : pressed ? Theme.control-pressed : hovered ? Theme.hover : Theme.surface;
+    }
+
+    public pure function edge(chosen: bool) -> color {
+        return chosen ? Theme.accent : Theme.line;
+    }
+}
+
+// One card of the group: its look, its pointer area and its tooltip. The group owns the focus.
+component OptionCard {
+    in property <OptionCardItem> item;
+    in property <bool> chosen;
+    // The group's keyboard focus is on this card: the ring shows around it.
+    in property <bool> focused;
+    in property <bool> group-enabled;
+    in property <OptionCardIndicator> indicator;
+    in property <LabelWrap> wrap;
+    // Side by side, a card grows to the row's tallest, so the cards of a row end together.
+    in property <bool> fill-height;
+    in property <KitState> kit-state;
+    // Esc put this card's tooltip away.
+    in property <bool> hushed;
+
+    // The pointer or the keyboard asks for its tooltip, before Esc is heard.
+    out property <bool> asked: root.kit-state == KitState.live && (press.hovered || root.focused);
+    out property <bool> tooltip-shown: tip.shown;
+
+    callback clicked;
+
+    property <bool> live: root.group-enabled && !root.item.disabled;
+    property <bool> has-mark: root.indicator == OptionCardIndicator.radio;
+    property <bool> has-badge: root.item.badge != "";
+    property <bool> has-description: root.item.description != "";
+
+    min-width: body.min-width;
+    // Every card asks for the same width, so side by side they share the row equally.
+    preferred-width: max(body.min-width, Size.option-card-w);
+    max-width: Size.unbounded;
+    min-height: body.min-height;
+    preferred-height: body.preferred-height;
+    max-height: root.fill-height ? Size.unbounded : self.preferred-height;
+    opacity: root.item.disabled ? Size.disabled : 1;
+
+    accessible-role: radio-button;
+    accessible-label: root.item.title;
+    accessible-description: root.item.disabled && root.item.tooltip != "" ? root.item.tooltip : root.item.description;
+    accessible-enabled: root.live;
+    accessible-checkable: true;
+    accessible-checked: root.chosen;
+    accessible-action-default => {
+        root.clicked();
+    }
+
+    Rectangle {
+        width: 100%;
+        height: 100%;
+        border-radius: Size.radius-card;
+        border-width: Size.border-hairline;
+        border-color: OptionCardLook.edge(root.chosen);
+        background: OptionCardLook.fill(root.chosen, press.hovered, press.pressed);
+        animate background, border-color { duration: Motion.fast; }
+    }
+
+    body := HorizontalLayout {
+        padding: Size.card-pad;
+        spacing: Size.label-gap;
+
+        // The circle, beside the title's line.
+        if root.has-mark: VerticalLayout {
+            alignment: start;
+            padding-top: (Type.line(TypeStep.body-strong) - Size.checkbox) / 2;
+
+            RadioMark {
+                chosen: root.chosen;
+                hovered: press.hovered;
+                pressed: press.pressed;
+            }
+        }
+
+        VerticalLayout {
+            alignment: start;
+            spacing: Size.option-card-text-gap;
+
+            HorizontalLayout {
+                alignment: start;
+                spacing: Size.label-gap;
+
+                // Hugs its text, so the badge follows it; short of room the title is cut before the badge.
+                name-label := Label {
+                    max-width: self.preferred-width;
+                    text: root.item.title;
+                    step: TypeStep.body-strong;
+                    // The card carries the text as its accessible name.
+                    accessible-role: none;
+                }
+
+                if root.has-badge: VerticalLayout {
+                    alignment: center;
+
+                    Badge {
+                        min-width: self.preferred-width;
+                        text: root.item.badge;
+                        variant: root.item.badge-variant;
+                    }
+                }
+            }
+
+            if root.has-description: Label {
+                text: root.item.description;
+                step: TypeStep.caption;
+                tone: InkTone.muted;
+                wrap: root.wrap;
+                // The card carries the text as its accessible description.
+                accessible-role: none;
+            }
+        }
+    }
+
+    if root.focused: FocusRing {
+        radius: Size.radius-card;
+    }
+
+    press := Pressable {
+        enabled: root.live;
+        focusable: false;
+        kit-state: root.kit-state;
+        activated => {
+            root.clicked();
+        }
+    }
+
+    // After the pointer area, so over a disabled card it can watch the pointer itself.
+    tip := Tooltip {
+        text: root.item.tooltip != "" ? root.item.tooltip : name-label.cut ? root.item.title : "";
+        hovered: root.asked && press.hovered && !root.hushed;
+        focused: root.asked && root.focused && !root.hushed;
+        pressed: press.pressed;
+        watch-pointer: !root.live;
+    }
+}
+
+export component OptionCardGroup {
+    in property <[OptionCardItem]> items;
+    // Written by the group when the user chooses, and by the screen to set the choice: both sides write. Out of
+    // range, no card is chosen.
+    in-out property <int> current-index: -1;
+    in property <bool> enabled: true;
+    // Stacked (`vertical`) or side by side (`horizontal`, sharing the row equally); every arrow key moves the choice
+    // either way, as Radix.
+    in property <Orientation> orientation: Orientation.vertical;
+    // The arrow keys go round the ends.
+    in property <bool> wrap-around: true;
+    in property <OptionCardIndicator> indicator: OptionCardIndicator.radio;
+    // How the descriptions wrap: between words by default; `none` keeps one line, cut with «…».
+    in property <LabelWrap> wrap: LabelWrap.word;
+    // The Kit window only (§ 9): hover and pressed are shown on the card after the focused one.
+    in property <KitState> kit-state: KitState.live;
+
+    // The card the keyboard is on: the chosen one, or the first enabled one with none chosen (Radix's roving focus).
+    out property <int> focus-index: root.current-index >= 0 && root.current-index < root.items.length
+        ? root.current-index : OptionCardNav.edge(root.items, false);
+    // The card whose tooltip shows, -1 with none (the tests read it).
+    out property <int> tooltip-index: -1;
+
+    // The user chose another card.
+    callback selected(index: int);
+
+    property <bool> vertical: root.orientation == Orientation.vertical;
+    property <int> kit-item: Math.mod(root.focus-index + 1, max(1, root.items.length));
+    // The card whose tooltip Esc put away, until the pointer and the focus leave it.
+    property <int> hushed: -1;
+
+    function choose(index: int) {
+        if (index >= 0 && index < root.items.length && index != root.current-index && !root.items[index].disabled) {
+            root.current-index = index;
+            root.selected(index);
+        }
+    }
+
+    min-width: grid.min-width;
+    preferred-width: grid.preferred-width;
+    max-width: grid.max-width;
+    min-height: grid.min-height;
+    preferred-height: grid.preferred-height;
+    // Never taller than its cards ask: side by side they grow to the tallest of the row, and no band is left under
+    // them.
+    max-height: grid.preferred-height;
+    opacity: root.enabled ? 1 : Size.disabled;
+
+    forward-focus: group;
+    accessible-role: radio-group;
+    accessible-enabled: root.enabled;
+
+    group := FocusTarget {
+        enabled: root.enabled;
+        kit-state: root.kit-state;
+        enter-activates: false;
+        activated => {
+            root.choose(root.focus-index);
+        }
+        key-pressed(event) => {
+            if (event.text == Key.LeftArrow || event.text == Key.UpArrow) {
+                root.choose(OptionCardNav.step(root.items, root.focus-index, false, root.wrap-around));
+            } else if (event.text == Key.RightArrow || event.text == Key.DownArrow) {
+                root.choose(OptionCardNav.step(root.items, root.focus-index, true, root.wrap-around));
+            } else if (event.text == Key.Escape && root.tooltip-index >= 0) {
+                // Esc puts the tooltip away (§ 5.17).
+                root.hushed = root.tooltip-index;
+            } else {
+                return reject;
+            }
+            InputMode.keyboard = true;
+            return accept;
+        }
+    }
+
+    grid := GridLayout {
+        spacing-horizontal: Size.option-card-gap;
+        spacing-vertical: Size.option-card-gap;
+
+        for item[index] in root.items: OptionCard {
+            row: root.vertical ? index : 0;
+            col: root.vertical ? 0 : index;
+            horizontal-stretch: 1;
+            item: item;
+            chosen: index == root.current-index;
+            focused: index == root.focus-index && group.show-focus;
+            group-enabled: root.enabled;
+            indicator: root.indicator;
+            wrap: root.wrap;
+            fill-height: !root.vertical;
+            kit-state: index == root.kit-item && root.kit-state != KitState.focus ? root.kit-state : KitState.live;
+            hushed: root.hushed == index;
+            clicked => {
+                group.focus();
+                root.choose(index);
+            }
+
+            changed asked => {
+                if (!self.asked && root.hushed == index) {
+                    root.hushed = -1;
+                }
+            }
+            changed tooltip-shown => {
+                if (self.tooltip-shown) {
+                    root.tooltip-index = index;
+                } else if (root.tooltip-index == index) {
+                    root.tooltip-index = -1;
+                }
+            }
+        }
+    }
+}

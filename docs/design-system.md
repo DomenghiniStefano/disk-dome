@@ -1147,6 +1147,19 @@ A card-sized radio (scan mode, first launch): `surface` fill, 1 px `line`, radiu
 `body-strong`, description `caption` `ink-muted`, optional badge («Recommended»). Chosen: 1 px `accent` edge plus
 `accent-soft` fill. Arrow keys move the choice.
 
+| OptionCardGroup | |
+| --- | --- |
+| Interface | `items: [OptionCardItem]`, `current-index` (written by both the group and the screen; -1, the default, chooses none), `orientation` (`vertical` default), `wrap-around` (default on), `indicator`, `wrap` (the descriptions', `word` by default), `enabled`; `selected(index)` when the user chooses; `focus-index` and `tooltip-index` out |
+| `OptionCardItem` | `title` (the accessible name), `description` (the accessible description), `badge` and `badge-variant` (a `Badge` after the title, none when empty), `tooltip`, `disabled` |
+| Card | the radio's circle (§ 5.8) beside the title's line, `label-gap` from it; the badge after the title, `label-gap` apart; the description under the title, `option-card-text-gap` below it. Hover `hover` fill, pressed `control-pressed` (pending design); the chosen card keeps its `accent-soft` and its circle shows the hover. The focus ring goes round the card |
+| Indicator `OptionCardIndicator` | `radio` (default): the circle; `none`: the edge and the fill alone say the choice |
+| Layout | `vertical`: stacked, each card as wide as the group, `option-card-gap` apart; `horizontal`: side by side, each asking `option-card-w` and sharing the row equally, all as tall as the tallest of the row. The group is never taller than its cards ask |
+| Overflow | the title is cut with «…» before the badge, and said whole in the tooltip; the description wraps between words (`wrap: none` keeps it on one line, cut) |
+| Keyboard | one Tab stop, on the chosen card or, with none, the first enabled one; every arrow chooses the previous / next enabled card (as Radix, in either orientation), `wrap-around` goes round the ends; Space chooses the focused card; Enter does nothing; Esc puts the tooltip away. The walk is the radio group's (`OptionCardNav`, `dome_ui::roving`, wired by `option_card_nav!`) |
+| Disabled card | faded, not clickable, skipped by the arrows; its `tooltip` says why |
+| Accessibility | the group a `radio-group`; each card a `radio-button` named by its title, described by its description (a disabled card by its reason), checked when chosen |
+| Not done | Home / End (Radix's RadioGroup has none either), an icon or free content inside a card (the screen builds its own from `Card` if it needs one) |
+
 ### 5.10 Table (the virtual table)
 
 The heart of the app: Tree, File list and Clean-up are the same component with different columns. Built on Slint's
@@ -1446,11 +1459,29 @@ and a 20 px `x` to close it. «Undo» sits right of the text; other actions, at 
 Centred in its area: a 32 px icon `ink-faint`, `display` title, `body` `ink-muted` one-line explanation, one action.
 Examples: «No matches» / «Nothing matches “*.psd” on C:» / «Clear search».
 
+| EmptyState | |
+| --- | --- |
+| Interface | `icon`, `title`, `description`, `action` (no button when empty), `action-icon`, `action-variant` (`secondary` default), `action-size` (`large` default; `hero` for the screen's call to action, § 5.2), `action-enabled`, `action-tooltip`, `text-width` (default `empty-w`), `inset` (default `section-gap`); `action-clicked()`. Its children are the screen's own content under the action (the drive cards, the scan mode's line, § 6.7, § 6.16) |
+| Layout | it takes the whole area its layout gives and centres its content there, `inset` from the edges; icon, title, description and content `empty-gap` apart, the action `section-gap` below the text. Each part is left out when empty |
+| Overflow | title and description are centred and wrap between words within `text-width`, so a wide area keeps them a readable block; the content under them may be wider. A short area asks for the content's height (the screen scrolls) |
+| Accessibility | a `groupbox` named by its title and described by its description, a polite live region (screen readers say it when it replaces content that went) |
+| Not done | shadcn's `EmptyMedia` on a filled square (no design for it) |
+
 ### 5.23 Card and DriveCard
 
 `Card`: `surface`, 1 px `line`, radius `card`, `card-pad`. `DriveCard` (empty state): 240 wide, `hard-drive` 20 px,
 «C:» `title` + label `body`, «NTFS · fast scan» `caption`, `UsageBar` 6 px, «931 GB of 953 GB used» `caption`,
 the action button.
+
+| Card | |
+| --- | --- |
+| Interface | `title`, `summary` (the key number), `action`, `action-icon`, `action-tooltip`, `inset` (default `card-pad`), `gap` (default `card-gap`); `action-clicked()`. Its children are the content |
+| Header | shown when a `title`, `summary` or `action` is given: the title in `overline` `ink-muted`, then at the end the summary in `caption-strong` and the action, a small `ghost` button (shadcn's CardAction; icon only, it is named by `action-tooltip`), `label-gap` apart |
+| Content | the children, stacked `gap` apart under the header |
+| Size | it asks for its content and grows with what its layout gives (the cards of a grid row end together); it never has a height of its own. The app sets the width of its own cards (`DriveCard` is a `Card` 240 wide with its content as children) |
+| Overflow | the title is cut with «…» and said whole in its tooltip; the summary is never cut (§ 3.11) |
+| Accessibility | a `groupbox` named by its title |
+| Not done | a clickable card (the map card's click is the screen's: a `Card` holding a button), shadcn's CardDescription and CardFooter (the content lays them out) |
 
 ### 5.24 Splitter and ScrollBar
 

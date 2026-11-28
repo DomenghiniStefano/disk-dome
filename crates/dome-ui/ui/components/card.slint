@@ -1,0 +1,113 @@
+// Card (§ 5.23, § 4.5): a block of content on `surface`, 1 px `line` edge, radius `card`, `card-pad` inside, as
+// shadcn's Card. An optional header: an `overline` title, on its right the card's key number (`caption-strong`) and
+// an optional small ghost action («All», «Open the map»). The content is the card's children, stacked `gap` apart
+// under the header; the card grows with what its layout gives it (a grid row ends together) and never has a height
+// of its own. A title that does not fit is cut with «…» and said whole in its tooltip; the key number is never cut.
+// The app's own cards are built on it (`DriveCard`: a card of the width it needs, with its content as children).
+
+import { Size } from "../tokens/size.slint";
+import { Theme } from "../tokens/theme.slint";
+import { TypeStep } from "../tokens/type.slint";
+import { ButtonSize, ButtonVariant, Elide, InkTone } from "../enums.slint";
+import { Label } from "label.slint";
+import { Button } from "button.slint";
+import { Tooltip } from "tooltip.slint";
+
+export component Card {
+    // The header's title, in `overline`; with no title, no summary and no action there is no header.
+    in property <string> title;
+    // The card's key number, at the header's end (§ 4.5: «on the right of the title, its key number»).
+    in property <string> summary;
+    // A small ghost button at the header's end, after the summary (shadcn's CardAction); none when empty.
+    in property <string> action;
+    in property <image> action-icon;
+    in property <string> action-tooltip;
+    // The room inside the edge, and between the header and the content's blocks.
+    in property <length> inset: Size.card-pad;
+    in property <length> gap: Size.card-gap;
+
+    // The header's action was pressed.
+    callback action-clicked;
+
+    property <bool> has-title: root.title != "";
+    property <bool> has-summary: root.summary != "";
+    property <bool> has-action: root.action != "" || root.action-icon.width > 0;
+    property <bool> has-header: root.has-title || root.has-summary || root.has-action;
+
+    min-width: column.min-width;
+    preferred-width: column.preferred-width;
+    min-height: column.min-height;
+    preferred-height: column.preferred-height;
+    // Its layout may give it more than it asks: the content grows into it, never a band beside the card.
+    max-width: Size.unbounded;
+    max-height: Size.unbounded;
+
+    accessible-role: groupbox;
+    accessible-label: root.title;
+
+    Rectangle {
+        width: 100%;
+        height: 100%;
+        background: Theme.surface;
+        border-width: Size.border-hairline;
+        border-color: Theme.line;
+        border-radius: Size.radius-card;
+    }
+
+    column := VerticalLayout {
+        padding: root.inset;
+        spacing: root.gap;
+
+        if root.has-header: HorizontalLayout {
+            spacing: Size.label-gap;
+
+            // The title takes what the summary and the action leave, and is cut there.
+            Rectangle {
+                horizontal-stretch: 1;
+                min-width: 0;
+                preferred-width: heading.preferred-width;
+                min-height: heading.min-height;
+                preferred-height: heading.preferred-height;
+
+                heading := Label {
+                    width: 100%;
+                    height: 100%;
+                    text: root.title;
+                    step: TypeStep.overline;
+                    tone: InkTone.muted;
+                }
+
+                // Says a cut title whole; it watches the pointer only then, so the header stays free otherwise.
+                Tooltip {
+                    text: heading.cut ? root.title : "";
+                    watch-pointer: self.text != "";
+                }
+            }
+
+            if root.has-summary: Label {
+                // A value is never cut (§ 3.11: in cards the values never wrap, the labels shorten).
+                min-width: self.preferred-width;
+                horizontal-stretch: 0;
+                text: root.summary;
+                step: TypeStep.caption-strong;
+                align: TextHorizontalAlignment.right;
+                elide: Elide.none;
+            }
+
+            if root.has-action: Button {
+                horizontal-stretch: 0;
+                text: root.action;
+                icon: root.action-icon;
+                variant: ButtonVariant.ghost;
+                size: ButtonSize.small;
+                tooltip: root.action-tooltip;
+                accessible-label: root.action != "" ? root.action : root.action-tooltip;
+                clicked => {
+                    root.action-clicked();
+                }
+            }
+        }
+
+        @children
+    }
+}

@@ -171,6 +171,20 @@ macro_rules! radio_nav {
     };
 }
 
+/// Writes `pub fn install_option_card_nav(window)` in the calling module: it wires a window's `OptionCardNav` global
+/// (§ 5.9) to [`roving`], the walk the radio group shares, so option cards move as radio buttons do:
+///
+/// ```ignore
+/// use crate::generated::{OptionCardNav, OptionCardItem};
+/// dome_ui::option_card_nav!(OptionCardNav, OptionCardItem);
+/// ```
+#[macro_export]
+macro_rules! option_card_nav {
+    ($nav:ident, $item:ident) => {
+        $crate::roving_nav!(install_option_card_nav, $nav, $item);
+    };
+}
+
 /// Writes `pub fn install_select_nav(window)` in the calling module: it wires a window's `SelectNav` global (§ 5.5) to
 /// [`select`]. It reads the entries through the helper [`menu_nav!`] writes, so it goes in the same module, after it:
 ///
