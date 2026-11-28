@@ -1055,6 +1055,21 @@ and in the settings (theme, density, units).
 Text tabs (`body`, `ink-muted`) in the tab bar; the active one `ink` with a 2 px `accent` underline drawn
 inside the bar's bottom. Ctrl+1 / 2 / 3 switch them (Ctrl+Tab belongs to the drive tabs, § 5.27). No icons.
 
+| | |
+| --- | --- |
+| Interface | `items: [TabItem]`, `current-index` (written by both the tabs and the screen), `selected(index)` when the user chooses; `activation`, `overflow-mode`, `wrap-around`, `enabled`; out: `focus-index`, `tooltip-index`, `overflowing`, `shift` |
+| `TabItem` | `text` (always the accessible name), `tooltip`, `disabled` |
+| Bar | `tabbar` tall; each tab its label with `tab-pad-x` on both sides, the underline as wide as the label (pending design); hover `hover` fill, pressed `control-pressed`; the tabs hug their labels and the screen places them (the section bar's summary sits right) |
+| Keyboard | one Tab stop, on the current tab; ← / → the previous / next enabled tab, Home / End the first / last, ↑ ↓ left to the screen (a horizontal list, as Radix); `wrap-around` (default on) goes round the ends; Esc puts the tooltip away. `TabActivation.automatic` (default, as Radix): the arrows choose; `manual`: they move the focus ring and Enter / Space choose, and leaving the tabs puts the focus back on the current one |
+| Shortcuts | Ctrl+1 … belong to the screen, which sets `current-index` from its own key handling: the tabs hear keys only while focused |
+| Disabled tab | faded (`disabled` opacity), not clickable, skipped by the keyboard; its `tooltip` says why |
+| Tooltip | a tab's `tooltip`, or the text of a cut label; on hover, and at once for the focused tab under keyboard focus |
+| Overflow | `TabOverflow.shrink` (default): the tabs give way down to `tab-min-w` (40, pending design) and cut their labels with «…», and the tooltip says the full text. `TabOverflow.menu`: the labels stay whole; when they do not fit, the bar ends with a small ghost «⋯» `MenuButton` («More tabs», its own Tab stop) listing every tab as a radio item (the current one checked, a disabled one with its reason), and the tabs slide so the focused one is whole in view |
+| Nothing current | `current-index` out of range: no tab is underlined; an arrow chooses the first (→) or last (←) enabled one |
+| `TabPanel` | the content the screen shows for the current tab (`if tabs.current-index == 1: TabPanel { … }`): a column with the `tab-panel` role, named by its `accessible-label` |
+| Accessibility | the bar is a `tab-list` with its item count; each tab a `tab` with its index, selected when current, its tooltip as description |
+| Not done | vertical tabs (no vertical tab bar in the design), closable tabs and icons (the drive tabs, § 5.27, are their own component on the same keyboard walk), a link from a panel to its tab for screen readers (Slint 1.19 has no relation property), scroll buttons |
+
 ### 5.8 Checkbox, Radio, Switch
 
 - `Checkbox`: 14 px box, radius `control`, 1 px `line-strong`; checked: `accent` fill with a `check` in
