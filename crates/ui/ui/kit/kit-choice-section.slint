@@ -1,0 +1,283 @@
+// The Kit's sections for the choice controls (§ 5.8, § 9): Checkbox, RadioGroup and Switch in every state, with
+// long and Italian labels cut or wrapped, a disabled item, the label on either side, and a working group of check
+// boxes under a tri-state one. Instantiated once by `kit.slint`. Texts are the Kit's own, not translated.
+
+import {
+    Size,
+    Checkbox,
+    CheckboxState,
+    RadioGroup,
+    RadioItem,
+    Switch,
+    SwitchLabelSide,
+    LabelWrap,
+    KitState,
+} from "@dome-ui";
+import { KitSection, KitRow } from "kit-parts.slint";
+
+struct KitChoiceState { name: string, state: KitState, enabled: bool }
+
+global KitChoiceData {
+    out property <[KitChoiceState]> states: [
+        { name: "rest", state: KitState.live, enabled: true },
+        { name: "hover", state: KitState.hover, enabled: true },
+        { name: "pressed", state: KitState.pressed, enabled: true },
+        { name: "focus", state: KitState.focus, enabled: true },
+        { name: "disabled", state: KitState.live, enabled: false },
+    ];
+    out property <[CheckboxState]> checkbox-states: [CheckboxState.unchecked, CheckboxState.checked, CheckboxState.indeterminate];
+    out property <[RadioItem]> scope: [
+        { text: "All of C:" },
+        { text: "The folder open in the map" },
+        { text: "The selection" },
+    ];
+    // An item that cannot be chosen yet says why.
+    out property <[RadioItem]> scope-disabled: [
+        { text: "All of C:" },
+        {
+            text: "The folder open in the map",
+            disabled: true,
+            tooltip: "Zoom the map into a folder first"
+        },
+        { text: "The selection" },
+    ];
+    out property <[RadioItem]> units: [{ text: "Like File Explorer" }, { text: "Binary (GiB)" }, { text: "Decimal" }];
+    // Italian labels, ~25 % longer than English (§ 3.3).
+    out property <[RadioItem]> long-scope: [
+        { text: "Tutto il disco C:" },
+        { text: "La cartella aperta nella mappa" },
+        { text: "Solo gli elementi selezionati e visibili" },
+    ];
+    out property <string> long-label: "Includi anche gli elementi nascosti dai filtri";
+    out property <string> disabled-reason: "Not available in this mode";
+}
+
+export component KitChoiceSection inherits VerticalLayout {
+    // The group under a tri-state box: the box follows its rows, and ticks or clears them all. The boxes write their
+    // own state when clicked, so the group sets them in the handlers rather than through bindings.
+    function follow-rows() {
+        all.state = copy-a.state == CheckboxState.checked && copy-b.state == CheckboxState.checked
+            ? CheckboxState.checked
+            : copy-a.state == CheckboxState.checked || copy-b.state == CheckboxState.checked
+            ? CheckboxState.indeterminate : CheckboxState.unchecked;
+    }
+
+    KitSection {
+        title: "Checkbox · states";
+        for state in KitChoiceData.states: KitRow {
+            name: state.name;
+            for value in KitChoiceData.checkbox-states: Checkbox {
+                text: "Free space";
+                state: value;
+                kit-state: state.state;
+                enabled: state.enabled;
+                tooltip: state.enabled ? "" : KitChoiceData.disabled-reason;
+            }
+        }
+    }
+
+    KitSection {
+        title: "Checkbox · labels and groups";
+
+        KitRow {
+            name: "live";
+
+            Checkbox {
+                text: "Show hidden files";
+            }
+
+            Checkbox {
+                text: "Mostra i file nascosti";
+                state: CheckboxState.checked;
+            }
+        }
+
+        KitRow {
+            name: "cut, wrapped";
+
+            HorizontalLayout {
+                alignment: start;
+                width: Size.button-min-w * 2;
+
+                Checkbox {
+                    text: KitChoiceData.long-label;
+                }
+            }
+
+            HorizontalLayout {
+                alignment: start;
+                width: Size.button-min-w * 2;
+
+                Checkbox {
+                    text: KitChoiceData.long-label;
+                    wrap: LabelWrap.word;
+                }
+            }
+        }
+
+        KitRow {
+            name: "group";
+
+            VerticalLayout {
+                all := Checkbox {
+                    text: "All copies";
+                    state: CheckboxState.indeterminate;
+                    toggled(value) => {
+                        copy-a.state = value;
+                        copy-b.state = value;
+                    }
+                }
+
+                HorizontalLayout {
+                    padding-left: Size.indent;
+
+                    VerticalLayout {
+                        copy-a := Checkbox {
+                            text: "C:\\Photos\\2024\\IMG_0001.jpg";
+                            state: CheckboxState.checked;
+                            toggled => {
+                                root.follow-rows();
+                            }
+                        }
+
+                        copy-b := Checkbox {
+                            text: "D:\\Backup\\Photos\\IMG_0001.jpg";
+                            toggled => {
+                                root.follow-rows();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    KitSection {
+        title: "RadioGroup · states";
+        for state in KitChoiceData.states: KitRow {
+            name: state.name;
+
+            RadioGroup {
+                items: KitChoiceData.units;
+                current-index: 0;
+                orientation: Orientation.horizontal;
+                kit-state: state.state;
+                enabled: state.enabled;
+            }
+        }
+    }
+
+    KitSection {
+        title: "RadioGroup · content";
+
+        KitRow {
+            name: "vertical, disabled item, none";
+
+            RadioGroup {
+                items: KitChoiceData.scope;
+                current-index: 0;
+            }
+
+            RadioGroup {
+                items: KitChoiceData.scope-disabled;
+                current-index: 2;
+            }
+
+            RadioGroup {
+                items: KitChoiceData.scope;
+            }
+        }
+
+        KitRow {
+            name: "cut, wrapped";
+
+            HorizontalLayout {
+                alignment: start;
+                width: Size.button-min-w * 2;
+
+                RadioGroup {
+                    items: KitChoiceData.long-scope;
+                    current-index: 0;
+                }
+            }
+
+            HorizontalLayout {
+                alignment: start;
+                width: Size.button-min-w * 2;
+
+                RadioGroup {
+                    items: KitChoiceData.long-scope;
+                    current-index: 0;
+                    wrap: LabelWrap.word;
+                }
+            }
+        }
+    }
+
+    KitSection {
+        title: "Switch · states";
+        for state in KitChoiceData.states: KitRow {
+            name: state.name;
+
+            Switch {
+                text: "Live updates";
+                kit-state: state.state;
+                enabled: state.enabled;
+                tooltip: state.enabled ? "" : KitChoiceData.disabled-reason;
+            }
+
+            Switch {
+                text: "Live updates";
+                checked: true;
+                kit-state: state.state;
+                enabled: state.enabled;
+                tooltip: state.enabled ? "" : KitChoiceData.disabled-reason;
+            }
+        }
+    }
+
+    KitSection {
+        title: "Switch · label side and length";
+
+        KitRow {
+            name: "right, left";
+
+            Switch {
+                text: "Rescan at launch";
+            }
+
+            HorizontalLayout {
+                width: Size.side-panel;
+
+                Switch {
+                    text: "Rescan at launch";
+                    label-side: SwitchLabelSide.left;
+                    checked: true;
+                }
+            }
+        }
+
+        KitRow {
+            name: "cut, wrapped";
+
+            HorizontalLayout {
+                alignment: start;
+                width: Size.button-min-w * 2;
+
+                Switch {
+                    text: "Mostra «Analizza con DiskDome» su cartelle e unità";
+                }
+            }
+
+            HorizontalLayout {
+                alignment: start;
+                width: Size.button-min-w * 2;
+
+                Switch {
+                    text: "Mostra «Analizza con DiskDome» su cartelle e unità";
+                    wrap: LabelWrap.word;
+                }
+            }
+        }
+    }
+}

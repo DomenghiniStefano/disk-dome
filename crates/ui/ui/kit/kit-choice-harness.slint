@@ -1,0 +1,125 @@
+// The choice controls' test window (`tests/choice_headless.rs`, § 5.8): a check box flipped by pointer and keyboard,
+// an indeterminate one, a long Italian label cut in a narrow box and one wrapped there, a disabled box with its reason,
+// a radio group with a disabled item, a switch, and a switch with its label on the left in a wide box. Every row
+// starts at x = 0 and the rows are stacked without gaps, so the test computes where each one is. Kit only; texts
+// are the Kit's own, not translated.
+
+import {
+    DomeWindow,
+    Checkbox,
+    CheckboxState,
+    RadioGroup,
+    RadioItem,
+    Switch,
+    SwitchLabelSide,
+    LabelWrap,
+    Size,
+} from "@dome-ui";
+
+export component KitChoiceHarness inherits DomeWindow {
+    preferred-width: Size.window-min-w;
+    preferred-height: Size.window-min-h;
+
+    // The narrow box the long labels must fit in, and the wide one the left-label switch fills.
+    out property <length> narrow-box: Size.button-min-w * 2;
+    out property <length> wide-box: Size.side-panel;
+
+    out property <length> check-y: check.y;
+    out property <length> check-height: check.height;
+    out property <CheckboxState> check-state: check.state;
+    out property <int> check-flips;
+    out property <CheckboxState> last-state;
+    out property <length> mixed-y: mixed.y;
+    out property <CheckboxState> mixed-state: mixed.state;
+    out property <length> long-y: long-row.y;
+    out property <length> long-width: long.width;
+    out property <bool> long-tooltip: long.tooltip-shown;
+    out property <length> wrapped-y: wrapped-row.y;
+    out property <length> wrapped-height: wrapped.height;
+    out property <length> off-y: off.y;
+    out property <CheckboxState> off-state: off.state;
+    out property <bool> off-tooltip: off.tooltip-shown;
+    out property <length> radio-y: radio.y;
+    out property <int> radio-index: radio.current-index;
+    out property <int> radio-focus: radio.focus-index;
+    out property <int> radio-picks;
+    out property <length> switch-y: switch.y;
+    out property <bool> switch-on: switch.checked;
+    out property <length> knob-x: switch.knob-x;
+    out property <int> switch-flips;
+    out property <length> left-y: left-row.y;
+    out property <length> left-width: left.width;
+
+    VerticalLayout {
+        alignment: start;
+
+        check := Checkbox {
+            text: "Show hidden files";
+            toggled(state) => {
+                root.check-flips += 1;
+                root.last-state = state;
+            }
+        }
+
+        mixed := Checkbox {
+            text: "All copies";
+            state: CheckboxState.indeterminate;
+        }
+
+        long-row := HorizontalLayout {
+            alignment: start;
+            width: root.narrow-box;
+
+            long := Checkbox {
+                text: "Includi anche gli elementi nascosti dai filtri";
+            }
+        }
+
+        wrapped-row := HorizontalLayout {
+            alignment: start;
+            width: root.narrow-box;
+
+            wrapped := Checkbox {
+                text: "Includi anche gli elementi nascosti dai filtri";
+                wrap: LabelWrap.word;
+            }
+        }
+
+        off := Checkbox {
+            text: "Free space";
+            enabled: false;
+            tooltip: "The free space shows on a whole drive only";
+        }
+
+        radio := RadioGroup {
+            items: [
+                { text: "All of C:" },
+                {
+                    text: "The folder open in the map",
+                    disabled: true,
+                    tooltip: "Zoom the map into a folder first"
+                },
+                { text: "The selection" },
+            ];
+            selected => {
+                root.radio-picks += 1;
+            }
+        }
+
+        switch := Switch {
+            text: "Live updates";
+            toggled => {
+                root.switch-flips += 1;
+            }
+        }
+
+        left-row := HorizontalLayout {
+            width: root.wide-box;
+
+            left := Switch {
+                text: "Live updates";
+                label-side: SwitchLabelSide.left;
+            }
+        }
+    }
+}
