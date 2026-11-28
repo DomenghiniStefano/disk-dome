@@ -177,7 +177,7 @@ dimmer «Light dim» tried in the mockup was dropped. `Theme.mode: ThemeMode { d
 | `control-hover` | `#2c2e31` | `#cdd0d3` | hover of controls and menu items | 11.3 / 11.0 |
 | `control-pressed` | `#1a1c1f` | `#c3c6ca` | pressed controls | 14.2 / 10.0 |
 | `line` | `#282a2d` | `#cbced1` | 1 px separators between panels, field edges |  |
-| `line-strong` | `#66696e` | `#717579` | checkbox and radio boxes (≥ 3:1) |  |
+| `line-strong` | `#6b6e73` | `#717579` | checkbox and radio boxes (≥ 3:1 on every ground at rest: `bg`, `surface`, `raised`, `field`, `control`, `hover`) |  |
 | `edge` | `#35383c` | `#bbbec2` | edge of popups and dialogs |  |
 | `ink` | `#e8eaec` | `#191c20` | text, icons that act | on surface 14.9 / 14.3 |
 | `ink-muted` | `#abaeb3` | `#494d54` | secondary text, column headers, status bar, folder icons | on surface 8.1 / 7.1 |
@@ -2493,7 +2493,7 @@ export global Theme {
     out property <color> control:           dark ? #232528 : #d7d9dc;
     out property <color> control-hover:     dark ? #2c2e31 : #cdd0d3;
     out property <color> line:              dark ? #282a2d : #cbced1;
-    out property <color> line-strong:       dark ? #66696e : #717579;
+    out property <color> line-strong:       dark ? #6b6e73 : #717579;
     out property <color> edge:              dark ? #35383c : #bbbec2;
     out property <color> ink:               dark ? #e8eaec : #191c20;
     out property <color> ink-muted:         dark ? #abaeb3 : #494d54;

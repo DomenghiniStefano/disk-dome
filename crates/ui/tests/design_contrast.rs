@@ -1,8 +1,8 @@
 //! The colour tokens against the contrast rules of `docs/design-system.md` § 7 and § 10 (card 4.T9), in the dark and
 //! the light theme, read from the compiled `Theme` and `Data` globals (WCAG 2.1 contrast, OKLab distance):
 //! text ≥ 4.5:1 on `bg`, `surface` and `raised`, and on a selected row (`accent-soft` over `surface`, with the ratios
-//! the spec quotes); `ink-faint` ≥ 4.0:1; the focus ring and the checkbox edge ≥ 3:1; `on-accent` on `accent`,
-//! `on-data` on every category and the age labels ≥ 4.5:1; the chart marks ≥ 3:1 on their grounds; two categories at
+//! the spec quotes); `ink-faint` ≥ 4.0:1; the focus ring and the checkbox edge ≥ 3:1 on every ground at rest;
+//! `on-accent` on `accent`, `on-data` on every category and the age labels ≥ 4.5:1; the chart marks ≥ 3:1 on their grounds; two categories at
 //! least ΔE OK 0.09 apart.
 //!
 //! Blind spot: the Soft and Vivid palettes (§ 3.2) are not computed yet (`Data.palette` shows the standard colours);
@@ -154,6 +154,19 @@ fn colour_tokens_meet_the_contrast_rules() {
                 g,
                 FAINT,
             );
+        }
+
+        // A focus ring or a checkbox also sits in a field, on a control and on a row under the pointer: every ground
+        // at rest (`line-strong` failed on `raised` at 2.93:1 before 2026-11-28).
+        let marked = [
+            ("bg", theme.get_bg()),
+            ("surface", theme.get_surface()),
+            ("raised", theme.get_raised()),
+            ("field", theme.get_field()),
+            ("control", theme.get_control()),
+            ("hover", theme.get_hover()),
+        ];
+        for (ground, g) in marked {
             report.at_least(
                 &format!("{name}: focus on {ground}"),
                 theme.get_focus(),
