@@ -1,0 +1,169 @@
+// The Kit's Select section (§ 9, § 5.5): every state and width, working (a choice shows in the select and in the
+// row's caption), and the open list as it looks, drawn in place. Kit only; texts are the Kit's own, not translated.
+
+import {
+    Select,
+    SelectNav,
+    SelectSize,
+    SelectWidth,
+    MenuFrame,
+    MenuList,
+    MenuEntry,
+    MenuEntryKind,
+    Label,
+    InkTone,
+    KitState,
+    Size,
+} from "@dome-ui";
+import { KitSection, KitRow } from "kit-parts.slint";
+
+global KitSelectData {
+    out property <[MenuEntry]> sort: [
+        { label: "Size" },
+        { label: "Name" },
+        { label: "Modified" },
+        { kind: MenuEntryKind.separator },
+        { kind: MenuEntryKind.section, label: "Not scanned" },
+        { label: "Allocated", disabled: true, reason: "Not scanned" },
+        { label: "Owner" },
+    ];
+    out property <[MenuEntry]> italian: [
+        { label: "Dimensione" },
+        { label: "Dimensione allocata su disco" },
+        { label: "Data dell'ultima modifica" },
+        { label: "Numero di file contenuti" },
+    ];
+    in-out property <int> sort-index: 1;
+    in-out property <int> italian-index: 1;
+    in-out property <int> fresh-index: -1;
+    in-out property <string> chosen;
+}
+
+export component KitSelectSection inherits VerticalLayout {
+    KitSection {
+        title: "Select · states and widths";
+
+        KitRow {
+            name: "states";
+
+            Select {
+                entries: KitSelectData.sort;
+                current-index <=> KitSelectData.sort-index;
+                selected(index) => {
+                    KitSelectData.chosen = KitSelectData.sort[index].label;
+                }
+            }
+
+            Select {
+                entries: KitSelectData.sort;
+                current-index: 1;
+                kit-state: KitState.hover;
+            }
+
+            Select {
+                entries: KitSelectData.sort;
+                current-index: 1;
+                kit-state: KitState.pressed;
+            }
+
+            Select {
+                entries: KitSelectData.sort;
+                current-index: 1;
+                kit-state: KitState.focus;
+            }
+
+            Select {
+                entries: KitSelectData.sort;
+                current-index: 1;
+                enabled: false;
+            }
+        }
+
+        KitRow {
+            name: "placeholder, sizes";
+
+            Select {
+                entries: KitSelectData.sort;
+                placeholder: "Sort by";
+                current-index <=> KitSelectData.fresh-index;
+                selected(index) => {
+                    KitSelectData.chosen = KitSelectData.sort[index].label;
+                }
+            }
+
+            Select {
+                entries: KitSelectData.sort;
+                current-index: 1;
+                size: SelectSize.small;
+            }
+
+            Select {
+                entries: KitSelectData.sort;
+                current-index: 1;
+                size: SelectSize.large;
+            }
+
+            Label {
+                text: "chosen: " + KitSelectData.chosen;
+                tone: InkTone.muted;
+            }
+        }
+
+        KitRow {
+            name: "width: longest, chosen";
+
+            Select {
+                entries: KitSelectData.italian;
+                current-index <=> KitSelectData.italian-index;
+                selected(index) => {
+                    KitSelectData.chosen = KitSelectData.italian[index].label;
+                }
+            }
+
+            Select {
+                entries: KitSelectData.italian;
+                width-mode: SelectWidth.chosen;
+                current-index <=> KitSelectData.italian-index;
+                selected(index) => {
+                    KitSelectData.chosen = KitSelectData.italian[index].label;
+                }
+            }
+        }
+
+        KitRow {
+            name: "width: fill, cut";
+
+            Select {
+                width: Size.search-w;
+                entries: KitSelectData.italian;
+                width-mode: SelectWidth.fill;
+                current-index <=> KitSelectData.italian-index;
+            }
+
+            Select {
+                width: Size.button-min-w * 2;
+                entries: KitSelectData.italian;
+                current-index <=> KitSelectData.italian-index;
+            }
+        }
+
+        KitRow {
+            name: "open list";
+
+            MenuFrame {
+                animate-in: false;
+                height: self.preferred-height;
+
+                MenuList {
+                    entries: SelectNav.marked(KitSelectData.sort, KitSelectData.sort-index);
+                    highlighted-index: KitSelectData.sort-index;
+                    wrap-around: false;
+                    activated(entry, index) => {
+                        KitSelectData.sort-index = index;
+                        KitSelectData.chosen = entry.label;
+                    }
+                }
+            }
+        }
+    }
+}

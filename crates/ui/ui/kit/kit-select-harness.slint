@@ -1,0 +1,128 @@
+// The Select's test window (`tests/select_headless.rs`, § 5.5): a select in the top-left corner the test drives by
+// pointer and keyboard, counting `selected`; two selects that hug the item they show, to compare the `longest`
+// width with; a disabled one; and a long list near the bottom, which must open on its chosen item.
+// Kit only; texts are the Kit's own, not translated.
+
+import {
+    DomeWindow,
+    Select,
+    SelectWidth,
+    MenuEntry,
+    MenuEntryKind,
+    Size,
+} from "@dome-ui";
+
+export global KitSelectProbe {
+    // 0 Size, 1 Name, 2 Last modified (the longest), 3 —, 4 Allocated (disabled), 5 Type
+    out property <[MenuEntry]> entries: [
+        { label: "Size" },
+        { label: "Name" },
+        { label: "Last modified" },
+        { kind: MenuEntryKind.separator },
+        { label: "Allocated", disabled: true, reason: "Not scanned" },
+        { label: "Type" },
+    ];
+    out property <[MenuEntry]> long: [
+        { label: "Item 0" },
+        { label: "Item 1" },
+        { label: "Item 2" },
+        { label: "Item 3" },
+        { label: "Item 4" },
+        { label: "Item 5" },
+        { label: "Item 6" },
+        { label: "Item 7" },
+        { label: "Item 8" },
+        { label: "Item 9" },
+        { label: "Item 10" },
+        { label: "Item 11" },
+        { label: "Item 12" },
+        { label: "Item 13" },
+        { label: "Item 14" },
+        { label: "Item 15" },
+        { label: "Item 16" },
+        { label: "Item 17" },
+        { label: "Item 18" },
+        { label: "Item 19" },
+        { label: "Item 20" },
+        { label: "Item 21" },
+        { label: "Item 22" },
+        { label: "Item 23" },
+        { label: "Item 24" },
+        { label: "Item 25" },
+        { label: "Item 26" },
+        { label: "Item 27" },
+        { label: "Item 28" },
+        { label: "Item 29" },
+    ];
+    // How many times `selected` was called, and the last index it gave.
+    in-out property <int> selections;
+    in-out property <int> last-selected: -1;
+}
+
+export component KitSelectHarness inherits DomeWindow {
+    preferred-width: Size.window-min-w;
+    preferred-height: Size.window-min-h;
+
+    out property <int> current: sort.current-index;
+    out property <bool> sort-open: sort.is-open;
+    out property <bool> disabled-open: disabled.is-open;
+    out property <bool> long-open: long.is-open;
+    out property <length> sort-width: sort.width;
+    out property <length> sort-height: sort.height;
+    out property <length> hug-short-width: hug-short.width;
+    out property <length> hug-longest-width: hug-longest.width;
+    out property <length> disabled-y: disabled.y;
+    out property <length> long-y: long.y;
+
+    sort := Select {
+        x: 0;
+        y: 0;
+        width: self.preferred-width;
+        height: self.preferred-height;
+        entries: KitSelectProbe.entries;
+        placeholder: "Sort by";
+        selected(index) => {
+            KitSelectProbe.selections += 1;
+            KitSelectProbe.last-selected = index;
+        }
+    }
+
+    hug-short := Select {
+        x: 0;
+        y: Size.toolbar * 4;
+        width: self.preferred-width;
+        height: self.preferred-height;
+        entries: KitSelectProbe.entries;
+        width-mode: SelectWidth.chosen;
+        current-index: 0;
+    }
+
+    hug-longest := Select {
+        x: 0;
+        y: Size.toolbar * 5;
+        width: self.preferred-width;
+        height: self.preferred-height;
+        entries: KitSelectProbe.entries;
+        width-mode: SelectWidth.chosen;
+        current-index: 2;
+    }
+
+    disabled := Select {
+        x: 0;
+        y: Size.toolbar * 6;
+        width: self.preferred-width;
+        height: self.preferred-height;
+        entries: KitSelectProbe.entries;
+        placeholder: "Disabled";
+        enabled: false;
+    }
+
+    long := Select {
+        x: parent.width / 2;
+        y: parent.height - self.height;
+        width: self.preferred-width;
+        height: self.preferred-height;
+        entries: KitSelectProbe.long;
+        current-index: 25;
+    }
+}
