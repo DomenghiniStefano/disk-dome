@@ -147,6 +147,9 @@ UI tests run off screen (`crates/ui/src/headless.rs`: Slint's software renderer 
 - Off-screen shots do not advance time: animations and `Timer`s stay where they started, so a colour caught
   mid-animation in a shot is not a bug.
 - Segoe UI Semibold (600) has proportional digits; 400 and 700 are tabular, so the design uses only those (§ 3.3).
+- A large window built in a debug build needs a deep stack: the Kit overflowed Windows' 1 MB main thread while the
+  off-screen tests (2 MB test threads) passed. `crates/ui/build.rs` links the binary with an 8 MB stack on MSVC; a
+  test passing off screen does not prove the window opens.
 
 ## Checklist before «done»
 
