@@ -2,6 +2,7 @@
 //! imports as `@dome-ui` (`slint-project.json`, wired in the app's `build.rs`); this is its Rust half: what the
 //! components ask Rust for, as pure functions, and the macro that wires them to an app's generated globals.
 
+pub mod breadcrumb;
 pub mod menu;
 pub mod segmented;
 
@@ -95,6 +96,69 @@ macro_rules! segmented_nav {
             slint::Model::iter(items)
                 .map(|item| item.disabled)
                 .collect()
+        }
+    };
+}
+
+/// Writes `pub fn install_breadcrumb_fit(window)` in the calling module: it wires a window's `BreadcrumbFit` global
+/// (§ 5.13) to [`breadcrumb`], as [`menu_nav!`] does for menus. The folded segments become the entries of the «…»
+/// menu, so the app names its `MenuEntry` too:
+///
+/// ```ignore
+/// use crate::generated::{BreadcrumbFit, BreadcrumbItem, MenuEntry};
+/// dome_ui::breadcrumb_fit!(BreadcrumbFit, BreadcrumbItem, MenuEntry);
+/// ```
+#[macro_export]
+macro_rules! breadcrumb_fit {
+    ($fit:ident, $item:ident, $entry:ident) => {
+        /// Wires the window's `BreadcrumbFit` global to `dome_ui::breadcrumb`.
+        pub fn install_breadcrumb_fit<'a, T>(window: &'a T)
+        where
+            T: slint::ComponentHandle,
+            $fit<'a>: slint::Global<'a, T>,
+        {
+            let fit = window.global::<$fit>();
+            fit.on_with_width(|widths, index, width| {
+                let widths = $crate::breadcrumb::with_width(&dome_ui_widths(&widths), index, width);
+                slint::ModelRc::new(slint::VecModel::from(widths))
+            });
+            fit.on_total(|widths, count| {
+                $crate::breadcrumb::total(&dome_ui_widths(&widths), dome_ui_count(count))
+            });
+            fit.on_first_shown(|widths, count, available, ellipsis, keep_first| {
+                $crate::breadcrumb::first_shown(
+                    &dome_ui_widths(&widths),
+                    dome_ui_count(count),
+                    available,
+                    ellipsis,
+                    keep_first,
+                )
+            });
+            fit.on_hidden(|items, first_shown, keep_first| {
+                let count = slint::Model::row_count(&items);
+                let range = $crate::breadcrumb::hidden(first_shown, count, keep_first);
+                let entries: Vec<$entry> = slint::Model::iter(&items)
+                    .enumerate()
+                    .filter(|(index, _)| range.contains(index))
+                    .map(|(index, item): (usize, $item)| $entry {
+                        id: index.to_string().into(),
+                        label: item.text,
+                        icon: item.icon,
+                        ..Default::default()
+                    })
+                    .collect();
+                slint::ModelRc::new(slint::VecModel::from(entries))
+            });
+        }
+
+        /// The widths Slint measured, as plain numbers.
+        fn dome_ui_widths(widths: &slint::ModelRc<f32>) -> Vec<f32> {
+            slint::Model::iter(widths).collect()
+        }
+
+        /// A count from Slint, never negative.
+        fn dome_ui_count(count: i32) -> usize {
+            usize::try_from(count).unwrap_or(0)
         }
     };
 }

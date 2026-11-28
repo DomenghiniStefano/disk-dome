@@ -65,6 +65,30 @@ export global Size {
     // Pending design: how narrow a text segment may get before its label is cut with «…» (§ 5.6).
     out property <length> segment-min-w: 40px;
 
+    // Badge, Kbd, Chip, Breadcrumb (§ 5.13–5.15, § 5.26)
+    out property <length> badge-h: 16px;
+    out property <length> badge-pad-x: 4px;
+    // Pending design: the gap between a badge's icon and its text (§ 5.14 gives the icon, not the gap).
+    out property <length> badge-gap: 2px;
+    out property <length> kbd-pad-x: 4px;
+    // Pending design: a key cap's height, the caption's line and its two edges, so the text sits inside them (§ 5.26
+    // gives none); as wide at least, so a one-letter key is square (shadcn's Kbd).
+    out property <length> kbd-h: 18px;
+    // Pending design: the gap between the key caps of a shortcut (shadcn's KbdGroup, 4 px).
+    out property <length> kbd-gap: 4px;
+    // The chip's `x`: its own hit area (§ 5.15), centred on the chip's right end.
+    out property <length> chip-remove: 16px;
+    // The colour swatch of a toggle chip (§ 5.15, § 6.6).
+    out property <length> chip-swatch: 8px;
+    // Pending design: a chip's side padding (§ 5.15 gives none).
+    out property <length> chip-pad-x: 8px;
+    // Pending design: how narrow a chip may get before its label is cut with «…».
+    out property <length> chip-min-w: 48px;
+    // Pending design: a breadcrumb segment's side padding, tighter than a button's so the path stays compact.
+    out property <length> breadcrumb-pad-x: 4px;
+    // Pending design: how narrow the last breadcrumb segment may get before its name is cut with «…».
+    out property <length> breadcrumb-min-w: 48px;
+
     // Fixed sizes (§ 3.5)
     out property <length> side-panel: 300px;
     out property <length> side-panel-min: 220px;
