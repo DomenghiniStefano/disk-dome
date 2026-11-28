@@ -214,6 +214,14 @@ fn run_scan(source: &impl Source, args: &Args, drive: char) -> Result<u64, Strin
         tree.size[tree.root as usize] as f64 / 1e9,
         tree.alloc_bytes(tree.root) as f64 / 1e9
     );
+    let start = Instant::now();
+    let totals = diskdome_core::stats(&tree);
+    println!(
+        "stats {} extensions, {} categories in {:.3} s",
+        totals.extensions.len(),
+        totals.categories.iter().filter(|c| c.files > 0).count(),
+        secs(start.elapsed())
+    );
     print_memory("memory after the scan");
     if let Some(path) = &args.export {
         let start = Instant::now();
