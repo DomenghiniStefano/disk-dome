@@ -293,10 +293,15 @@ fn sources_follow_the_rules() {
 }
 
 /// `kit-coverage`: every component the library exports (`dome-ui/index.slint`) from `dome-ui/components/` appears in
-/// `kit/kit.slint`. A component the library keeps to itself (`ButtonContent`) cannot be imported by the Kit; it shows
-/// through the components built on it.
+/// `kit/kit.slint` or one of the sections it instantiates from their own files (`kit/kit-*-section.slint`). A
+/// component the library keeps to itself (`ButtonContent`) cannot be imported by the Kit; it shows through the
+/// components built on it.
 fn kit_coverage(sources: &[Source]) -> Vec<String> {
-    let kit = sources.iter().find(|s| s.path == "kit/kit.slint");
+    let in_kit = |s: &&Source| {
+        s.path == "kit/kit.slint" || (s.path.starts_with("kit/kit-") && s.path.ends_with("-section.slint"))
+    };
+    let kit_code: Vec<&str> = sources.iter().filter(in_kit).map(|s| s.code.as_str()).collect();
+    let kit = (!kit_code.is_empty()).then(|| kit_code.join("\n"));
     let index = sources.iter().find(|s| s.path == "dome-ui/index.slint");
     let export = Regex::new(r"export\s+component\s+([A-Za-z][\w-]*)").expect("test data is valid");
     sources
@@ -316,10 +321,10 @@ fn kit_coverage(sources: &[Source]) -> Vec<String> {
             })
         })
         .filter(|name| {
-            kit.is_none_or(|k| {
+            kit.as_ref().is_none_or(|k| {
                 !Regex::new(&format!(r"\b{name}\b"))
                     .expect("test data is valid")
-                    .is_match(&k.code)
+                    .is_match(k)
             })
         })
         .map(|name| format!("kit/kit.slint: kit-coverage `{name}` missing"))
