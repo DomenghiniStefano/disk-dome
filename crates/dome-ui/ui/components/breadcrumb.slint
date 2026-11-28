@@ -50,6 +50,9 @@ export global BreadcrumbFit {
     pure callback first-shown(widths: [length], count: int, available: length, ellipsis: length, keep-first: bool) -> int;
     // The folded segments as the «…» menu's entries, in order; each entry's `id` is the segment's index.
     pure callback hidden(items: [BreadcrumbItem], first-shown: int, keep-first: bool) -> [MenuEntry];
+    // Set by `breadcrumb_fit!` once the callbacks above answer. Reading `width` in `init` lays a window out while it is
+    // built, before `install` wires this global, so a segment built then hands its width over again once it is set.
+    in property <bool> wired;
 }
 
 export component Breadcrumb {
@@ -110,16 +113,19 @@ export component Breadcrumb {
             property <length> lead: index > 0 ? root.separator : 0;
             // The segment with the separator before it, measured whether shown or not.
             property <length> natural: self.lead + content.preferred-width;
+            // The width handed over: none until Rust answers (`BreadcrumbFit.wired`), so it changes, and is handed
+            // again, when the global is wired after the segment was built.
+            property <length> handed: BreadcrumbFit.wired ? self.natural : 0;
             // The first segment carries the «…» after it.
             property <bool> has-more: index == 0 && root.collapsed;
             property <length> own: self.shown ? self.natural : 0;
             property <length> more: self.has-more ? root.ellipsis-width : 0;
 
             init => {
-                root.widths = BreadcrumbFit.with-width(root.widths, index, self.natural);
+                root.widths = BreadcrumbFit.with-width(root.widths, index, self.handed);
             }
-            changed natural => {
-                root.widths = BreadcrumbFit.with-width(root.widths, index, self.natural);
+            changed handed => {
+                root.widths = BreadcrumbFit.with-width(root.widths, index, self.handed);
             }
 
             // Only the last segment gives way (its name cut); the others fold instead.

@@ -116,6 +116,9 @@ UI tests run off screen (`crates/ui/src/headless.rs`: Slint's software renderer 
   to 0 (as `KitSection`) or use `if`.
 - Properties of an element inside an `if` cannot be read from outside it: copy what is needed to the parent in a
   `changed` handler and in `init` (as `Button` does with its label's `cut`).
+- A component that reads its `width` in `init` or `changed width` lays the window out while it is built, before
+  `design_system::install` wires the globals: a pure callback answered by Rust returns its default there. What a
+  child hands over through one in `init` is handed again once the global says it is wired (`BreadcrumbFit.wired`).
 - A property named like a built-in one cannot be declared (`row` in a layout child, `padding` on a component):
   pick another name (`inset`).
 - Strings have no `contains`, prefix test or regex, and functions have no loops and no recursion: see «Screens and

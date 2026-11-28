@@ -278,6 +278,8 @@ macro_rules! breadcrumb_fit {
                     .collect();
                 slint::ModelRc::new(slint::VecModel::from(entries))
             });
+            // Last: the segments built before this call hand their widths over again.
+            fit.set_wired(true);
         }
 
         /// The widths Slint measured, as plain numbers.
