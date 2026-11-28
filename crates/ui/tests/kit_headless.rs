@@ -30,8 +30,23 @@ fn save_shot(headless: &Headless, name: &str) {
 }
 
 /// One test: the headless platform is installed once per thread.
+/// The stack the Kit is built on: the app binary's main stack (`MAIN_STACK` in `crates/ui/build.rs`). A debug build of
+/// the whole Kit outgrows a test thread's 2 MB, and building it here on the binary's stack also proves the real
+/// window fits in it.
+const KIT_STACK: usize = 8 << 20;
+
 #[test]
 fn kit_switches_work_by_keyboard_and_pointer() {
+    std::thread::Builder::new()
+        .name("kit".into())
+        .stack_size(KIT_STACK)
+        .spawn(kit_run)
+        .expect("the Kit's thread starts")
+        .join()
+        .expect("the Kit's checks pass");
+}
+
+fn kit_run() {
     let mut headless = Headless::install(WIDTH, HEIGHT).expect("headless platform");
     let kit = kit::open().expect("the Kit compiles");
     kit.show().expect("the Kit shows off screen");
