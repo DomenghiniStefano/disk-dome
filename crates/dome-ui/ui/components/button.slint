@@ -74,6 +74,8 @@ export component Button {
 
     // Whether its tooltip is showing (the tests read it).
     out property <bool> tooltip-shown: tip.shown;
+    // Whether the keyboard focus is on it, shown with the ring or not (a notice stays while it is, § 5.20).
+    out property <bool> has-focus: pressable.has-focus;
 
     callback clicked;
 
