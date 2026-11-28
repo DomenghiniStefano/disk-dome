@@ -1,0 +1,407 @@
+// The Kit's sections for EmptyState (§ 5.22), Card (§ 5.23) and OptionCard (§ 5.9), in every variant and state,
+// working: the empty states' actions say they ran, a card's action too, the scan-mode cards choose by click and arrows
+// (the stacked and the side-by-side groups share the choice). A drive card built on Card shows the interface the app's
+// `DriveCard` takes. Texts are the Kit's own, not translated (rule `untranslated` exempts `kit/`); the long ones are
+// Italian, ~25 % longer than English (§ 3.3).
+
+import {
+    Theme,
+    Size,
+    Icons,
+    KitState,
+    EmptyState,
+    Card,
+    OptionCardGroup,
+    OptionCardItem,
+    OptionCardIndicator,
+    BadgeVariant,
+    Button,
+    ButtonVariant,
+    ButtonSize,
+    ButtonWidth,
+    Icon,
+    IconSize,
+    Label,
+    LabelWrap,
+    TypeStep,
+    InkTone,
+} from "@dome-ui";
+import { KitSection, KitRow } from "kit-parts.slint";
+
+struct KitCardsState { name: string, state: KitState, enabled: bool }
+
+global KitCardsData {
+    out property <[KitCardsState]> states: [
+        { name: "rest", state: KitState.live, enabled: true },
+        { name: "hover", state: KitState.hover, enabled: true },
+        { name: "pressed", state: KitState.pressed, enabled: true },
+        { name: "focus", state: KitState.focus, enabled: true },
+        { name: "disabled", state: KitState.live, enabled: false },
+    ];
+    // The three scan modes of the first launch (§ 6.7).
+    out property <[OptionCardItem]> scan-modes: [
+        {
+            title: "Drive's index, asks each time",
+            description: "Reads the drive's index (MFT). Windows asks for permission (UAC) at every scan.",
+            badge: "Recommended",
+            badge-variant: BadgeVariant.accent,
+        },
+        {
+            title: "Drive's index, never asks",
+            description: "Installs a small service once that reads the index. Asks for permission only now.",
+        },
+        {
+            title: "Folder by folder",
+            description: "No permissions. It takes longer and some system folders can't be read.",
+        },
+    ];
+    // A card that cannot be chosen yet says why; Italian, so the texts are long.
+    out property <[OptionCardItem]> scan-modes-it: [
+        {
+            title: "Indice dell'unità, chiede ogni volta",
+            description: "Legge l'indice dell'unità (MFT). Windows chiede il permesso (UAC) a ogni analisi.",
+            badge: "Consigliato",
+            badge-variant: BadgeVariant.accent,
+        },
+        {
+            title: "Indice dell'unità, non chiede mai",
+            description: "Installa una volta un piccolo servizio che legge l'indice.",
+            disabled: true,
+            tooltip: "Serve un account amministratore",
+        },
+        {
+            title: "Cartella per cartella",
+            description: "Nessun permesso. Ci vuole di più e alcune cartelle di sistema non si leggono.",
+        },
+    ];
+    out property <[OptionCardItem]> pair: [
+        {
+            title: "Drive's index",
+            description: "Fast: reads the MFT.",
+            badge: "Recommended",
+            badge-variant: BadgeVariant.accent
+        },
+        { title: "Folder by folder", description: "No permissions, slower." },
+    ];
+}
+
+// An area of a screen with nothing to show: the empty state fills it and centres its content.
+component KitEmptyArea inherits Rectangle {
+    background: Theme.surface;
+    border-radius: Size.radius-panel;
+    clip: true;
+
+    VerticalLayout {
+        width: root.width;
+        height: root.height;
+
+        @children
+    }
+}
+
+export component KitCardsSection inherits VerticalLayout {
+    // What the last action said, and the scan mode both groups share.
+    property <string> went;
+    property <int> mode: 0;
+
+    KitSection {
+        title: "EmptyState · content";
+
+        KitRow {
+            name: "click the actions";
+
+            Label {
+                text: root.went;
+                step: TypeStep.caption;
+                tone: InkTone.muted;
+            }
+        }
+
+        KitRow {
+            name: "search, hero, narrow";
+
+            KitEmptyArea {
+                width: Size.dialog-sm;
+                height: Size.control-lg * 9;
+
+                EmptyState {
+                    icon: Icons.search;
+                    title: "No matches";
+                    description: "Nothing matches “*.psd” on C:";
+                    action: "Clear search";
+                    action-clicked => {
+                        root.went = "Search cleared";
+                    }
+                }
+            }
+
+            KitEmptyArea {
+                width: Size.dialog-sm;
+                height: Size.control-lg * 9;
+
+                EmptyState {
+                    icon: Icons.hard-drive;
+                    title: "C: is not scanned yet";
+                    description: "Scan it to see where the space goes.";
+                    action: "Scan C:";
+                    action-icon: Icons.play;
+                    action-variant: ButtonVariant.primary;
+                    action-size: ButtonSize.hero;
+                    action-clicked => {
+                        root.went = "Scan C: pressed (hero)";
+                    }
+
+                    // The screen's own content under the action (§ 6.7).
+                    Label {
+                        text: "DiskDome reads the drive's index: Windows will ask for permission";
+                        step: TypeStep.caption;
+                        tone: InkTone.muted;
+                        align: TextHorizontalAlignment.center;
+                        wrap: LabelWrap.word;
+                    }
+                }
+            }
+
+            KitEmptyArea {
+                width: Size.side-panel-min;
+                height: Size.control-lg * 9;
+
+                EmptyState {
+                    title: "Aggiornamenti in tempo reale in pausa";
+                    description: "Riprendili dalla barra di stato per vedere cosa cambia mentre DiskDome è aperto.";
+                    action: "Riprendi";
+                    action-enabled: false;
+                    action-tooltip: "Not on a network drive";
+                }
+            }
+        }
+
+        KitRow {
+            name: "text only, wide";
+
+            KitEmptyArea {
+                width: Size.dialog-lg;
+                height: Size.control-lg * 4;
+
+                EmptyState {
+                    icon: Icons.info;
+                    title: "Not available folder by folder";
+                    description: "Owners are read from the drive's index: choose a fast scan in Settings.";
+                }
+            }
+        }
+    }
+
+    KitSection {
+        title: "Card · header and content";
+
+        KitRow {
+            name: "plain, header, cut";
+
+            Card {
+                width: Size.side-panel;
+
+                Label {
+                    text: "A card without a header: its content only, laid out by the screen.";
+                    wrap: LabelWrap.word;
+                }
+            }
+
+            Card {
+                width: Size.side-panel;
+                title: "Largest files";
+                summary: "38.2 GB";
+                action: "All";
+                action-clicked => {
+                    root.went = "Largest files › All";
+                }
+
+                Label {
+                    text: "docker_data.vhdx · 21.4 GB";
+                    step: TypeStep.caption;
+                }
+
+                Label {
+                    text: "hiberfil.sys · 12.7 GB";
+                    step: TypeStep.caption;
+                }
+
+                Label {
+                    text: "pagefile.sys · 4.1 GB";
+                    step: TypeStep.caption;
+                }
+            }
+
+            Card {
+                width: Size.side-panel-min;
+                title: "Dove va davvero lo spazio";
+                summary: "fino a 186 GB";
+                action-icon: Icons.external-link;
+                action-tooltip: "Open Windows' tool";
+
+                Label {
+                    text: "Hover the cut title: the tooltip says it whole; the number is never cut.";
+                    step: TypeStep.caption;
+                    tone: InkTone.muted;
+                    wrap: LabelWrap.word;
+                }
+            }
+        }
+
+        KitRow {
+            name: "a drive card, a row";
+
+            // The app's `DriveCard` (§ 5.23) is a Card of its own width with this content as children.
+            Card {
+                width: Size.bar-w * 4;
+
+                HorizontalLayout {
+                    spacing: Size.label-gap;
+                    alignment: start;
+
+                    VerticalLayout {
+                        alignment: center;
+
+                        Icon {
+                            source: Icons.hard-drive;
+                            size: IconSize.hero;
+                        }
+                    }
+
+                    Label {
+                        text: "C:";
+                        step: TypeStep.title;
+                    }
+
+                    Label {
+                        text: "Sistema";
+                        tone: InkTone.muted;
+                    }
+                }
+
+                Label {
+                    text: "NTFS · fast scan";
+                    step: TypeStep.caption;
+                    tone: InkTone.muted;
+                }
+
+                Rectangle {
+                    height: Size.bar-h;
+                    background: Theme.bar-track;
+                    border-radius: Size.radius-bar;
+
+                    Rectangle {
+                        x: 0;
+                        width: 70%;
+                        background: Theme.bar-fill;
+                        border-radius: Size.radius-bar;
+                    }
+                }
+
+                Label {
+                    text: "670 GB of 953 GB used";
+                    step: TypeStep.caption;
+                    tone: InkTone.muted;
+                }
+
+                Button {
+                    text: "Scan";
+                    variant: ButtonVariant.primary;
+                    width-mode: ButtonWidth.fill;
+                    clicked => {
+                        root.went = "Drive card › Scan";
+                    }
+                }
+            }
+
+            // Cards of a row end together: the short one grows to the tall one's height.
+            HorizontalLayout {
+                width: Size.dialog-md;
+                spacing: Size.space-12;
+
+                Card {
+                    preferred-width: Size.side-panel-min;
+                    title: "File types";
+                    summary: "12";
+
+                    Label {
+                        text: "One short line.";
+                        step: TypeStep.caption;
+                    }
+                }
+
+                Card {
+                    preferred-width: Size.side-panel-min;
+                    title: "Windows' space";
+                    summary: "41.3 GB";
+
+                    Label {
+                        text: "What Windows keeps for itself, explained: the page file, the hibernation file, restore points and updates.";
+                        step: TypeStep.caption;
+                        wrap: LabelWrap.word;
+                    }
+                }
+            }
+        }
+    }
+
+    KitSection {
+        title: "OptionCard · scan mode";
+
+        KitRow {
+            name: "stacked, side by side";
+
+            OptionCardGroup {
+                width: Size.dialog-sm;
+                items: KitCardsData.scan-modes;
+                current-index <=> root.mode;
+            }
+
+            OptionCardGroup {
+                width: Size.dialog-md;
+                items: KitCardsData.scan-modes;
+                orientation: Orientation.horizontal;
+                current-index <=> root.mode;
+            }
+        }
+
+        KitRow {
+            name: "disabled card, no circle, one line";
+
+            OptionCardGroup {
+                width: Size.dialog-sm;
+                items: KitCardsData.scan-modes-it;
+                current-index: 0;
+            }
+
+            OptionCardGroup {
+                width: Size.side-panel;
+                items: KitCardsData.scan-modes-it;
+                indicator: OptionCardIndicator.none;
+                current-index: 2;
+            }
+
+            OptionCardGroup {
+                width: Size.side-panel-min;
+                items: KitCardsData.scan-modes-it;
+                wrap: LabelWrap.none;
+            }
+        }
+    }
+
+    KitSection {
+        title: "OptionCard · states";
+        for state in KitCardsData.states: KitRow {
+            name: state.name;
+
+            OptionCardGroup {
+                width: Size.dialog-md;
+                items: KitCardsData.pair;
+                current-index: 0;
+                orientation: Orientation.horizontal;
+                kit-state: state.state;
+                enabled: state.enabled;
+            }
+        }
+    }
+}

@@ -66,6 +66,7 @@ import { KitChoiceSection } from "kit-choice-section.slint";
 import { KitTextFieldSection } from "kit-textfield-section.slint";
 import { KitSelectSection } from "kit-select-section.slint";
 import { KitTabsSection } from "kit-tabs-section.slint";
+import { KitCardsSection } from "kit-cards-section.slint";
 
 struct KitIcon { name: string, source: image }
 struct KitStep { name: string, step: TypeStep }
@@ -1348,6 +1349,9 @@ export component KitWindow inherits DomeWindow {
 
                     // Badge, Kbd, KbdGroup, Chip and Breadcrumb (§ 5.13–5.15, § 5.26).
                     KitTextBitsSection { }
+
+                    // EmptyState, Card and OptionCardGroup (§ 5.9, § 5.22, § 5.23).
+                    KitCardsSection { }
 
                     KitSection {
                         title: "ScrollBar · states";

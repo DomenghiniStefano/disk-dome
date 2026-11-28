@@ -1,0 +1,149 @@
+// The test window of EmptyState, Card and OptionCard (`tests/cards_headless.rs`, § 5.9, § 5.22, § 5.23): a stacked
+// group of three option cards on one line each (the middle one disabled, with its reason), two cards side by side
+// whose descriptions differ in length, an empty state across the whole window width, a card with a header and an
+// action, and two cards in a row whose contents differ in height. Every block starts at x = 0, so the test computes
+// where each part is from the spec's sizes. Kit only; texts are the Kit's own, not translated.
+
+import {
+    DomeWindow,
+    EmptyState,
+    Card,
+    OptionCardGroup,
+    OptionCardItem,
+    BadgeVariant,
+    LabelWrap,
+    Icons,
+    Theme,
+    Size,
+} from "@dome-ui";
+
+export component KitCardsHarness inherits DomeWindow {
+    preferred-width: Size.window-min-w;
+    preferred-height: Size.window-h;
+
+    out property <length> option-y: option.y;
+    out property <length> option-width: option.width;
+    out property <length> option-height: option.height;
+    out property <int> option-index: option.current-index;
+    out property <int> option-focus: option.focus-index;
+    out property <int> option-tooltip: option.tooltip-index;
+    out property <int> option-picks;
+
+    out property <length> pair-y: pair-row.y;
+    out property <length> pair-width: pair.width;
+    out property <length> pair-height: pair.height;
+
+    out property <length> empty-y: empty.y;
+    out property <length> empty-height: empty.height;
+    out property <int> empty-clicks;
+
+    out property <length> card-y: card-row.y;
+    out property <length> card-width: card.width;
+    out property <length> card-height: card.height;
+    out property <int> card-clicks;
+
+    out property <length> short-height: short.height;
+    out property <length> tall-height: tall.height;
+
+    VerticalLayout {
+        alignment: start;
+        spacing: Size.group-gap;
+
+        HorizontalLayout {
+            alignment: start;
+
+            option := OptionCardGroup {
+                width: Size.dialog-sm;
+                // One line each, so every card is exactly the spec's height.
+                wrap: LabelWrap.none;
+                items: [
+                    {
+                        title: "Drive's index",
+                        description: "Asks each time.",
+                        badge: "Recommended",
+                        badge-variant: BadgeVariant.accent
+                    },
+                    {
+                        title: "Service",
+                        description: "Never asks.",
+                        disabled: true,
+                        tooltip: "Needs an administrator"
+                    },
+                    { title: "Folder by folder", description: "No permissions." },
+                ];
+                selected => {
+                    root.option-picks += 1;
+                }
+            }
+        }
+
+        pair-row := HorizontalLayout {
+            alignment: start;
+
+            pair := OptionCardGroup {
+                width: Size.dialog-md;
+                orientation: Orientation.horizontal;
+                items: [
+                    {
+                        title: "Drive's index",
+                        description: "Reads the drive's index (MFT). Windows asks for permission (UAC) at every scan."
+                    },
+                    { title: "Folder by folder", description: "Slower." },
+                ];
+            }
+        }
+
+        empty := EmptyState {
+            height: Size.control-lg * 7;
+            icon: Icons.search;
+            title: "No matches";
+            description: "Nothing matches the search on C:";
+            action: "Clear search";
+            action-clicked => {
+                root.empty-clicks += 1;
+            }
+        }
+
+        card-row := HorizontalLayout {
+            alignment: start;
+
+            card := Card {
+                width: Size.side-panel;
+                title: "Largest files";
+                summary: "38.2 GB";
+                action: "All";
+                action-clicked => {
+                    root.card-clicks += 1;
+                }
+
+                Rectangle {
+                    height: Size.control-lg;
+                    background: Theme.control;
+                }
+            }
+        }
+
+        HorizontalLayout {
+            alignment: start;
+            spacing: Size.group-gap;
+
+            short := Card {
+                width: Size.side-panel;
+
+                Rectangle {
+                    height: Size.control-lg;
+                    background: Theme.control;
+                }
+            }
+
+            tall := Card {
+                width: Size.side-panel;
+
+                Rectangle {
+                    height: Size.control-lg * 2;
+                    background: Theme.control;
+                }
+            }
+        }
+    }
+}
