@@ -24,7 +24,8 @@ The Slint half, in `ui/`:
 - `input-mode.slint` — `InputMode.keyboard`: the focus ring shows only while the user moves with the keyboard (§ 3.7).
 - `icons/` — the Lucide SVGs (version pinned in `icons.slint` and `THIRD_PARTY.md`) and `global Icons`, one
   property per file.
-- `components/` — one file per component of § 5, each exported through `index.slint`: `Label`, `Icon`, `Button`,
+- `components/` — one file per component of § 5, each exported through `index.slint`: `Label`, `SelectableLabel` (text
+  that can be selected and copied), `Icon`, `Button`,
   `SegmentedControl`, `ToggleButton`, `SearchField`, `ScrollBar` (vertical or horizontal), `DomeWindow` (the window
   every screen inherits: it tells the popups its size), and the menu (§ 5.16): `MenuFrame` (the level-1 surface),
   `MenuList` (entries from `[MenuEntry]`), `Menu` (the popup, three levels), `ContextMenu` (right click, Menu key,

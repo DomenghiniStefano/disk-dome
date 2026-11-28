@@ -1,0 +1,69 @@
+// SelectableLabel (§ 5.1): a label whose text can be selected and copied: drag, double click a word, triple click
+// a line; Ctrl+A selects it all and Ctrl+C copies. Slint's read-only `TextInput` does it, in the label's type step
+// and ink; the caret is hidden, there is nothing to type. It never cuts with «…» (a `TextInput` cannot): it wraps,
+// or clips at its edge. A screen's context menu calls `copy()` and `select-all()`. Kept apart from `Label`, so the
+// many labels of tables and maps stay a plain `Text`. Like `Label` it may set font properties (rule `font-literal`).
+
+import { Type, TypeStep } from "../tokens/type.slint";
+import { Theme } from "../tokens/theme.slint";
+import { FileCategory } from "../tokens/data.slint";
+import { InkTone, LabelWrap } from "../enums.slint";
+import { Tones } from "../tones.slint";
+import { LabelLook } from "label.slint";
+
+export component SelectableLabel {
+    in property <string> text;
+    in property <TypeStep> step: TypeStep.body;
+    in property <InkTone> tone: InkTone.normal;
+    // The fill the text sits on, for `InkTone.on-data`.
+    in property <FileCategory> category: FileCategory.other;
+    in property <TextHorizontalAlignment> align: TextHorizontalAlignment.left;
+    in property <LabelWrap> wrap: LabelWrap.none;
+
+    // Some text is selected (a context menu enables its «Copy» on it).
+    out property <bool> has-selection: glyphs.has-selection;
+
+    // The selection to the clipboard; with nothing selected, nothing happens.
+    public function copy() {
+        glyphs.copy();
+    }
+
+    public function select-all() {
+        glyphs.select-all();
+    }
+
+    public function clear-selection() {
+        glyphs.clear-selection();
+    }
+
+    property <bool> wrapped: root.wrap != LabelWrap.none;
+
+    // One line: exactly the step's line, as `Label`.
+    min-height: Type.line(root.step);
+    preferred-width: glyphs.preferred-width;
+    preferred-height: root.wrapped ? glyphs.preferred-height : Type.line(root.step);
+    accessible-role: AccessibleRole.text;
+    accessible-label: root.text;
+
+    glyphs := TextInput {
+        width: root.width;
+        height: root.height;
+        text: LabelLook.shown(root.text, root.step);
+        read-only: true;
+        single-line: !root.wrapped;
+        // No caret: the text is read, not typed.
+        text-cursor-width: 0;
+        color: Tones.ink(root.tone, root.category);
+        // As the search field's text (§ 5.4).
+        selection-background-color: Theme.accent-soft;
+        selection-foreground-color: Tones.ink(root.tone, root.category);
+        font-family: Type.family-of(root.step);
+        font-size: Type.size(root.step);
+        font-weight: Type.weight(root.step);
+        letter-spacing: Type.tracking(root.step);
+        horizontal-alignment: root.align;
+        vertical-alignment: root.wrapped ? TextVerticalAlignment.top : TextVerticalAlignment.center;
+        wrap: LabelLook.text-wrap(root.wrap);
+        accessible-role: none;
+    }
+}

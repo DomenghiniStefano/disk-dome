@@ -7,6 +7,19 @@ import { FileCategory } from "../tokens/data.slint";
 import { InkTone, Elide, LabelWrap } from "../enums.slint";
 import { Tones } from "../tones.slint";
 
+// The wrap mode and the text a label draws, shared with `SelectableLabel` so both read the same.
+export global LabelLook {
+    public pure function text-wrap(wrap: LabelWrap) -> TextWrap {
+        return wrap == LabelWrap.word ? TextWrap.word-wrap
+            : wrap == LabelWrap.anywhere ? TextWrap.char-wrap : TextWrap.no-wrap;
+    }
+
+    // Overline is upper-cased here; the translation stays lower-case (§ 5.1).
+    public pure function shown(text: string, step: TypeStep) -> string {
+        return step == TypeStep.overline ? text.to-uppercase() : text;
+    }
+}
+
 export component Label {
     in property <string> text;
     in property <TypeStep> step: TypeStep.body;
@@ -42,8 +55,7 @@ export component Label {
     glyphs := Text {
         width: root.width;
         height: root.height;
-        // Overline is upper-cased here; the translation stays lower-case (§ 5.1).
-        text: root.step == TypeStep.overline ? root.text.to-uppercase() : root.text;
+        text: LabelLook.shown(root.text, root.step);
         color: Tones.ink(root.tone, root.category);
         font-family: Type.family-of(root.step);
         font-size: Type.size(root.step);
@@ -52,8 +64,7 @@ export component Label {
         horizontal-alignment: root.align;
         // A wrapped text starts at the top: a taller box leaves room under it, not around it.
         vertical-alignment: root.wrapped ? TextVerticalAlignment.top : TextVerticalAlignment.center;
-        wrap: root.wrap == LabelWrap.word ? TextWrap.word-wrap
-            : root.wrap == LabelWrap.anywhere ? TextWrap.char-wrap : TextWrap.no-wrap;
+        wrap: LabelLook.text-wrap(root.wrap);
         overflow: root.elide == Elide.none ? TextOverflow.clip : TextOverflow.elide;
         accessible-role: none;
     }

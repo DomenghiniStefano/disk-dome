@@ -12,6 +12,7 @@ import {
     TypeStep,
     Icons,
     Label,
+    SelectableLabel,
     LabelWrap,
     Icon,
     Button,
@@ -535,6 +536,72 @@ export component KitWindow inherits DomeWindow {
                                 text: KitData.long-path;
                                 wrap: LabelWrap.anywhere;
                                 max-lines: 2;
+                            }
+                        }
+                    }
+
+                    KitSection {
+                        title: "Label · selectable";
+
+                        KitRow {
+                            name: "drag, Ctrl+A, Ctrl+C";
+
+                            VerticalLayout {
+                                width: Size.bar-w * 3;
+                                spacing: Size.space-8;
+
+                                SelectableLabel {
+                                    text: KitData.long-path;
+                                    wrap: LabelWrap.anywhere;
+                                }
+
+                                SelectableLabel {
+                                    text: KitData.long-text;
+                                    wrap: LabelWrap.word;
+                                }
+                            }
+                        }
+
+                        KitRow {
+                            name: "right-click";
+
+                            ContextMenu {
+                                width: Size.bar-w * 3;
+                                height: Size.control-lg;
+                                requested(x, y) => {
+                                    copy-menu.open-at(x, y);
+                                }
+
+                                // The area holds its content centred at its preferred size: a layout lines it up with the rows.
+                                HorizontalLayout {
+                                    alignment: start;
+                                    width: Size.bar-w * 3;
+                                    height: Size.control-lg;
+
+                                    copyable := SelectableLabel {
+                                        text: "Select a few words, then right-click";
+                                    }
+                                }
+
+                                copy-menu := Menu {
+                                    entries: [
+                                        {
+                                            id: "copy",
+                                            label: "Copy",
+                                            shortcut: "Ctrl+C",
+                                            disabled: !copyable.has-selection,
+                                            reason: "Select some text first",
+                                        },
+                                        { id: "select-all", label: "Select all", shortcut: "Ctrl+A" },
+                                    ];
+                                    activated(entry) => {
+                                        if (entry.id == "copy") {
+                                            copyable.copy();
+                                        } else {
+                                            copyable.select-all();
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

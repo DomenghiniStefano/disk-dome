@@ -113,9 +113,10 @@ const RULES: &[Rule] = &[
     Rule {
         name: "font-literal",
         check: |s| {
-            // `Label` draws every text, `TextEntry` every editable one.
+            // `Label` draws every text, `SelectableLabel` every selectable one, `TextEntry` every editable one.
             if s.in_tokens()
                 || s.path == "dome-ui/components/label.slint"
+                || s.path == "dome-ui/components/selectable-label.slint"
                 || s.path == "dome-ui/primitives/text-entry.slint"
             {
                 return vec![];

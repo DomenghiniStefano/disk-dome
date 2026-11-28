@@ -1,10 +1,13 @@
 // The Label's test window (`tests/label_headless.rs`, § 5.1, § 3.3): a text that fits and one cut in a narrow box,
-// a sentence wrapped between words, a path wrapped anywhere, and a long text held to two and to three lines. Kit
-// only; texts are the Kit's own, not translated.
+// a sentence wrapped between words, a path wrapped anywhere, a long text held to two and to three lines, and a
+// selectable label inside an area that asks for a context menu. Kit only; texts are the Kit's
+// own, not translated.
 
 import {
     DomeWindow,
+    ContextMenu,
     Label,
+    SelectableLabel,
     LabelWrap,
     Size,
 } from "@dome-ui";
@@ -29,6 +32,13 @@ export component KitLabelHarness inherits DomeWindow {
     // Where the two-line label is, for its pixels: nothing may be drawn under its second line.
     out property <length> two-x: two-row.x;
     out property <length> two-y: two-row.y;
+
+    // The selectable label, and how often the area asked for a context menu.
+    out property <length> pick-x: pick.absolute-position.x;
+    out property <length> pick-y: pick.absolute-position.y;
+    out property <length> pick-width: pick.width;
+    out property <bool> pick-selected: pick.has-selection;
+    out property <int> menu-requests;
 
     property <string> long-text: "Every file of the drive, the largest first, with its folder and when it changed";
 
@@ -82,6 +92,22 @@ export component KitLabelHarness inherits DomeWindow {
                 text: root.long-text;
                 wrap: LabelWrap.word;
                 max-lines: 3;
+            }
+        }
+
+        ContextMenu {
+            height: Size.control;
+            requested => {
+                root.menu-requests += 1;
+            }
+
+            pick-row := HorizontalLayout {
+                alignment: start;
+                spacing: Size.space-16;
+
+                pick := SelectableLabel {
+                    text: "Select this text";
+                }
             }
         }
 

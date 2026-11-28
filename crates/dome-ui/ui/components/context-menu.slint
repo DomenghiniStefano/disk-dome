@@ -35,6 +35,9 @@ export component ContextMenu {
 
     keys := FocusScope {
         enabled: root.enabled;
+        // A click on the area leaves the focus where it is: taken here, it would clear the selection of the text the
+        // menu is about to copy.
+        focus-on-click: false;
         // The focused child's unused keys arrive here.
         key-pressed(event) => {
             if (event.text == Key.Menu || (event.text == Key.F10 && event.modifiers.shift)) {

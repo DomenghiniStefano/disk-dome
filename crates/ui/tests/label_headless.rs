@@ -1,6 +1,8 @@
 //! The Label off screen (`docs/design-system.md` § 5.1, § 3.3), on its test window `KitLabelHarness`: a text that
 //! fits is not cut and one in a narrow box is, on one line; a sentence wraps between words and a path anywhere,
-//! neither cut; `max-lines` holds a text to that many lines of the font, cut, with nothing drawn under them.
+//! neither cut; `max-lines` holds a text to that many lines of the font, cut, with nothing drawn under them. A
+//! `SelectableLabel` is selected by a drag and by Ctrl+A, cleared by a click, and a right click on it reaches the
+//! context menu's area and keeps the selection for «Copy».
 
 #![cfg(feature = "kit")]
 
@@ -8,6 +10,7 @@ use diskdome_ui::design_system;
 use diskdome_ui::generated::KitLabelHarness;
 use diskdome_ui::headless::Headless;
 use slint::ComponentHandle;
+use slint::platform::Key;
 
 const WIDTH: u32 = 960;
 const HEIGHT: u32 = 600;
@@ -75,4 +78,35 @@ fn label_cuts_wraps_and_holds_to_lines() {
         .filter(|&(x, y)| headless.pixel(x, y) != ground)
         .count();
     assert_eq!(drawn, 0, "nothing drawn under the second line");
+
+    // Selectable: nothing is selected at rest; a drag across the text selects it.
+    let y = harness.get_pick_y() + BODY_LINE / 2.0;
+    let (x, width) = (harness.get_pick_x(), harness.get_pick_width());
+    assert!(!harness.get_pick_selected(), "nothing selected at rest");
+    headless.press(x + 1.0, y);
+    headless.hover(x + width - 1.0, y);
+    headless.release(x + width - 1.0, y);
+    settle(&mut headless);
+    assert!(harness.get_pick_selected(), "a drag selects the text");
+
+    // A right click on it still reaches the area that asks for a context menu, and keeps the selection for «Copy».
+    headless.right_click(x + 4.0, y);
+    settle(&mut headless);
+    assert_eq!(
+        harness.get_menu_requests(),
+        1,
+        "the right click asks for the menu"
+    );
+    assert!(
+        harness.get_pick_selected(),
+        "the selection stays for the menu"
+    );
+
+    // A click elsewhere in the text clears it; Ctrl+A selects it all again.
+    headless.click(x + 4.0, y);
+    settle(&mut headless);
+    assert!(!harness.get_pick_selected(), "a click clears the selection");
+    headless.press_text_with(Key::Control, "a");
+    settle(&mut headless);
+    assert!(harness.get_pick_selected(), "Ctrl+A selects the whole text");
 }
