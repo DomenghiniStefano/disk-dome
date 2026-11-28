@@ -84,13 +84,29 @@ const SYSTEM_NAMES: [&str; 17] = [
 
 /// The category of a file called `name` (the name only, not the path).
 pub fn category_of(name: &str) -> FileCategory {
-    if SYSTEM_NAMES.iter().any(|n| name.eq_ignore_ascii_case(n)) {
+    let name = name.as_bytes();
+    if is_system_name(name) {
         return FileCategory::System;
     }
-    let Some(dot) = name.rfind('.') else {
-        return FileCategory::Other;
-    };
-    let extension = &name.as_bytes()[dot + 1..];
+    match name.iter().rposition(|&b| b == b'.') {
+        Some(dot) => category_of_extension(&name[dot + 1..]),
+        None => FileCategory::Other,
+    }
+}
+
+/// One of the names that win over their extension, in any case. Cheap for every other name: the metafiles start
+/// with `$`, the three Windows files end in `.sys`.
+pub fn is_system_name(name: &[u8]) -> bool {
+    let candidate = name.first() == Some(&b'$')
+        || name.len() > 4 && name[name.len() - 4..].eq_ignore_ascii_case(b".sys");
+    candidate
+        && SYSTEM_NAMES
+            .iter()
+            .any(|n| name.eq_ignore_ascii_case(n.as_bytes()))
+}
+
+/// The category of an extension (without the dot, any case).
+pub fn category_of_extension(extension: &[u8]) -> FileCategory {
     if extension.is_empty() || extension.len() > LONGEST_EXTENSION {
         return FileCategory::Other;
     }

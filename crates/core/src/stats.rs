@@ -1,11 +1,13 @@
 //! Totals per extension and per category over a scanned tree (`docs/design-system.md` § 3.2, § 5.12 the side
-//! panel, § 4.8 the saved summaries). One pass over the linked files; the extension is lower-cased into a key on the
-//! stack, so no name allocates. A hash map holds one entry per distinct extension (a few thousand at most), never one
-//! per file.
+//! panel, § 4.8 the saved summaries). One pass over the arrays in order (the cache follows it), reading the name
+//! bytes in place; the extension is lower-cased into a key on the stack, so no name allocates. A hash map holds one
+//! row per distinct extension (a few thousand at most), with a fast hash, and the last row is tried first: the
+//! files of a folder often share their extension.
 
 use std::collections::HashMap;
+use std::hash::{BuildHasherDefault, Hasher};
 
-use crate::category::{FileCategory, category_of};
+use crate::category::{FileCategory, category_of_extension, is_system_name};
 use crate::{Tree, flag};
 
 /// The longest extension kept as its own row; a longer one counts as no extension.
@@ -21,11 +23,16 @@ pub struct Extension {
 impl Extension {
     /// The extension of a file called `name`, lower-cased (empty: none, or longer than [`MAX_EXTENSION`]).
     pub fn of(name: &str) -> Self {
+        Self::of_bytes(name.as_bytes())
+    }
+
+    /// As [`Extension::of`], on the name's bytes.
+    pub fn of_bytes(name: &[u8]) -> Self {
         let mut out = Self::default();
-        let Some(dot) = name.rfind('.') else {
+        let Some(dot) = name.iter().rposition(|&b| b == b'.') else {
             return out;
         };
-        let ext = &name.as_bytes()[dot + 1..];
+        let ext = &name[dot + 1..];
         if ext.len() > MAX_EXTENSION {
             return out;
         }
@@ -86,34 +93,65 @@ impl Stats {
     }
 }
 
+/// FNV-1a: the keys are a few bytes, and SipHash's defence against crafted keys is not needed for extensions.
+#[derive(Default)]
+struct Fnv(u64);
+
+impl Hasher for Fnv {
+    fn finish(&self) -> u64 {
+        self.0
+    }
+
+    fn write(&mut self, bytes: &[u8]) {
+        const PRIME: u64 = 0x0100_0000_01b3;
+        const OFFSET: u64 = 0xcbf2_9ce4_8422_2325;
+        let mut hash = if self.0 == 0 { OFFSET } else { self.0 };
+        for &b in bytes {
+            hash = (hash ^ u64::from(b)).wrapping_mul(PRIME);
+        }
+        self.0 = hash;
+    }
+}
+
+type Key = (Extension, FileCategory);
+
 /// Sums every linked file of `tree` (after [`Tree::finish`]) by extension and by category. A folder counts nothing:
 /// its colour is its files'. An extra hard link counts as a file with no size on disk, as in the tree.
 pub fn stats(tree: &Tree) -> Stats {
-    let mut by_extension: HashMap<(Extension, FileCategory), Totals> = HashMap::new();
+    let mut rows: Vec<ExtensionRow> = Vec::new();
+    let mut index: HashMap<Key, usize, BuildHasherDefault<Fnv>> = HashMap::default();
+    let mut last: Option<(Key, usize)> = None;
     let mut categories = [Totals::default(); 12];
-    for &i in &tree.children {
-        let flags = tree.flags[i as usize];
+    let cluster = u64::from(tree.cluster_size);
+    for (i, &flags) in tree.flags.iter().enumerate() {
         if flags & flag::LINKED == 0 || flags & flag::DIR != 0 {
             continue;
         }
-        let name = tree.name(i);
-        let category = category_of(name);
-        let (size, alloc) = (tree.size[i as usize], tree.alloc_bytes(i));
-        by_extension
-            .entry((Extension::of(name), category))
-            .or_default()
-            .add(size, alloc);
+        let name = tree.names.get(tree.name_off[i], tree.name_len[i]);
+        let extension = Extension::of_bytes(name);
+        let category = if is_system_name(name) {
+            FileCategory::System
+        } else {
+            category_of_extension(&extension.bytes[..usize::from(extension.len)])
+        };
+        let key = (extension, category);
+        let row = match last {
+            Some((k, row)) if k == key => row,
+            Some(_) | None => *index.entry(key).or_insert_with(|| {
+                rows.push(ExtensionRow {
+                    extension,
+                    category,
+                    totals: Totals::default(),
+                });
+                rows.len() - 1
+            }),
+        };
+        last = Some((key, row));
+        let (size, alloc) = (tree.size[i], u64::from(tree.alloc[i]) * cluster);
+        rows[row].totals.add(size, alloc);
         categories[category as usize].add(size, alloc);
     }
-    let mut extensions: Vec<ExtensionRow> = by_extension
-        .into_iter()
-        .map(|((extension, category), totals)| ExtensionRow {
-            extension,
-            category,
-            totals,
-        })
-        .collect();
-    extensions.sort_by(|a, b| {
+    rows.sort_by(|a, b| {
         b.totals
             .alloc
             .cmp(&a.totals.alloc)
@@ -121,7 +159,7 @@ pub fn stats(tree: &Tree) -> Stats {
             .then_with(|| a.category.cmp(&b.category))
     });
     Stats {
-        extensions,
+        extensions: rows,
         categories,
     }
 }
