@@ -18,6 +18,9 @@ export component ButtonContent inherits HorizontalLayout {
     in property <TypeStep> step: TypeStep.body;
     in property <InkTone> tone: InkTone.normal;
     in property <TextHorizontalAlignment> align: TextHorizontalAlignment.left;
+    // Given more room than it needs, the label takes it all, the icons at the ends and the text placed by `align`
+    // (a select); otherwise the content stays together in the centre.
+    in property <bool> spread;
     // The padding on a side with text only, and on a side with an icon.
     in property <length> pad-x: Size.button-pad-x;
     in property <length> pad-x-icon: Size.button-pad-x-icon;
@@ -31,7 +34,8 @@ export component ButtonContent inherits HorizontalLayout {
     // The label sits inside an `if`, so its `cut` is copied here to be read.
     property <bool> label-cut;
 
-    alignment: center;
+    // A layout aligned other than `stretch` keeps every item at its preferred width, the label too.
+    alignment: root.spread ? LayoutAlignment.stretch : LayoutAlignment.center;
     spacing: Size.label-gap;
     padding-left: !root.has-text ? 0 : root.has-icon ? root.pad-x-icon : root.pad-x;
     padding-right: !root.has-text ? 0 : root.has-icon-end ? root.pad-x-icon : root.pad-x;
@@ -50,6 +54,7 @@ export component ButtonContent inherits HorizontalLayout {
         step: root.step;
         tone: root.tone;
         align: root.align;
+        horizontal-stretch: root.spread ? 1 : 0;
         accessible-role: none;
 
         changed cut => {

@@ -2,12 +2,13 @@
 //! above a `control`-tall box and the help under it; typing reports each edit and Enter; the edge turns `focus` with
 //! the focus and `danger` with an error, whose message adds a line under the field; a click on the label focuses the
 //! text; Tab out turns the keyboard flag on and the next field shows its ring; a disabled or read-only field takes
-//! no typing.
+//! no typing; the text starts at the padding, or after the leading icon.
 //!
 //! `DISKDOME_KIT_SHOTS=<folder>` also saves the window with the error and the ring, for a look.
 
 #![cfg(feature = "kit")]
 
+use std::ops::Range;
 use std::path::PathBuf;
 
 use diskdome_ui::design_system;
@@ -40,6 +41,33 @@ const BG: [u8; 4] = [0x0f, 0x11, 0x13, 0xff];
 const RING_OUT: f32 = 2.0;
 /// Over the field's text, inside the box.
 const TEXT_X: f32 = 60.0;
+/// `field-pad-x`, the leading icon (`Size.icon`, normal density) and `label-gap` after it (§ 5.4).
+const PAD_X: usize = 6;
+const ICON: usize = 16;
+const ICON_GAP: usize = 6;
+/// The rows the text is read in, inside the box.
+const INK_INSET: f32 = 4.0;
+/// Inside the box, in its start padding: the field's ground.
+const GROUND_X: usize = 3;
+/// How far from the field's start the text is looked for, short of its end.
+const READ_W: usize = 160;
+
+/// The first and last inked column of the box at `left`, `top`, within `columns` of it (counted from `left`).
+fn ink(
+    headless: &Headless,
+    left: usize,
+    top: f32,
+    columns: Range<usize>,
+) -> Option<(usize, usize)> {
+    let ground = headless.pixel(left + GROUND_X, (top + BOX / 2.0) as usize);
+    headless
+        .ink_columns(
+            left + columns.start..left + columns.end,
+            (top + INK_INSET) as usize..(top + BOX - INK_INSET) as usize,
+            ground,
+        )
+        .map(|(first, last)| (first - left, last - left))
+}
 
 fn save_shot(headless: &Headless, name: &str) {
     let Some(folder) = std::env::var_os("DISKDOME_KIT_SHOTS") else {
@@ -84,6 +112,30 @@ fn textfield_typing_errors_focus_and_disabled() {
     );
 
     let left = harness.get_inset();
+
+    // Without an icon the text starts at the padding (plus its first glyph's side bearing); with one, the icon sits
+    // there and the same text moves by the icon and its gap.
+    let x0 = left as usize;
+    let (plain_start, _) =
+        ink(&headless, x0, harness.get_plain_y(), 0..READ_W).expect("the text is drawn");
+    assert!(
+        (PAD_X..PAD_X + 3).contains(&plain_start),
+        "no icon: the text starts at the padding, not at {plain_start}"
+    );
+    let iconed_top = harness.get_iconed_y();
+    let (icon_start, icon_end) =
+        ink(&headless, x0, iconed_top, 0..PAD_X + ICON).expect("the icon is drawn");
+    assert!(
+        icon_start >= PAD_X && icon_end < PAD_X + ICON,
+        "the icon in its slot"
+    );
+    let (text_start, _) =
+        ink(&headless, x0, iconed_top, PAD_X + ICON..READ_W).expect("the text is drawn");
+    assert_eq!(
+        text_start,
+        plain_start + ICON + ICON_GAP,
+        "the text follows the icon"
+    );
     let box_middle = harness.get_field_y() + harness.get_field_box_y() + BOX / 2.0;
     let edge = |headless: &Headless| headless.pixel(left as usize, box_middle as usize);
     let ring = |headless: &Headless, y: f32| headless.pixel((left - RING_OUT) as usize, y as usize);

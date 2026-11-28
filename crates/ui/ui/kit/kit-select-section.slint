@@ -1,4 +1,4 @@
-// The Kit's Select section (§ 9, § 5.5): every state and width, working (a choice shows in the select and in the
+// The Kit's Select section (§ 9, § 5.5): every state, size, text alignment and width, with and without an icon, working (a choice shows in the select and in the
 // row's caption), and the open list as it looks, drawn in place. Kit only; texts are the Kit's own, not translated.
 
 import {
@@ -6,6 +6,8 @@ import {
     SelectNav,
     SelectSize,
     SelectWidth,
+    SelectTextAlign,
+    Icons,
     MenuFrame,
     MenuList,
     MenuEntry,
@@ -41,7 +43,7 @@ global KitSelectData {
 
 export component KitSelectSection inherits VerticalLayout {
     KitSection {
-        title: "Select · states and widths";
+        title: "Select · states, sizes and widths";
 
         KitRow {
             name: "states";
@@ -80,7 +82,7 @@ export component KitSelectSection inherits VerticalLayout {
         }
 
         KitRow {
-            name: "placeholder, sizes";
+            name: "placeholder";
 
             Select {
                 entries: KitSelectData.sort;
@@ -91,6 +93,15 @@ export component KitSelectSection inherits VerticalLayout {
                 }
             }
 
+            Label {
+                text: "chosen: " + KitSelectData.chosen;
+                tone: InkTone.muted;
+            }
+        }
+
+        KitRow {
+            name: "sizes, text: start";
+
             Select {
                 entries: KitSelectData.sort;
                 current-index: 1;
@@ -100,12 +111,91 @@ export component KitSelectSection inherits VerticalLayout {
             Select {
                 entries: KitSelectData.sort;
                 current-index: 1;
-                size: SelectSize.large;
+                size: SelectSize.normal;
             }
 
-            Label {
-                text: "chosen: " + KitSelectData.chosen;
-                tone: InkTone.muted;
+            Select {
+                entries: KitSelectData.sort;
+                current-index: 1;
+                size: SelectSize.large;
+            }
+        }
+
+        KitRow {
+            name: "sizes, text: centre";
+
+            Select {
+                entries: KitSelectData.sort;
+                current-index: 1;
+                size: SelectSize.small;
+                text-align: SelectTextAlign.center;
+            }
+
+            Select {
+                entries: KitSelectData.sort;
+                current-index: 1;
+                size: SelectSize.normal;
+                text-align: SelectTextAlign.center;
+            }
+
+            Select {
+                entries: KitSelectData.sort;
+                current-index: 1;
+                size: SelectSize.large;
+                text-align: SelectTextAlign.center;
+            }
+        }
+
+        KitRow {
+            name: "icon, text: start";
+
+            Select {
+                entries: KitSelectData.sort;
+                current-index: 1;
+                size: SelectSize.small;
+                icon: Icons.arrow-down;
+            }
+
+            Select {
+                entries: KitSelectData.sort;
+                current-index: 1;
+                size: SelectSize.normal;
+                icon: Icons.arrow-down;
+            }
+
+            Select {
+                entries: KitSelectData.sort;
+                current-index: 1;
+                size: SelectSize.large;
+                icon: Icons.arrow-down;
+            }
+        }
+
+        KitRow {
+            name: "icon, text: centre";
+
+            Select {
+                entries: KitSelectData.sort;
+                current-index: 1;
+                size: SelectSize.small;
+                icon: Icons.arrow-down;
+                text-align: SelectTextAlign.center;
+            }
+
+            Select {
+                entries: KitSelectData.sort;
+                current-index: 1;
+                size: SelectSize.normal;
+                icon: Icons.arrow-down;
+                text-align: SelectTextAlign.center;
+            }
+
+            Select {
+                entries: KitSelectData.sort;
+                current-index: 1;
+                size: SelectSize.large;
+                icon: Icons.arrow-down;
+                text-align: SelectTextAlign.center;
             }
         }
 

@@ -1,4 +1,5 @@
-//! The SearchField off screen (`docs/design-system.md` § 5.4), on its test window `KitSearchHarness`: typing applies
+//! The SearchField off screen (`docs/design-system.md` § 5.4), on its test window `KitSearchHarness`: the text
+//! after the leading icon, or at the padding without it; typing applies
 //! after the rest, Enter at once; an error's reason shows under the field while it has the focus; Esc clears, a
 //! second Esc leaves; a click on the icon puts the focus back; the regex toggle applies; a disabled field takes no
 //! typing.
@@ -7,6 +8,7 @@
 
 #![cfg(feature = "kit")]
 
+use std::ops::Range;
 use std::path::PathBuf;
 use std::time::Duration;
 
@@ -29,6 +31,27 @@ const ICON_X: f32 = 6.0 + 8.0;
 const REGEX_FROM_RIGHT: f32 = 2.0 + 12.0;
 /// Inside the field, vertically.
 const ROW_Y: f32 = 14.0;
+/// `field-pad-x`, the leading icon (`Size.icon`, normal density) and the gap after it (`space-4`) (§ 5.4).
+const PAD_X: usize = 6;
+const ICON: usize = 16;
+const ICON_GAP: usize = 4;
+/// `control`, the field's height (§ 3.5), and the rows the text is read in, inside it.
+const BOX: f32 = 28.0;
+const INK_INSET: f32 = 4.0;
+/// Inside the box, in its start padding: the field's ground.
+const GROUND_X: usize = 3;
+/// Where the text is looked for: the field's start, short of its end.
+const READ_W: usize = 160;
+
+/// The first and last inked column of the field at `top`, within `columns`.
+fn ink(headless: &Headless, top: f32, columns: Range<usize>) -> Option<(usize, usize)> {
+    let ground = headless.pixel(GROUND_X, (top + BOX / 2.0) as usize);
+    headless.ink_columns(
+        columns,
+        (top + INK_INSET) as usize..(top + BOX - INK_INSET) as usize,
+        ground,
+    )
+}
 
 fn save_shot(headless: &Headless, name: &str) {
     let Some(folder) = std::env::var_os("DISKDOME_KIT_SHOTS") else {
@@ -53,6 +76,29 @@ fn search_typing_errors_escape_and_toggles() {
     harness.show().expect("the harness shows off screen");
     settle(&mut headless);
     let y = harness.get_field_y() + ROW_Y;
+
+    // Without an icon the text starts at the padding (plus its first glyph's side bearing); with the default
+    // `search` icon, the icon sits there and the same text moves by the icon and its gap.
+    let (bare_start, _) =
+        ink(&headless, harness.get_bare_y(), 0..READ_W).expect("the text is drawn");
+    assert!(
+        (PAD_X..PAD_X + 3).contains(&bare_start),
+        "no icon: the text starts at the padding, not at {bare_start}"
+    );
+    let iconed_top = harness.get_iconed_y();
+    let (icon_start, icon_end) =
+        ink(&headless, iconed_top, 0..PAD_X + ICON).expect("the icon is drawn");
+    assert!(
+        icon_start >= PAD_X && icon_end < PAD_X + ICON,
+        "the icon in its slot"
+    );
+    let (text_start, _) =
+        ink(&headless, iconed_top, PAD_X + ICON..READ_W).expect("the text is drawn");
+    assert_eq!(
+        text_start,
+        bare_start + ICON + ICON_GAP,
+        "the text follows the icon"
+    );
 
     // Typing applies once it rests.
     headless.click(TEXT_X, y);

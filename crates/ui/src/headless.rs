@@ -1,6 +1,7 @@
 //! A Slint platform with no window at all: Slint's software renderer draws into a buffer in memory.
 //! Used by the measurements and the tests, so nothing appears on screen.
 
+use std::ops::Range;
 use std::rc::Rc;
 use std::time::{Duration, Instant};
 
@@ -12,6 +13,9 @@ use slint::{LogicalPosition, PhysicalSize, PlatformError, SharedString};
 
 /// How long `wait` sleeps between two frames.
 const WAIT_TURN: Duration = Duration::from_millis(25);
+/// How far, summed over the four channels, a pixel must be from the ground to count as drawn: past the faint
+/// fringe of an antialiased glyph's edge, well under any text or icon ink.
+const INK_DISTANCE: u32 = 96;
 
 struct HeadlessPlatform {
     window: Rc<MinimalSoftwareWindow>,
@@ -198,6 +202,31 @@ impl Headless {
             PremultipliedRgbaColor::default()
         };
         [pixel.red, pixel.green, pixel.blue, pixel.alpha]
+    }
+
+    /// The first and the last column in `columns` where some pixel of `rows` stands out from `ground` (the
+    /// colour under it, read away from anything drawn): where a text or an icon starts and ends. `None` if nothing
+    /// is drawn there.
+    pub fn ink_columns(
+        &self,
+        columns: Range<usize>,
+        rows: Range<usize>,
+        ground: [u8; 4],
+    ) -> Option<(usize, usize)> {
+        let inked = |x: usize| {
+            rows.clone().any(|y| {
+                let distance: u32 = self
+                    .pixel(x, y)
+                    .iter()
+                    .zip(ground)
+                    .map(|(a, b)| u32::from(a.abs_diff(b)))
+                    .sum();
+                distance > INK_DISTANCE
+            })
+        };
+        let first = columns.clone().find(|&x| inked(x))?;
+        let last = columns.rev().find(|&x| inked(x))?;
+        Some((first, last))
     }
 
     /// The last frame as 24-bit BMP bytes (bottom-up rows, BGR), for a look at what was drawn.

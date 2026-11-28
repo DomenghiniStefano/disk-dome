@@ -985,6 +985,7 @@ without the weight of an input.
 | Sizes `ButtonSize` | `small` (control-sm), `normal` (control), `large` (control-lg), `hero` (40 px, `title` text, icon 18, 20 px padding, min 160 px: only the call to action of an empty state, one per screen) |
 | Content | text; icon + text (icon 16, `label-gap`); text + trailing icon (`icon-end`, as the chevron of a button that opens a list; the padding on its side is `button-pad-x-icon`); icon only (square, `label` mandatory: accessible name + tooltip) |
 | Width | `ButtonWidth.hug` (default): hugs the content, minimum 64 px with text (Italian labels grow); short of room it gives way down to that minimum and cuts the label with «…», and the tooltip says the full text. `ButtonWidth.fill`: the whole width its layout gives (a dialog's or a panel's full-width button). Icon-only is square |
+| Wider than its content | (`fill`, or a select's `longest` width) the content stays together in the centre; `spread` makes the label take the room, the icons at the ends and the text placed by `align` (Slint's `TextHorizontalAlignment`, as `Label`'s, `left` by default) |
 | Radius | `button` (4) |
 | Rules | one `primary` per view; destructive actions never icon-only; a dialog's quiet way out («Cancel») is `secondary` |
 | Keyboard | Enter and Space activate; the dialog's default button takes Enter from anywhere in the dialog |
@@ -1008,7 +1009,7 @@ the panel toggles and the search's `Aa` / `.*`. Accessible as a toggle (`accessi
 - `TextField`: height `control`, `field` fill, 1 px `line`, radius `control`, `field-pad-x`; placeholder
   `ink-faint`; focused: 1 px `focus` edge plus the ring when the keyboard brought the focus there; error: 1 px
   `danger` edge and a `caption` message under it in `danger` with `circle-alert`.
-- `SearchField`: `search` icon on the left, a clear `x` when not empty, and two `ToggleButton`s inside on the
+- `SearchField`: `search` icon on the left (another icon, or none), a clear `x` when not empty, and two `ToggleButton`s inside on the
   right: `case-sensitive` (match case) and `regex` (regular expression). Width 320 in the toolbar (grows to 400 when
   there is room). A wildcard (`*`, `?`) pattern needs no toggle. An invalid regular expression turns the field's
   edge `danger` and says why in the tooltip, without a dialog. Enter applies immediately; typing applies after
@@ -1022,7 +1023,7 @@ the panel toggles and the search's `Aa` / `.*`. Accessible as a toggle (`accessi
 | Help and error | `help` (what to type) and `error` (what is wrong and what to do) under the box, each a `FieldMessage`, `field-gap` apart, the help first and the error under it (shadcn's order); they wrap between words at the field's width. An error also turns the edge `danger`, over the focus; screen readers read the error, or else the help, as the description |
 | Pointer | a click anywhere on the icon, the text or the label puts the focus in the text (text cursor over the box) and turns the focus ring off |
 | Keyboard | Tab out of the field turns the keyboard flag on (§ 3.7), so the next control shows its ring; Enter reports `accepted`. No Esc of its own: a control built on the field (a combobox) takes the keys it needs around it |
-| Content | an optional `icon` leads the text (`ink-faint`); the field's children go at the box's end, centred by the row (a unit, a clear button), `label-gap` from the text and `field-pad-x` from the edge |
+| Content | an optional `icon` leads the text (`ink-faint`, `label-gap` from it); none by default, and the text then starts at `field-pad-x`. The field's children go at the box's end, centred by the row (a unit, a clear button), `label-gap` from the text and `field-pad-x` from the edge |
 | States | hover changes nothing (as shadcn's input); disabled fades the whole field, label and messages; read-only keeps the look and lets the text be selected and copied |
 | Width | `field-w` where the layout sets none, never under `field-w-min`; it stretches to fill a dialog's column. A long label is cut with «…» |
 | Accessibility | the text is the `text-input`, named by the label and described by the error or the help, with the placeholder as its placeholder text. Slint 1.19 has no «labelled by», «described by» or «invalid» state: the label's text is copied as the name, the message as the description, and the invalid state is said only by the message |
@@ -1035,7 +1036,8 @@ from the text). `TextField` draws both; another control (a select, a group of ch
 
 | SearchField | |
 | --- | --- |
-| Interface | `text`, `match-case`, `regex` (written by both the field and the screen), `placeholder`, `label` (the accessible name; the placeholder when empty), `error`, `toggles`, `rest-delay` (default `search-rest`, 150 ms), `enabled`; `has-focus` out; `search-requested(text)` after the rest, on Enter, on a toggle and on clearing |
+| Interface | `text`, `match-case`, `regex` (written by both the field and the screen), `placeholder`, `label` (the accessible name; the placeholder when empty), `error`, `icon`, `toggles`, `rest-delay` (default `search-rest`, 150 ms), `enabled`; `has-focus` out; `search-requested(text)` after the rest, on Enter, on a toggle and on clearing |
+| Icon | `icon` leads the text (`ink-faint`, `space-4` from it), `search` by default; an empty image draws none and the text starts at `field-pad-x` |
 | Toggles `SearchFieldToggles` | `match-case-and-regex` (default: the files' search), `match-case`, `none` (the command palette, the shortcuts dialog, § 6.19) |
 | Error | `error` is the reason, never empty when the pattern is wrong: the edge turns `danger` and the reason shows in a tooltip under the field, aligned to its start (§ 6.6), at once while the field has the focus and after the delay on hover over the text; screen readers read it as the description |
 | Pointer | a click anywhere on the icon or the text puts the focus in the text (text cursor over both) |
@@ -1044,14 +1046,16 @@ from the text). `TextField` draws both; another control (a select, a group of ch
 
 ### 5.5 Select and DrivePicker
 
-- `Select`: looks like a `secondary` button with a `chevron-down` on the right; opens a level-1 list
+- `Select`: looks like a `secondary` button with a `chevron-down` on the right, and an optional icon on the left; opens a level-1 list
   (`menu-item` rows, the chosen one with `check`). Arrow keys move inside, Enter chooses, Esc closes; typing
   jumps to the first match.
 
 | Select | |
 | --- | --- |
-| Interface | `entries` (`[MenuEntry]`: plain items, with separators, section titles and disabled items as in a menu), `current-index` (-1 for none; written by both the select and the screen), `placeholder`, `size`, `width-mode`, `enabled`, `tooltip`; for the list `side`, `align`, `list-min-width`, `list-max-width`, `wrap-around`; `is-open` out; `selected(index)` when the user chooses another item; `open(start)` |
+| Interface | `entries` (`[MenuEntry]`: plain items, with separators, section titles and disabled items as in a menu), `current-index` (-1 for none; written by both the select and the screen), `placeholder`, `size`, `width-mode`, `icon`, `text-align`, `enabled`, `tooltip`; for the list `side`, `align`, `list-min-width`, `list-max-width`, `wrap-around`; `is-open` out; `selected(index)` when the user chooses another item; `open(start)` |
 | Sizes `SelectSize` | `small`, `normal` (default), `large`: the button's heights of the same name |
+| Icon | `icon` leads the shown text as a button's icon (16, `label-gap`, its side padded `button-pad-x-icon`); none by default. It counts in the `longest` width |
+| Text `SelectTextAlign` | `start` (default): the shown text at the start of its room, between the icon (or the padding) and the chevron; `center`: in the middle of that room, the icon and the chevron staying at the ends |
 | Width `SelectWidth` | `longest` (default): as wide as its widest item or placeholder would make it, so it never moves when the choice changes; `chosen`: hugs the item it shows; `fill`: the width its layout gives. Short of room it gives way down to the button's minimum, cuts the text with «…» and says it whole in the tooltip |
 | Placeholder | shown while nothing is chosen (`current-index` -1), in the button's own ink; also the accessible name when none is given |
 | List | a `Menu` under the select (flipping above it near the window's bottom), never narrower than the select; every item is drawn as a check box item, checked on the chosen one (an item's own icon is not drawn: the slot holds the `check`) |
