@@ -69,7 +69,7 @@ global KitDialogData {
 
 // One row of a deleted item: icon, name, size.
 component KitDeleteLine inherits HorizontalLayout {
-    in property <KitDeleteRow> row;
+    in property <KitDeleteRow> item;
 
     spacing: Size.label-gap;
 
@@ -77,17 +77,17 @@ component KitDeleteLine inherits HorizontalLayout {
         alignment: center;
 
         Icon {
-            source: root.row.icon;
+            source: root.item.icon;
         }
     }
 
     Label {
-        text: root.row.name;
+        text: root.item.name;
         horizontal-stretch: 1;
     }
 
     Label {
-        text: root.row.size;
+        text: root.item.size;
         tone: InkTone.muted;
     }
 }
@@ -268,11 +268,11 @@ export component KitDialogSection inherits VerticalLayout {
                     cancel-index: 1;
 
                     for line in KitDialogData.selection: KitDeleteLine {
-                        row: line;
+                        item: line;
                     }
 
                     for line in KitDialogData.selection: KitDeleteLine {
-                        row: line;
+                        item: line;
                     }
 
                     Label {
@@ -358,7 +358,7 @@ export component KitDialogSection inherits VerticalLayout {
                     }
 
                     for line in KitDialogData.selection: KitDeleteLine {
-                        row: line;
+                        item: line;
                     }
 
                     KitWarningLine {
@@ -386,7 +386,7 @@ export component KitDialogSection inherits VerticalLayout {
                     }
 
                     for line in KitDialogData.system-items: KitDeleteLine {
-                        row: line;
+                        item: line;
                     }
                 }
 
@@ -405,7 +405,7 @@ export component KitDialogSection inherits VerticalLayout {
                     }
 
                     for line in KitDialogData.selection: KitDeleteLine {
-                        row: line;
+                        item: line;
                     }
                 }
             }
