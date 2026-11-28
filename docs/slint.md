@@ -111,6 +111,10 @@ UI tests run off screen (`crates/ui/src/headless.rs`: Slint's software renderer 
   `preferred-width` / `preferred-height` and let the placement set the length.
 - `&&` next to `||` needs parentheses.
 - An enum value whose name matches a property is written in full (`AccessibleRole.text`).
+- A window builds and measures its elements as it is created, before Rust can wire a global's callbacks: a
+  `pure callback` called from an `init` or an early `changed` answers its type's default (an empty list, 0). What it
+  hands over is lost unless the element hands it over again once wired (`ToolBarFit.wired`, set by
+  `tool_bar_fit!`).
 - `Flickable` takes `content-height` and `content-y`, not the deprecated `viewport-*`.
 - `visible: false` keeps the element's place in a layout: to take no room, bind its min / preferred / max height
   to 0 (as `KitSection`) or use `if`.

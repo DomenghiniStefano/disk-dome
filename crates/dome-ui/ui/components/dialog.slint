@@ -364,7 +364,9 @@ export component Dialog {
                             variant: action.variant;
                             size: ButtonSize.large;
                             enabled: !action.disabled;
-                            tooltip: action.reason;
+                            // The reason belongs to a disabled action only (§ 5.18): on an enabled one it would show on
+                            // keyboard focus, wrongly, and take the Esc meant for the dialog.
+                            tooltip: action.disabled ? action.reason : "";
                             // A dialog opened as it is created asks before its buttons exist: they answer when made.
                             // The request is served once, so a button made again later does not take the focus.
                             init => {

@@ -391,6 +391,8 @@ macro_rules! tool_bar_fit {
                 let ids: Vec<&str> = ids.iter().map(slint::SharedString::as_str).collect();
                 $crate::tool_bar::folded_index(&ids, shown_count, &id)
             });
+            // Last: the items measured as the window was created hand their widths over again, now answered.
+            fit.set_wired(true);
         }
     };
 }
