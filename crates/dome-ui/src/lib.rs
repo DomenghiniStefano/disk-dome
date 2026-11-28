@@ -4,6 +4,7 @@
 
 pub mod menu;
 pub mod segmented;
+pub mod select;
 
 /// Writes `pub fn install_menu_nav(window)` in the calling module: it wires a window's `MenuNav` global (`§ 5.16`) to
 /// [`menu`]. The app names its own generated types, since each app compiles the Slint half itself:
@@ -95,6 +96,49 @@ macro_rules! segmented_nav {
             slint::Model::iter(items)
                 .map(|item| item.disabled)
                 .collect()
+        }
+    };
+}
+
+/// Writes `pub fn install_select_nav(window)` in the calling module: it wires a window's `SelectNav` global (§ 5.5) to
+/// [`select`]. It reads the entries through the helper [`menu_nav!`] writes, so it goes in the same module, after it:
+///
+/// ```ignore
+/// use crate::generated::{MenuEntry, MenuEntryKind, MenuNav, SelectNav};
+/// dome_ui::menu_nav!(MenuNav, MenuEntry, MenuEntryKind);
+/// dome_ui::select_nav!(SelectNav, MenuEntry, MenuEntryKind);
+/// ```
+#[macro_export]
+macro_rules! select_nav {
+    ($nav:ident, $entry:ident, $kind:ident) => {
+        /// Wires the window's `SelectNav` global to `dome_ui::select`.
+        pub fn install_select_nav<'a, T>(window: &'a T)
+        where
+            T: slint::ComponentHandle,
+            $nav<'a>: slint::Global<'a, T>,
+        {
+            let nav = window.global::<$nav>();
+            nav.on_marked(|entries, chosen| {
+                let after = $crate::select::marked(&dome_ui_entries(&entries), chosen);
+                let rows: Vec<$entry> = slint::Model::iter(&entries)
+                    .zip(after)
+                    .map(|(entry, plain)| $entry {
+                        kind: match plain.kind {
+                            $crate::menu::MenuEntryKind::Item => $kind::Item,
+                            $crate::menu::MenuEntryKind::Checkbox => $kind::Checkbox,
+                            $crate::menu::MenuEntryKind::Radio => $kind::Radio,
+                            $crate::menu::MenuEntryKind::Separator => $kind::Separator,
+                            $crate::menu::MenuEntryKind::Section => $kind::Section,
+                        },
+                        checked: plain.checked,
+                        ..entry
+                    })
+                    .collect();
+                slint::ModelRc::new(slint::VecModel::from(rows))
+            });
+            nav.on_typeahead(|entries, from, typed| {
+                $crate::select::typeahead(&dome_ui_entries(&entries), from, &typed)
+            });
         }
     };
 }
