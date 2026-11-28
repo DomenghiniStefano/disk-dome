@@ -1,0 +1,166 @@
+// The test window of the Splitter and the bars (`tests/bars_headless.rs`, § 5.24, § 5.25): a splitter between a table
+// and a side panel with both panes' limits, whose total the test shrinks; a toolbar of two buttons, a separator, a
+// toggle and a button, which the test narrows until they fold into «⋯»; a panel header with only an options menu; and
+// a status bar whose texts shorten in turn as the test narrows it. Each sits at a height the test computes from the
+// tokens. Kit only; texts are the Kit's own, not translated.
+
+import {
+    DomeWindow,
+    Size,
+    Splitter,
+    ToolBar,
+    ToolBarItem,
+    ToolBarItemKind,
+    PanelHeader,
+    MenuEntry,
+    StatusBar,
+    StatusBarItem,
+    StatusBarSeparator,
+    StatusBarGiveWay,
+    StatusBarItemKind,
+    StatusBarDot,
+} from "@dome-ui";
+
+export component KitBarsHarness inherits DomeWindow {
+    preferred-width: Size.window-min-w;
+    preferred-height: Size.window-min-h;
+
+    // Splitter: the table before it, the side panel after it (§ 2.1).
+    in-out property <length> split-total: Size.dialog-lg;
+    in-out property <length> split-position: Size.side-panel;
+    out property <length> split-actual: split.actual-position;
+    out property <length> split-height: Size.treemap-min;
+    out property <bool> split-dragging: split.dragging;
+    // How many times `resized` was called, and with what.
+    out property <int> resizes;
+    out property <length> last-resize;
+
+    // ToolBar: the width the test gives it, and what it reports.
+    in-out property <length> bar-width: Size.window-min-w;
+    in-out property <[ToolBarItem]> items: [
+        { id: "alpha", text: "Alpha" },
+        { id: "beta", text: "Beta" },
+        { kind: ToolBarItemKind.separator },
+        { id: "gamma", kind: ToolBarItemKind.toggle, text: "Gamma" },
+        { id: "delta", text: "Delta" },
+    ];
+    out property <length> bar-y: root.split-height + Size.space-8;
+    out property <length> bar-height: bar.height;
+    out property <int> bar-shown: bar.shown-count;
+    out property <bool> bar-overflowing: bar.overflowing;
+    out property <bool> gamma-checked: root.items[3].checked;
+    out property <string> last-id;
+    out property <bool> last-checked;
+    out property <int> activations;
+    out property <int> toggles;
+
+    // PanelHeader: no items, only an options menu, so «⋯» always shows.
+    out property <length> header-y: root.bar-y + Size.toolbar + Size.space-8;
+    out property <length> header-height: header.height;
+    out property <bool> header-overflowing: header.overflowing;
+    out property <int> header-shown: header.shown-count;
+    out property <string> header-chosen;
+
+    // StatusBar: the width the test gives it, and what its items do.
+    in-out property <length> status-width: Size.window-min-w;
+    out property <length> status-y: root.header-y + Size.tabbar + Size.space-8;
+    out property <length> status-height: status.height;
+    out property <length> status-natural: status.preferred-width;
+    out property <length> first-width: first-item.width;
+    out property <length> later-width: later-item.width;
+    out property <length> never-width: never-item.width;
+    out property <bool> first-cut: first-item.cut;
+    out property <bool> later-cut: later-item.cut;
+    out property <bool> never-cut: never-item.cut;
+    out property <bool> first-tooltip: first-item.tooltip-shown;
+    out property <int> live-clicks;
+
+    split-box := Rectangle {
+        x: 0;
+        y: 0;
+        width: root.split-total;
+        height: root.split-height;
+
+        split := Splitter {
+            x: self.actual-position;
+            height: parent.height;
+            total: root.split-total;
+            position <=> root.split-position;
+            default-position: Size.dialog-lg - Size.side-panel - Size.border-hairline;
+            min-before: Size.table-min;
+            min-after: Size.side-panel-min;
+            max-after: Size.side-panel-max;
+            resized(position) => {
+                root.resizes += 1;
+                root.last-resize = position;
+            }
+        }
+    }
+
+    bar := ToolBar {
+        x: 0;
+        y: root.bar-y;
+        width: root.bar-width;
+        items: root.items;
+        accessible-label: "Toolbar";
+        activated(id) => {
+            root.last-id = id;
+            root.activations += 1;
+        }
+        toggled(id, checked) => {
+            root.last-id = id;
+            root.last-checked = checked;
+            root.toggles += 1;
+        }
+    }
+
+    header := PanelHeader {
+        x: 0;
+        y: root.header-y;
+        width: Size.side-panel;
+        more-entries: [{ id: "style", label: "Style" }, { id: "names", label: "Names" }];
+        accessible-label: "Map";
+        more-activated(entry) => {
+            root.header-chosen = entry.id;
+        }
+    }
+
+    status := StatusBar {
+        x: 0;
+        y: root.status-y;
+        width: root.status-width;
+
+        first-item := StatusBarItem {
+            text: "3.789.066 files · scanned today at 21:14";
+            give-way: StatusBarGiveWay.first;
+        }
+
+        StatusBarSeparator { }
+
+        Rectangle {
+            horizontal-stretch: 1;
+        }
+
+        later-item := StatusBarItem {
+            text: "Moving 3 files to the Recycle Bin · 42%";
+            give-way: StatusBarGiveWay.later;
+        }
+
+        StatusBarSeparator { }
+
+        live := StatusBarItem {
+            text: "Live";
+            dot: StatusBarDot.success;
+            kind: StatusBarItemKind.button;
+            clicked => {
+                root.live-clicks += 1;
+            }
+        }
+
+        StatusBarSeparator { }
+
+        never-item := StatusBarItem {
+            text: "GB";
+        }
+    }
+}
