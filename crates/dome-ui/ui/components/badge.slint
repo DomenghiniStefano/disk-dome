@@ -1,0 +1,101 @@
+// Badge (§ 5.14): a short status or count beside something else («Recommended», «system», the Filters button's
+// count), as shadcn's Badge. `badge-h` tall in both densities, `caption` text, `badge-pad-x` each side, radius
+// `badge`; a 12 px icon may lead. Five colours (`BadgeVariant`). It is text, not a control: no pointer, no focus.
+// It hugs its text; short of room it cuts it with «…» and says it whole in its tooltip.
+
+import { Size } from "../tokens/size.slint";
+import { Theme } from "../tokens/theme.slint";
+import { TypeStep } from "../tokens/type.slint";
+import { BadgeVariant, IconSize, InkTone, Elide } from "../enums.slint";
+import { Label } from "label.slint";
+import { Icon } from "icon.slint";
+import { Tooltip } from "tooltip.slint";
+
+// Variant → look, in one place.
+global BadgeLook {
+    public pure function fill(variant: BadgeVariant) -> color {
+        return variant == BadgeVariant.accent ? Theme.accent-soft
+            : variant == BadgeVariant.warning ? Theme.warning-soft
+            : variant == BadgeVariant.danger ? Theme.danger-soft
+            : variant == BadgeVariant.success ? Theme.success-soft
+            : Theme.control;
+    }
+
+    public pure function tone(variant: BadgeVariant) -> InkTone {
+        return variant == BadgeVariant.accent ? InkTone.accent
+            : variant == BadgeVariant.warning ? InkTone.warning
+            : variant == BadgeVariant.danger ? InkTone.danger
+            : variant == BadgeVariant.success ? InkTone.success
+            : InkTone.muted;
+    }
+}
+
+export component Badge {
+    in property <string> text;
+    // Optional, 12 px, before the text (a state colour always comes with an icon or a word, § 3.2).
+    in property <image> icon;
+    in property <BadgeVariant> variant: BadgeVariant.neutral;
+    // Said on hover (§ 5.17): what the badge means, when the word alone does not say it. A cut text is said whole.
+    in property <string> tooltip;
+
+    // Whether its tooltip is showing (the tests read it).
+    out property <bool> tooltip-shown: tip.shown;
+
+    property <bool> has-icon: root.icon.width > 0;
+    property <bool> has-text: root.text != "";
+    // The label sits inside an `if`, so its `cut` is copied here to be read.
+    property <bool> label-cut;
+
+    height: Size.badge-h;
+    // Short of room the text gives way, down to the icon and the paddings (or to a square without an icon).
+    min-width: min(self.preferred-width, max(root.height, 2 * Size.badge-pad-x + (root.has-icon ? Size.icon-sm : 0)));
+    preferred-width: row.preferred-width;
+    max-width: self.preferred-width;
+
+    accessible-role: AccessibleRole.text;
+    accessible-label: root.text;
+    accessible-description: root.tooltip;
+
+    Rectangle {
+        border-radius: Size.radius-badge;
+        background: BadgeLook.fill(root.variant);
+    }
+
+    row := HorizontalLayout {
+        padding-left: Size.badge-pad-x;
+        padding-right: Size.badge-pad-x;
+        spacing: Size.badge-gap;
+        alignment: center;
+
+        if root.has-icon: VerticalLayout {
+            alignment: center;
+
+            Icon {
+                source: root.icon;
+                size: IconSize.small;
+                tone: BadgeLook.tone(root.variant);
+            }
+        }
+        if root.has-text: Label {
+            text: root.text;
+            step: TypeStep.caption;
+            tone: BadgeLook.tone(root.variant);
+            elide: Elide.end;
+            accessible-role: none;
+
+            changed cut => {
+                root.label-cut = self.cut;
+            }
+            init => {
+                root.label-cut = self.cut;
+            }
+        }
+    }
+
+    // The tooltip watches the pointer only when it has something to say: a pointer area takes every press under it,
+    // so a badge without one leaves the clicks to the button or row it sits on (the Filters button's count).
+    tip := Tooltip {
+        text: root.tooltip != "" ? root.tooltip : root.label-cut ? root.text : "";
+        watch-pointer: self.text != "";
+    }
+}

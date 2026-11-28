@@ -31,6 +31,18 @@ msgctxt "Tabs"
 msgid "More tabs"
 msgstr "Altre schede"
 
+msgctxt "Chip"
+msgid "Remove"
+msgstr "Rimuovi"
+
+msgctxt "Breadcrumb"
+msgid "Show the hidden levels"
+msgstr "Mostra i livelli nascosti"
+
+msgctxt "Breadcrumb"
+msgid "Breadcrumb"
+msgstr "Percorso"
+
 msgctxt "ProofStatus"
 msgid "{} rows, sorting…"
 msgstr "{} righe, ordinamento…"

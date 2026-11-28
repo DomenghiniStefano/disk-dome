@@ -1,0 +1,58 @@
+// Kbd (§ 5.26): a key cap for help, menus and tooltips, as shadcn's Kbd: `caption` in `ink-muted`, a 1 px `line`
+// edge, radius `badge`, `kbd-pad-x` each side, at least as wide as it is tall so a one-letter key is square.
+// `KbdGroup` sets the caps of a shortcut side by side («Ctrl» «Maiusc» «F»). The key names come translated from the
+// screen (Windows' own Italian names: Ctrl, Maiusc, Alt, Canc, Invio, Esc, Tab, Backspace); the cap never
+// translates or cuts them. Text, not a control: no pointer, no focus.
+
+import { Size } from "../tokens/size.slint";
+import { Theme } from "../tokens/theme.slint";
+import { TypeStep } from "../tokens/type.slint";
+import { InkTone, Elide } from "../enums.slint";
+import { Label } from "label.slint";
+
+export component Kbd {
+    // The key's name, as the keyboard and Windows write it.
+    in property <string> text;
+
+    height: Size.kbd-h;
+    // A key name is short and never cut: the cap is as wide as its name.
+    min-width: max(root.height, row.preferred-width);
+    preferred-width: self.min-width;
+    max-width: self.min-width;
+
+    accessible-role: AccessibleRole.text;
+    accessible-label: root.text;
+
+    Rectangle {
+        border-width: Size.border-hairline;
+        border-color: Theme.line;
+        border-radius: Size.radius-badge;
+    }
+
+    row := HorizontalLayout {
+        padding-left: Size.kbd-pad-x;
+        padding-right: Size.kbd-pad-x;
+        alignment: center;
+
+        Label {
+            text: root.text;
+            step: TypeStep.caption;
+            tone: InkTone.muted;
+            align: TextHorizontalAlignment.center;
+            elide: Elide.none;
+            accessible-role: none;
+        }
+    }
+}
+
+// The caps of one shortcut, in order, `kbd-gap` apart (shadcn's KbdGroup). Screen readers read each cap.
+export component KbdGroup inherits HorizontalLayout {
+    in property <[string]> keys;
+
+    spacing: Size.kbd-gap;
+    alignment: start;
+
+    for key in root.keys: Kbd {
+        text: key;
+    }
+}

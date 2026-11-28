@@ -1261,6 +1261,17 @@ click highlights in the treemap and the table (§ 4.4); a double-click adds it a
 Segments `caption` `ink-muted`, the last `ink`, separated by `chevron-right` 12 px `ink-faint`; each segment
 is a ghost button; when it does not fit, the middle segments collapse into «…», a menu.
 
+| Breadcrumb | |
+| --- | --- |
+| Interface | `items: [BreadcrumbItem]`, `collapse`, `enabled`, `more-label` (the «…» button's name and tooltip, «Show the hidden levels»); `first-shown`, `collapsed`, `last-cut` out; `activated(index)` when a segment before the last is clicked or chosen in the «…» menu |
+| `BreadcrumbItem` | `text`, `icon` (12 px, before the text), `tooltip` |
+| Segments | `control-sm` tall, `breadcrumb-pad-x` each side; the last one is where you are: `ink`, not a button (no hover, not a Tab stop), as shadcn's BreadcrumbPage |
+| Fold `BreadcrumbCollapse` | `middle` (default): the first segment stays, then «…», then as many of the last as fit; `start`: «…» then as many of the last as fit (the map header, § 3.11). The fewest segments fold; the last one always stays, and when it does not fit alone its name is cut with «…» down to `breadcrumb-min-w` and said whole in its tooltip |
+| «…» | a small ghost `MenuButton` with `ellipsis`, its menu the folded segments in order; choosing one says `activated` with its index |
+| Width | preferred: the whole path; it never asks for more. Each segment measures itself and Rust (`BreadcrumbFit`, `dome_ui::breadcrumb`, wired by `breadcrumb_fit!`) says which is the first shown after the fold, since Slint functions have no loops |
+| Keyboard | Tab through the segments and the «…»; Enter and Space go; ↓ / ↑ open the «…» menu; Esc puts a tooltip away |
+| Accessibility | a `navigation` landmark named «Breadcrumb»; segments are buttons, the last a text |
+
 ### 5.14 Badge
 
 Height 16: `caption` (12 / 16), 4 px side padding, radius `badge`.
@@ -1268,12 +1279,28 @@ Height 16: `caption` (12 / 16), 4 px side padding, radius `badge`.
 `danger`, `success` (their `-soft` fill and text). Icon 12 optional. Used for «Recommended», «rebuildable»,
 «system», counts on the Filters button.
 
+| Badge | |
+| --- | --- |
+| Interface | `text`, `icon`, `variant`, `tooltip` |
+| Width | hugs its text; short of room it cuts it with «…» and says it whole in its tooltip |
+| Pointer | none: a badge takes no click, so the button or row it sits on keeps its own. Only with something to say (a `tooltip`, a cut text) does it watch the pointer, for the tooltip |
+| Accessibility | a text, its `tooltip` as the description |
+
 ### 5.15 Chip (filters)
 
 `control-sm` tall, `control` fill (`control-hover` on hover), radius `control`, text `caption` «Extension: .mp4»,
 an `x` to remove (16 px, its own hit area, `label` «Remove filter»). Lives in the filter bar; a click opens the
 Filters panel at its group, Del or Backspace on a focused chip removes it. In the panel, toggle chips share the
 shape: off `control` / `ink-muted`, on `accent-soft` / `accent-text`, with an optional 8 px swatch (§ 6.6).
+
+| Chip | |
+| --- | --- |
+| Interface | `text`, `icon` (12 px), `swatch` (`transparent` for none), `variant`, `checked` (written by both the chip and the screen), `removable`, `focusable`, `enabled`, `remove-label` («Remove» by default; «Remove filter» in the filter bar), `tooltip`; `cut` and `tooltip-shown` out; `clicked()`, `toggled(checked)`, `removed()` |
+| Variants `ChipVariant` | `filter` (default: `ink` text, removable by default; a click, Enter or Space say `clicked`), `toggle` (a click, Enter or Space flip it and say `toggled`; not removable by default) |
+| Remove | the `x` (`icon-sm` in a `chip-remove` hit area centred on the chip's right end, darker under the pointer, its tooltip `remove-label`), Delete or Backspace on the focused chip say `removed`; the screen takes it out of its list |
+| Width | hugs its content (`chip-pad-x` each side, `label-gap` between swatch, icon, text and `x`); short of room it gives way down to `chip-min-w`, cuts its text with «…» and says it whole in its tooltip |
+| Inside a field | `focusable: false` leaves it out of the Tab order: the field keeps the focus and removes the last chip with Backspace itself; the `x` still works with the pointer |
+| Accessibility | a button (checkable for `toggle`) named by its text; the `x` a button named `remove-label` |
 
 ### 5.16 Menu and ContextMenu
 
@@ -1406,6 +1433,12 @@ Nothing in it wraps: at narrow widths the left texts shorten first, then the ope
 A key cap for help and tooltips: `caption`, 1 px `line`, radius `badge`, 4 px side padding, `ink-muted`. Italian
 key names on an Italian Windows: Ctrl, Maiusc, Alt, Canc, Invio, Esc, Tab, Backspace (Windows' own Italian
 labels).
+
+| Kbd | |
+| --- | --- |
+| Interface | `text` (the key's name, translated by the screen); `KbdGroup` takes `keys: [string]`, the caps of one shortcut `kbd-gap` apart |
+| Size | `kbd-h` tall, at least as wide, so a one-letter key is square; a key name is never cut |
+| Accessibility | a text; in a group each cap is read in turn |
 
 ### 5.27 DriveTabs
 

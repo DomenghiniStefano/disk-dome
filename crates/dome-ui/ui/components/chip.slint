@@ -1,0 +1,224 @@
+// Chip (§ 5.15, § 6.6): a small `control-sm` piece of a filter, radius `control`, `caption` text. A `filter` chip
+// says an active filter («Type: Video»): a click, Enter or Space asks to open it (`clicked`), and its `x` (its own
+// 16 px hit area), Delete or Backspace remove it (`removed`), as MUI's deletable Chip. A `toggle` chip turns a choice
+// on and off (`toggled`), as Radix's Toggle: off `control` / `ink-muted`, on `accent-soft` / `accent-text`. Either may
+// lead with a colour swatch (a category, an age bucket) or a 12 px icon. It hugs its text; short of room it gives way
+// down to `chip-min-w` and cuts its text with «…», whose full text the tooltip then says.
+//
+// Inside a field (the Combobox's chips) it can be left out of the Tab order (`focusable: false`): the field keeps the
+// focus and removes the last chip with Backspace itself, and the `x` still works with the pointer.
+
+import { Size } from "../tokens/size.slint";
+import { Theme } from "../tokens/theme.slint";
+import { Motion } from "../tokens/motion.slint";
+import { TypeStep } from "../tokens/type.slint";
+import { Icons } from "../icons/icons.slint";
+import {
+    ChipVariant,
+    IconSize,
+    InkTone,
+    KitState,
+} from "../enums.slint";
+import { InputMode } from "../input-mode.slint";
+import { Pressable } from "../primitives/pressable.slint";
+import { FocusRing } from "../primitives/focus-ring.slint";
+import { Label } from "label.slint";
+import { Icon } from "icon.slint";
+import { Tooltip } from "tooltip.slint";
+
+// Variant and state → look, in one place.
+global ChipLook {
+    public pure function fill(on: bool, hovered: bool, pressed: bool) -> color {
+        return on ? Theme.accent-soft : pressed ? Theme.control-pressed : hovered ? Theme.control-hover : Theme.control;
+    }
+
+    public pure function tone(variant: ChipVariant, on: bool) -> InkTone {
+        return on ? InkTone.accent : variant == ChipVariant.toggle ? InkTone.muted : InkTone.normal;
+    }
+}
+
+export component Chip {
+    in property <string> text;
+    // A 12 px icon before the text (a saved filter's `bookmark`).
+    in property <image> icon;
+    // A colour swatch before the text (a category or an age bucket, § 6.6); `transparent` for none.
+    in property <color> swatch: transparent;
+    in property <ChipVariant> variant: ChipVariant.filter;
+    // A toggle chip's state. Written by the chip when the user flips it, and by the screen to set it: both sides write.
+    in-out property <bool> checked;
+    // The `x`, Delete and Backspace remove the chip; by default only a filter chip has them.
+    in property <bool> removable: root.variant == ChipVariant.filter;
+    // False leaves it out of the Tab order (a chip inside a field, whose focus stays in the field).
+    in property <bool> focusable: true;
+    in property <bool> enabled: true;
+    // The `x`'s accessible name and tooltip: what removing does («Remove filter»).
+    in property <string> remove-label: @tr("Remove");
+    // Said on hover and keyboard focus (§ 5.17); a cut text is said whole. On a disabled chip, the reason.
+    in property <string> tooltip;
+    // The Kit window only (§ 9).
+    in property <KitState> kit-state: KitState.live;
+
+    // Whether its tooltip is showing (the tests read it).
+    out property <bool> tooltip-shown: tip.shown;
+    // Whether the chip's text is cut (the tests read it).
+    out property <bool> cut: label.cut;
+
+    // A filter chip was clicked, or Enter or Space pressed on it: the screen opens the filter.
+    callback clicked();
+    // A toggle chip was flipped by the user.
+    callback toggled(checked: bool);
+    // The `x`, Delete or Backspace: the screen removes the chip from its list.
+    callback removed();
+
+    property <bool> on: root.variant == ChipVariant.toggle && root.checked;
+    property <bool> has-icon: root.icon.width > 0;
+    property <bool> has-swatch: root.swatch != transparent;
+    property <InkTone> tone: ChipLook.tone(root.variant, root.on);
+    // The `x`'s hit area sits centred on the chip's right end: as far from the right edge as from the top.
+    property <length> remove-inset: (root.height - Size.chip-remove) / 2;
+    // The pointer is over the `x` (it sits inside an `if`, so its state is copied here).
+    property <bool> remove-hovered;
+
+    function activate() {
+        if (root.variant == ChipVariant.toggle) {
+            root.checked = !root.checked;
+            root.toggled(root.checked);
+        } else {
+            root.clicked();
+        }
+    }
+
+    function remove() {
+        if (root.enabled && root.removable) {
+            root.removed();
+        }
+    }
+
+    height: Size.control-sm;
+    min-width: min(self.preferred-width, Size.chip-min-w);
+    preferred-width: row.preferred-width;
+    max-width: self.preferred-width;
+    opacity: root.enabled ? 1 : Size.disabled;
+
+    forward-focus: pressable;
+    accessible-role: button;
+    accessible-label: root.text;
+    accessible-enabled: root.enabled;
+    accessible-description: root.tooltip;
+    accessible-checkable: root.variant == ChipVariant.toggle;
+    accessible-checked: root.on;
+    accessible-action-default => {
+        root.activate();
+    }
+
+    Rectangle {
+        border-radius: Size.radius-control;
+        background: ChipLook.fill(root.on, pressable.hovered, pressable.pressed);
+        animate background { duration: Motion.fast; }
+    }
+
+    if pressable.show-focus: FocusRing {
+        radius: Size.radius-control;
+    }
+
+    pressable := Pressable {
+        enabled: root.enabled;
+        focusable: root.focusable;
+        kit-state: root.kit-state;
+        activated => {
+            root.activate();
+        }
+        key-pressed(event) => {
+            if (root.removable && (event.text == Key.Delete || event.text == Key.Backspace)) {
+                InputMode.keyboard = true;
+                root.remove();
+                return accept;
+            }
+            // Esc puts the tooltip away (§ 5.17).
+            if (event.text == Key.Escape && tip.shown) {
+                tip.dismiss();
+                return accept;
+            }
+            return reject;
+        }
+    }
+
+    // After the chip's pointer area, so its tooltip watches the pointer over a disabled chip.
+    tip := Tooltip {
+        text: root.tooltip != "" ? root.tooltip : label.cut ? root.text : "";
+        hovered: root.kit-state == KitState.live && pressable.hovered && !root.remove-hovered;
+        focused: root.kit-state == KitState.live && pressable.show-focus;
+        pressed: pressable.pressed;
+        watch-pointer: !root.enabled;
+    }
+
+    row := HorizontalLayout {
+        padding-left: Size.chip-pad-x;
+        padding-right: root.removable ? root.remove-inset : Size.chip-pad-x;
+        spacing: Size.label-gap;
+
+        if root.has-swatch: VerticalLayout {
+            alignment: center;
+
+            Rectangle {
+                width: Size.chip-swatch;
+                height: Size.chip-swatch;
+                border-radius: Size.radius-swatch;
+                background: root.swatch;
+            }
+        }
+
+        if root.has-icon: VerticalLayout {
+            alignment: center;
+
+            Icon {
+                source: root.icon;
+                size: IconSize.small;
+                tone: root.tone;
+            }
+        }
+
+        label := Label {
+            text: root.text;
+            step: TypeStep.caption;
+            tone: root.tone;
+            accessible-role: none;
+        }
+
+        // The `x`: its own hit area over the chip's, so a press on it removes and does not open the filter. Not a Tab
+        // stop (Delete and Backspace on the chip do the same), but a button for screen readers.
+        if root.removable: Rectangle {
+            width: Size.chip-remove;
+            accessible-role: button;
+            accessible-label: root.remove-label;
+            accessible-enabled: root.enabled;
+            accessible-action-default => {
+                root.remove();
+            }
+
+            Icon {
+                source: Icons.x;
+                size: IconSize.small;
+                // Darker under the pointer, as MUI's delete icon: the sign that it is a target of its own.
+                tone: root.remove-hovered ? InkTone.normal : InkTone.muted;
+            }
+
+            Pressable {
+                enabled: root.enabled;
+                focusable: false;
+                activated => {
+                    root.remove();
+                }
+                // Read outside the `if` by the chip's tooltip and the icon.
+                changed hovered => {
+                    root.remove-hovered = self.hovered;
+                }
+            }
+
+            Tooltip {
+                text: root.remove-label;
+                hovered: root.remove-hovered;
+            }
+        }
+    }
+}

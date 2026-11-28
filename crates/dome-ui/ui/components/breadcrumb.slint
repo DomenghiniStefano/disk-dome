@@ -1,0 +1,240 @@
+// Breadcrumb (§ 5.13): a path of segments, as shadcn's Breadcrumb. Each segment is a ghost button (`caption`,
+// `ink-muted`) that asks to go there (`activated`); the last one is where you are (`ink`, not a button, as shadcn's
+// BreadcrumbPage). A 12 px `chevron-right` in `ink-faint` separates them. When the path does not fit, segments fold
+// into «…», a menu of the folded ones: those in the middle, keeping the first and as many of the last as fit
+// (`BreadcrumbCollapse.middle`), or those from the start (`start`, the map header, § 3.11). When even the last one
+// does not fit alone, its name is cut with «…» and said whole in its tooltip.
+//
+// Slint functions have no loops, so the fold is answered by Rust through `BreadcrumbFit`
+// (`crates/dome-ui/src/breadcrumb.rs`, wired by `breadcrumb_fit!` on every window): each segment measures itself
+// and hands its width over, and Rust says which is the first shown after the fold.
+
+import { Size } from "../tokens/size.slint";
+import { Theme } from "../tokens/theme.slint";
+import { Motion } from "../tokens/motion.slint";
+import { TypeStep } from "../tokens/type.slint";
+import { Icons } from "../icons/icons.slint";
+import {
+    BreadcrumbCollapse,
+    ButtonSize,
+    ButtonVariant,
+    IconSize,
+    InkTone,
+    KitState,
+} from "../enums.slint";
+import { Pressable } from "../primitives/pressable.slint";
+import { FocusRing } from "../primitives/focus-ring.slint";
+import { Label } from "label.slint";
+import { Icon } from "icon.slint";
+import { Tooltip } from "tooltip.slint";
+import { MenuButton } from "menu-button.slint";
+import { MenuEntry } from "menu-list.slint";
+
+// One segment. Only `text` is needed.
+export struct BreadcrumbItem {
+    text: string,
+    // A 12 px icon before the text (a drive's `hard-drive`).
+    icon: image,
+    // Said on hover and keyboard focus (§ 5.17); a cut name is said whole.
+    tooltip: string,
+}
+
+// The answers Slint cannot compute (`crates/dome-ui/src/breadcrumb.rs`).
+export global BreadcrumbFit {
+    // `widths` with the one at `index` set to `width`: each segment hands its natural width over.
+    pure callback with-width(widths: [length], index: int, width: length) -> [length];
+    // The whole path's width with every segment shown (the first `count` widths).
+    pure callback total(widths: [length], count: int) -> length;
+    // The first segment shown after the fold; 0 when the whole path fits in `available`. `ellipsis` is the width of the
+    // «…» with its separator; `keep-first` folds the middle, otherwise the start.
+    pure callback first-shown(widths: [length], count: int, available: length, ellipsis: length, keep-first: bool) -> int;
+    // The folded segments as the «…» menu's entries, in order; each entry's `id` is the segment's index.
+    pure callback hidden(items: [BreadcrumbItem], first-shown: int, keep-first: bool) -> [MenuEntry];
+}
+
+export component Breadcrumb {
+    in property <[BreadcrumbItem]> items;
+    in property <BreadcrumbCollapse> collapse: BreadcrumbCollapse.middle;
+    in property <bool> enabled: true;
+    // The «…» menu button's accessible name and tooltip.
+    in property <string> more-label: @tr("Show the hidden levels");
+    // The Kit window only (§ 9): the state is shown on the first segment.
+    in property <KitState> kit-state: KitState.live;
+
+    // The first segment shown after the fold, 0 when nothing is folded (the tests read it).
+    out property <int> first-shown: BreadcrumbFit.first-shown(root.widths, root.items.length, root.width, root.ellipsis-width, root.keep-first);
+    // Some segments are folded into «…».
+    out property <bool> collapsed: root.keep-first ? root.first-shown > 1 : root.first-shown > 0;
+    // Whether the last segment's name is cut (the tests read it).
+    out property <bool> last-cut;
+
+    // A segment before the last was activated (a click, Enter or Space), or a folded one chosen in the «…» menu.
+    callback activated(index: int);
+
+    // Each segment's natural width with the separator before it, handed over by the segments.
+    property <[length]> widths;
+    property <bool> keep-first: root.collapse == BreadcrumbCollapse.middle;
+    property <length> separator: Size.icon-sm;
+    // The «…» is a small square icon button; with the fold in the middle, a separator comes before it.
+    property <length> more-width: Size.control-sm;
+    property <length> ellipsis-width: root.keep-first ? root.separator + root.more-width : root.more-width;
+
+    height: Size.control-sm;
+    // The whole path; short of room it folds, so it gives way down to the last segment's minimum.
+    min-width: Size.breadcrumb-min-w;
+    preferred-width: BreadcrumbFit.total(root.widths, root.items.length);
+    // Set, so it is not taken from the row inside, whose width follows the fold, which follows this width.
+    max-width: self.preferred-width;
+    opacity: root.enabled ? 1 : Size.disabled;
+
+    accessible-role: navigation;
+    accessible-label: @tr("Breadcrumb");
+    accessible-enabled: root.enabled;
+
+    HorizontalLayout {
+        alignment: start;
+
+        for item[index] in root.items: Rectangle {
+            property <bool> is-last: index == root.items.length - 1;
+            property <bool> shown: index >= root.first-shown || (index == 0 && root.keep-first);
+            property <length> lead: index > 0 ? root.separator : 0;
+            // The segment with the separator before it, measured whether shown or not.
+            property <length> natural: self.lead + content.preferred-width;
+            // The first segment carries the «…» after it.
+            property <bool> has-more: index == 0 && root.collapsed;
+            property <length> own: self.shown ? self.natural : 0;
+            property <length> more: self.has-more ? root.ellipsis-width : 0;
+
+            init => {
+                root.widths = BreadcrumbFit.with-width(root.widths, index, self.natural);
+            }
+            changed natural => {
+                root.widths = BreadcrumbFit.with-width(root.widths, index, self.natural);
+            }
+
+            // Only the last segment gives way (its name cut); the others fold instead.
+            min-width: self.is-last && self.shown ? self.lead + min(content.preferred-width, Size.breadcrumb-min-w) + self.more : self.own + self.more;
+            preferred-width: self.own + self.more;
+            max-width: self.own + self.more;
+
+            if index > 0 && shown: Icon {
+                x: 0;
+                source: Icons.chevron-right;
+                size: IconSize.small;
+                tone: InkTone.faint;
+            }
+
+            segment := Rectangle {
+                x: parent.lead;
+                width: parent.width - parent.lead - parent.more;
+                visible: parent.shown;
+                border-radius: Size.radius-button;
+                background: press.pressed ? Theme.control-pressed : press.hovered ? Theme.control-hover : transparent;
+                animate background { duration: Motion.fast; }
+
+                content := HorizontalLayout {
+                    padding-left: Size.breadcrumb-pad-x;
+                    padding-right: Size.breadcrumb-pad-x;
+                    spacing: Size.label-gap;
+
+                    if item.icon.width > 0: VerticalLayout {
+                        alignment: center;
+
+                        Icon {
+                            source: item.icon;
+                            size: IconSize.small;
+                            tone: is-last ? InkTone.normal : InkTone.muted;
+                        }
+                    }
+
+                    name := Label {
+                        text: item.text;
+                        step: TypeStep.caption;
+                        tone: is-last ? InkTone.normal : InkTone.muted;
+                        accessible-role: none;
+
+                        changed cut => {
+                            if (is-last) {
+                                root.last-cut = self.cut;
+                            }
+                        }
+                        init => {
+                            if (is-last) {
+                                root.last-cut = self.cut;
+                            }
+                        }
+                    }
+                }
+
+                // `accessible-role` must be a constant: a segment you can go to is a button, where you are is a text.
+                if !is-last: Rectangle {
+                    accessible-role: button;
+                    accessible-label: item.text;
+                    accessible-description: item.tooltip;
+                    accessible-enabled: root.enabled && shown;
+                    accessible-action-default => {
+                        root.activated(index);
+                    }
+                }
+                if is-last: Rectangle {
+                    accessible-role: AccessibleRole.text;
+                    accessible-label: item.text;
+                    accessible-description: item.tooltip;
+                }
+
+                if press.show-focus: FocusRing {
+                    radius: Size.radius-button;
+                }
+
+                press := Pressable {
+                    // Where you are is not a button: no hover, no focus stop.
+                    enabled: root.enabled && shown && !is-last;
+                    kit-state: index == 0 ? root.kit-state : KitState.live;
+                    activated => {
+                        root.activated(index);
+                    }
+                    // Esc puts the tooltip away (§ 5.17).
+                    key-pressed(event) => {
+                        if (event.text == Key.Escape && tip.shown) {
+                            tip.dismiss();
+                            return accept;
+                        }
+                        return reject;
+                    }
+                }
+
+                // After the pointer area: on where you are, which has none, it watches the pointer itself.
+                tip := Tooltip {
+                    text: item.tooltip != "" ? item.tooltip : name.cut ? item.text : "";
+                    hovered: root.kit-state == KitState.live && press.hovered;
+                    focused: root.kit-state == KitState.live && press.show-focus;
+                    pressed: press.pressed;
+                    watch-pointer: is-last && shown;
+                }
+            }
+
+            if has-more: HorizontalLayout {
+                x: parent.own;
+                width: root.ellipsis-width;
+
+                if root.keep-first: Icon {
+                    source: Icons.chevron-right;
+                    size: IconSize.small;
+                    tone: InkTone.faint;
+                }
+
+                MenuButton {
+                    icon: Icons.ellipsis;
+                    size: ButtonSize.small;
+                    variant: ButtonVariant.ghost;
+                    enabled: root.enabled;
+                    accessible-label: root.more-label;
+                    entries: BreadcrumbFit.hidden(root.items, root.first-shown, root.keep-first);
+                    activated(entry) => {
+                        root.activated(Math.round(entry.id.to-float()));
+                    }
+                }
+            }
+        }
+    }
+}

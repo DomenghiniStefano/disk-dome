@@ -110,3 +110,15 @@ export enum CheckboxState { unchecked, checked, indeterminate }
 // Which side of a switch its label sits on (§ 5.8): on the right, as a check box's, or on the left, the switch at the
 // end of the row (a settings row).
 export enum SwitchLabelSide { right, left }
+
+// A badge's colour (§ 5.14): `neutral` (`control` fill, `ink-muted`), `accent`, or a state's `-soft` fill with the
+// state's text.
+export enum BadgeVariant { neutral, accent, warning, danger, success }
+
+// What a chip does (§ 5.15): a `filter` chip says an active filter, opens it on a click and removes it with its `x`,
+// Delete or Backspace; a `toggle` chip turns a choice on and off (`accent-soft` / `accent-text` when on).
+export enum ChipVariant { filter, toggle }
+
+// Which segments a breadcrumb folds into «…» when it does not fit (§ 5.13): the `middle` ones, keeping the first
+// and as many of the last as fit, or the ones from its `start`, keeping only the last ones (the map header, § 3.11).
+export enum BreadcrumbCollapse { middle, start }

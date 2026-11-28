@@ -1,0 +1,187 @@
+// The test window of Badge, Kbd, Chip and Breadcrumb (`tests/text_bits_headless.rs`, § 5.13–5.15, § 5.26): a path the
+// test narrows until it folds (in the middle and from the start) and cuts its last name; badges with and without an
+// icon; key caps short and long and a shortcut of three; a filter chip, a toggle chip, a swatch and a long chip in a
+// box too narrow for it, counting what each one says. Kit only; texts are the Kit's own, not translated.
+
+import {
+    DomeWindow,
+    Badge,
+    BadgeVariant,
+    Kbd,
+    KbdGroup,
+    Chip,
+    ChipVariant,
+    Breadcrumb,
+    BreadcrumbItem,
+    BreadcrumbCollapse,
+    Data,
+    DataShade,
+    FileCategory,
+    Icons,
+    Size,
+} from "@dome-ui";
+
+export component KitTextBitsHarness inherits DomeWindow {
+    preferred-width: Size.window-min-w;
+    preferred-height: Size.window-min-h;
+
+    // The path, and the width the test gives the two breadcrumbs.
+    in property <[BreadcrumbItem]> path: [
+        { text: "C:", icon: Icons.hard-drive },
+        { text: "Users" },
+        { text: "stefa" },
+        { text: "Documents" },
+        { text: "Progetti" },
+        { text: "disk-dome" },
+    ];
+    in-out property <length> crumb-width: Size.window-min-w;
+
+    out property <length> crumb-height: middle.height;
+    out property <int> middle-first: middle.first-shown;
+    out property <bool> middle-collapsed: middle.collapsed;
+    out property <bool> middle-last-cut: middle.last-cut;
+    out property <int> start-first: start.first-shown;
+    out property <bool> start-collapsed: start.collapsed;
+    out property <length> start-y: start.y;
+    // The last segment `activated` said, and how many times.
+    out property <int> crumb-index: -1;
+    out property <int> crumb-count;
+
+    out property <length> badge-height: badge.height;
+    out property <length> badge-width: badge.width;
+    out property <length> badge-icon-width: badge-icon.width;
+
+    out property <length> key-height: key.height;
+    out property <length> key-width: key.width;
+    out property <length> long-key-width: long-key.width;
+    out property <length> ctrl-width: ctrl.width;
+    out property <length> shift-width: shift.width;
+    out property <length> group-width: group.width;
+
+    out property <length> chips-y: chips.y;
+    out property <length> filter-x: filter.x;
+    out property <length> filter-width: filter.width;
+    out property <length> filter-height: filter.height;
+    out property <length> toggle-x: toggle.x;
+    out property <length> toggle-width: toggle.width;
+    out property <length> swatch-width: swatch.width;
+    out property <bool> toggle-checked: toggle.checked;
+    out property <int> clicks;
+    out property <int> removals;
+    out property <int> flips;
+    out property <bool> last-toggled;
+    // The narrow box the long chip must fit in.
+    out property <length> narrow-box: Size.button-min-w;
+    out property <length> long-y: narrow.y;
+    out property <length> long-width: long.width;
+    out property <bool> long-cut: long.cut;
+    out property <bool> long-tooltip: long.tooltip-shown;
+
+    VerticalLayout {
+        alignment: start;
+        spacing: Size.group-gap;
+
+        HorizontalLayout {
+            alignment: start;
+
+            middle := Breadcrumb {
+                width: root.crumb-width;
+                items: root.path;
+                activated(index) => {
+                    root.crumb-index = index;
+                    root.crumb-count += 1;
+                }
+            }
+        }
+
+        HorizontalLayout {
+            alignment: start;
+
+            start := Breadcrumb {
+                width: root.crumb-width;
+                items: root.path;
+                collapse: BreadcrumbCollapse.start;
+            }
+        }
+
+        HorizontalLayout {
+            alignment: start;
+            spacing: Size.group-gap;
+
+            badge := Badge {
+                text: "system";
+                variant: BadgeVariant.warning;
+            }
+
+            badge-icon := Badge {
+                text: "system";
+                icon: Icons.shield-alert;
+                variant: BadgeVariant.warning;
+            }
+        }
+
+        HorizontalLayout {
+            alignment: start;
+            spacing: Size.group-gap;
+
+            key := Kbd {
+                text: "F";
+            }
+
+            long-key := Kbd {
+                text: "Backspace";
+            }
+
+            ctrl := Kbd {
+                text: "Ctrl";
+            }
+
+            shift := Kbd {
+                text: "Maiusc";
+            }
+
+            group := KbdGroup {
+                keys: ["Ctrl", "Maiusc", "F"];
+            }
+        }
+
+        chips := HorizontalLayout {
+            alignment: start;
+            spacing: Size.group-gap;
+
+            filter := Chip {
+                text: "Video";
+                clicked => {
+                    root.clicks += 1;
+                }
+                removed => {
+                    root.removals += 1;
+                }
+            }
+
+            toggle := Chip {
+                text: "Video";
+                variant: ChipVariant.toggle;
+                toggled(checked) => {
+                    root.flips += 1;
+                    root.last-toggled = checked;
+                }
+            }
+
+            swatch := Chip {
+                text: "Video";
+                variant: ChipVariant.toggle;
+                swatch: Data.colour(FileCategory.video, DataShade.base);
+            }
+        }
+
+        narrow := HorizontalLayout {
+            alignment: start;
+            width: root.narrow-box;
+
+            long := Chip {
+                text: "Modificati più di un anno fa";
+            }
+        }
+    }
+}

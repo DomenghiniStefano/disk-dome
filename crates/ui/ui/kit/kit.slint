@@ -60,6 +60,7 @@ import {
 } from "kit-parts.slint";
 import { KitTokens } from "kit-tokens.slint";
 import { KitText } from "kit-text.slint";
+import { KitTextBitsSection } from "kit-text-bits-section.slint";
 import { KitReview, KitIssue, KitReviewCount } from "kit-review.slint";
 import { KitChoiceSection } from "kit-choice-section.slint";
 import { KitTextFieldSection } from "kit-textfield-section.slint";
@@ -1344,6 +1345,9 @@ export component KitWindow inherits DomeWindow {
                             }
                         }
                     }
+
+                    // Badge, Kbd, KbdGroup, Chip and Breadcrumb (§ 5.13–5.15, § 5.26).
+                    KitTextBitsSection { }
 
                     KitSection {
                         title: "ScrollBar · states";
