@@ -1,0 +1,107 @@
+// The ToggleButton's test window (`tests/toggle_headless.rs`, § 5.3): the three sizes icon only (square), a text
+// toggle that hugs its label, the outline variant's edge, a long label in a box too narrow for it, and a toggle the
+// test flips by pointer and keyboard, counting `toggled`. Kit only; texts are the Kit's own, not translated.
+
+import {
+    DomeWindow,
+    ToggleButton,
+    ToggleSize,
+    ToggleVariant,
+    Icons,
+    Size,
+} from "@dome-ui";
+
+export component KitToggleHarness inherits DomeWindow {
+    preferred-width: Size.window-min-w;
+    preferred-height: Size.window-min-h;
+
+    // The narrow box the long label must fit in.
+    out property <length> narrow-box: Size.button-min-w;
+
+    out property <length> small-width: small.width;
+    out property <length> small-height: small.height;
+    out property <length> normal-width: normal.width;
+    out property <length> normal-height: normal.height;
+    out property <length> large-width: large.width;
+    out property <length> large-height: large.height;
+    out property <length> text-width: text.width;
+    out property <length> text-x: text.x + sizes-row.x;
+    out property <length> text-y: text.y + sizes-row.y;
+    out property <length> icon-text-width: icon-text.width;
+    out property <length> outline-x: outline.x + outline-row.x;
+    out property <length> outline-y: outline.y + outline-row.y;
+    out property <length> long-width: long.width;
+    out property <length> long-y: long.y + narrow.y;
+    out property <bool> long-tooltip: long.tooltip-shown;
+    out property <length> flip-y: flip-row.y;
+    out property <bool> flip-checked: flip.checked;
+    // How many times `toggled` was called, and with what.
+    out property <int> flips;
+    out property <bool> last-toggled;
+
+    VerticalLayout {
+        alignment: start;
+        spacing: Size.group-gap;
+
+        sizes-row := HorizontalLayout {
+            alignment: start;
+            spacing: Size.group-gap;
+
+            small := ToggleButton {
+                icon: Icons.panel-right;
+                size: ToggleSize.small;
+                accessible-label: "Side panel";
+            }
+
+            normal := ToggleButton {
+                icon: Icons.panel-right;
+                accessible-label: "Side panel";
+            }
+
+            large := ToggleButton {
+                icon: Icons.panel-right;
+                size: ToggleSize.large;
+                accessible-label: "Side panel";
+            }
+
+            text := ToggleButton {
+                text: "Filters";
+            }
+
+            icon-text := ToggleButton {
+                text: "Filters";
+                icon: Icons.filter;
+            }
+        }
+
+        outline-row := HorizontalLayout {
+            alignment: start;
+
+            outline := ToggleButton {
+                text: "Filters";
+                variant: ToggleVariant.outline;
+            }
+        }
+
+        narrow := HorizontalLayout {
+            alignment: start;
+            width: root.narrow-box;
+
+            long := ToggleButton {
+                text: "Mostra i file nascosti";
+            }
+        }
+
+        flip-row := HorizontalLayout {
+            alignment: start;
+
+            flip := ToggleButton {
+                text: "Filters";
+                toggled(checked) => {
+                    root.flips += 1;
+                    root.last-toggled = checked;
+                }
+            }
+        }
+    }
+}

@@ -169,8 +169,8 @@ const RULES: &[Rule] = &[
     Rule {
         name: "icon-label",
         check: |s| {
-            // An `IconButton` or a `ToggleButton` (always icon only, § 5.3), or a `Button` or `MenuButton` with an
-            // `icon` and no `text`. Blind spot: a button whose text is bound to an empty string is not recognised.
+            // An `IconButton`, or a `Button`, `ToggleButton` or `MenuButton` with an `icon` and no `text`. Blind
+            // spot: a button whose text is bound to an empty string is not recognised.
             let mut found = vec![];
             for m in Regex::new(r"\b(?:IconButton|ToggleButton|MenuButton|Button)\s*\{")
                 .expect("test data is valid")
@@ -182,7 +182,6 @@ const RULES: &[Rule] = &[
                 }
                 let body = block_after(&s.bare, m.end());
                 let icon_only = m.as_str().starts_with("Icon")
-                    || m.as_str().starts_with("Toggle")
                     || (has_property(body, "icon") && !has_property(body, "text"));
                 if icon_only && !body.contains("accessible-label") {
                     found.push(m.as_str().to_owned());
@@ -292,9 +291,12 @@ fn sources_follow_the_rules() {
     );
 }
 
-/// `kit-coverage`: every component exported by `dome-ui/components/` appears in `kit/kit.slint`.
+/// `kit-coverage`: every component the library exports (`dome-ui/index.slint`) from `dome-ui/components/` appears in
+/// `kit/kit.slint`. A component the library keeps to itself (`ButtonContent`) cannot be imported by the Kit; it shows
+/// through the components built on it.
 fn kit_coverage(sources: &[Source]) -> Vec<String> {
     let kit = sources.iter().find(|s| s.path == "kit/kit.slint");
+    let index = sources.iter().find(|s| s.path == "dome-ui/index.slint");
     let export = Regex::new(r"export\s+component\s+([A-Za-z][\w-]*)").expect("test data is valid");
     sources
         .iter()
@@ -304,6 +306,13 @@ fn kit_coverage(sources: &[Source]) -> Vec<String> {
                 .captures_iter(&s.code)
                 .map(|c| c[1].to_owned())
                 .collect::<Vec<_>>()
+        })
+        .filter(|name| {
+            index.is_none_or(|i| {
+                Regex::new(&format!(r"\b{name}\b"))
+                    .expect("test data is valid")
+                    .is_match(&i.code)
+            })
         })
         .filter(|name| {
             kit.is_none_or(|k| {
@@ -378,4 +387,8 @@ fn icon_label_catches_an_icon_only_button() {
         0
     );
     assert_eq!(count(r#"Button { text: @tr("Scan"); }"#), 0);
+    assert_eq!(
+        count(r#"ToggleButton { icon: Icons.filter; text: @tr("Filters"); }"#),
+        0
+    );
 }

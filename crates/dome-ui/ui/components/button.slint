@@ -17,8 +17,7 @@ import {
 } from "../enums.slint";
 import { Pressable } from "../primitives/pressable.slint";
 import { FocusRing } from "../primitives/focus-ring.slint";
-import { Label } from "label.slint";
-import { Icon } from "icon.slint";
+import { ButtonContent } from "button-content.slint";
 import { Tooltip } from "tooltip.slint";
 
 // Variant and size → look. One place, so the Kit and the screens can never disagree.
@@ -80,14 +79,8 @@ export component Button {
 
     property <bool> has-text: root.text != "";
     property <bool> has-icon: root.icon.width > 0;
-    property <bool> has-icon-end: root.has-text && root.icon-end.width > 0;
     property <bool> icon-only: root.has-icon && !root.has-text;
-    // The label is cut: the tooltip says it whole.
-    property <bool> cut: root.has-text && root.label-cut;
-    // The label sits inside an `if`, so its `cut` is copied here to be read.
-    property <bool> label-cut;
     property <bool> hero: root.size == ButtonSize.hero;
-    property <length> pad-x: root.hero ? Size.button-pad-x-hero : Size.button-pad-x;
     property <length> min-w: root.hero ? Size.button-hero-min-w : Size.button-min-w;
 
     height: ButtonLook.height(root.size);
@@ -113,44 +106,16 @@ export component Button {
         animate background { duration: Motion.fast; }
     }
 
-    content := HorizontalLayout {
-        alignment: center;
-        spacing: Size.label-gap;
+    content := ButtonContent {
+        text: root.text;
+        icon: root.icon;
+        icon-end: root.icon-end;
+        icon-size: root.hero ? IconSize.hero : IconSize.normal;
+        step: ButtonLook.step(root.variant, root.size);
+        tone: ButtonLook.tone(root.variant);
+        pad-x: root.hero ? Size.button-pad-x-hero : Size.button-pad-x;
         // The side with an icon is a little tighter (§ 3.4), except on the hero button.
-        padding-left: !root.has-text ? 0 : root.has-icon && !root.hero ? Size.button-pad-x-icon : root.pad-x;
-        padding-right: !root.has-text ? 0 : root.has-icon-end && !root.hero ? Size.button-pad-x-icon : root.pad-x;
-
-        if root.has-icon: VerticalLayout {
-            alignment: center;
-
-            Icon {
-                source: root.icon;
-                size: root.hero ? IconSize.hero : IconSize.normal;
-                tone: ButtonLook.tone(root.variant);
-            }
-        }
-        if root.has-text: Label {
-            text: root.text;
-            step: ButtonLook.step(root.variant, root.size);
-            tone: ButtonLook.tone(root.variant);
-            accessible-role: none;
-
-            changed cut => {
-                root.label-cut = self.cut;
-            }
-            init => {
-                root.label-cut = self.cut;
-            }
-        }
-        if root.has-icon-end: VerticalLayout {
-            alignment: center;
-
-            Icon {
-                source: root.icon-end;
-                size: root.hero ? IconSize.hero : IconSize.normal;
-                tone: ButtonLook.tone(root.variant);
-            }
-        }
+        pad-x-icon: root.hero ? Size.button-pad-x-hero : Size.button-pad-x-icon;
     }
 
     if pressable.show-focus: FocusRing {
@@ -175,7 +140,7 @@ export component Button {
 
     // After the pointer area, so over a disabled button it can watch the pointer itself.
     tip := Tooltip {
-        text: root.tooltip != "" ? root.tooltip : root.icon-only ? root.accessible-label : root.cut ? root.text : "";
+        text: root.tooltip != "" ? root.tooltip : root.icon-only ? root.accessible-label : content.cut ? root.text : "";
         shortcut: root.tooltip-shortcut;
         hovered: root.kit-state == KitState.live && pressable.hovered;
         focused: root.kit-state == KitState.live && pressable.show-focus;
