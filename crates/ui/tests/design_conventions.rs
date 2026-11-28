@@ -292,9 +292,12 @@ fn sources_follow_the_rules() {
     );
 }
 
-/// `kit-coverage`: every component exported by `dome-ui/components/` appears in `kit/kit.slint`.
+/// `kit-coverage`: every component the library exports (`dome-ui/index.slint`) from `dome-ui/components/` appears in
+/// `kit/kit.slint`. A component the library keeps to itself (`ButtonContent`) cannot be imported by the Kit; it shows
+/// through the components built on it.
 fn kit_coverage(sources: &[Source]) -> Vec<String> {
     let kit = sources.iter().find(|s| s.path == "kit/kit.slint");
+    let index = sources.iter().find(|s| s.path == "dome-ui/index.slint");
     let export = Regex::new(r"export\s+component\s+([A-Za-z][\w-]*)").expect("test data is valid");
     sources
         .iter()
@@ -304,6 +307,13 @@ fn kit_coverage(sources: &[Source]) -> Vec<String> {
                 .captures_iter(&s.code)
                 .map(|c| c[1].to_owned())
                 .collect::<Vec<_>>()
+        })
+        .filter(|name| {
+            index.is_none_or(|i| {
+                Regex::new(&format!(r"\b{name}\b"))
+                    .expect("test data is valid")
+                    .is_match(&i.code)
+            })
         })
         .filter(|name| {
             kit.is_none_or(|k| {

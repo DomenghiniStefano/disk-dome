@@ -1,0 +1,71 @@
+// ButtonContent: the inside of a button-like control (§ 5.2, § 5.3, § 5.6): a leading icon, a label and a trailing
+// icon, the side with an icon padded a little tighter (§ 3.4). Shared by Button, ToggleButton and SegmentedControl so
+// their content, padding and cut label cannot drift apart; not exported from the library.
+
+import { Size } from "../tokens/size.slint";
+import { TypeStep } from "../tokens/type.slint";
+import { IconSize, InkTone } from "../enums.slint";
+import { Label } from "label.slint";
+import { Icon } from "icon.slint";
+
+export component ButtonContent inherits HorizontalLayout {
+    // Empty: the icon alone, with no padding (the control is then square).
+    in property <string> text;
+    in property <image> icon;
+    // After the label, as the chevron of a button that opens a list; shown only with a text.
+    in property <image> icon-end;
+    in property <IconSize> icon-size: IconSize.normal;
+    in property <TypeStep> step: TypeStep.body;
+    in property <InkTone> tone: InkTone.normal;
+    in property <TextHorizontalAlignment> align: TextHorizontalAlignment.left;
+    // The padding on a side with text only, and on a side with an icon.
+    in property <length> pad-x: Size.button-pad-x;
+    in property <length> pad-x-icon: Size.button-pad-x-icon;
+
+    // The label does not fit: the control says it whole in its tooltip (§ 3.3).
+    out property <bool> cut: root.has-text && root.label-cut;
+
+    property <bool> has-text: root.text != "";
+    property <bool> has-icon: root.icon.width > 0;
+    property <bool> has-icon-end: root.has-text && root.icon-end.width > 0;
+    // The label sits inside an `if`, so its `cut` is copied here to be read.
+    property <bool> label-cut;
+
+    alignment: center;
+    spacing: Size.label-gap;
+    padding-left: !root.has-text ? 0 : root.has-icon ? root.pad-x-icon : root.pad-x;
+    padding-right: !root.has-text ? 0 : root.has-icon-end ? root.pad-x-icon : root.pad-x;
+
+    if root.has-icon: VerticalLayout {
+        alignment: center;
+
+        Icon {
+            source: root.icon;
+            size: root.icon-size;
+            tone: root.tone;
+        }
+    }
+    if root.has-text: Label {
+        text: root.text;
+        step: root.step;
+        tone: root.tone;
+        align: root.align;
+        accessible-role: none;
+
+        changed cut => {
+            root.label-cut = self.cut;
+        }
+        init => {
+            root.label-cut = self.cut;
+        }
+    }
+    if root.has-icon-end: VerticalLayout {
+        alignment: center;
+
+        Icon {
+            source: root.icon-end;
+            size: root.icon-size;
+            tone: root.tone;
+        }
+    }
+}

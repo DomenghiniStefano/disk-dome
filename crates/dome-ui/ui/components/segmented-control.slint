@@ -11,9 +11,7 @@
 import { Size } from "../tokens/size.slint";
 import { Theme } from "../tokens/theme.slint";
 import { Motion } from "../tokens/motion.slint";
-import { TypeStep } from "../tokens/type.slint";
 import {
-    IconSize,
     InkTone,
     KitState,
     SegmentedSize,
@@ -23,8 +21,7 @@ import { InputMode } from "../input-mode.slint";
 import { Pressable } from "../primitives/pressable.slint";
 import { FocusTarget } from "../primitives/focus-target.slint";
 import { FocusRing } from "../primitives/focus-ring.slint";
-import { Label } from "label.slint";
-import { Icon } from "icon.slint";
+import { ButtonContent } from "button-content.slint";
 import { Tooltip } from "tooltip.slint";
 
 // One segment. Only `text` is needed; the rest is empty or false by default.
@@ -124,10 +121,6 @@ export component SegmentedControl {
             property <bool> live: root.enabled && !item.disabled;
             property <bool> has-icon: item.icon.width > 0;
             property <bool> icon-only: item.icon-only && self.has-icon;
-            // The label is cut: the tooltip says it whole.
-            property <bool> cut: !self.icon-only && self.label-cut;
-            // The label sits inside an `if`, so its `cut` is copied here to be read.
-            property <bool> label-cut;
             // The pointer or the keyboard asks for its tooltip, before Esc is heard.
             property <bool> asked: root.kit-state == KitState.live && (segment.hovered || (self.chosen && group.show-focus));
 
@@ -159,37 +152,13 @@ export component SegmentedControl {
                 root.choose(index);
             }
 
-            content := HorizontalLayout {
-                alignment: center;
-                spacing: Size.label-gap;
+            content := ButtonContent {
+                // Icon only: the text is said by the tooltip and screen readers, not shown.
+                text: icon-only ? "" : item.text;
+                icon: item.icon;
+                tone: chosen ? InkTone.normal : InkTone.muted;
+                align: TextHorizontalAlignment.center;
                 opacity: item.disabled ? Size.disabled : 1;
-                // The side with an icon is a little tighter (§ 3.4), as on the Button.
-                padding-left: icon-only ? 0 : has-icon ? Size.button-pad-x-icon : Size.button-pad-x;
-                padding-right: icon-only ? 0 : Size.button-pad-x;
-
-                if has-icon: VerticalLayout {
-                    alignment: center;
-
-                    Icon {
-                        source: item.icon;
-                        size: IconSize.normal;
-                        tone: chosen ? InkTone.normal : InkTone.muted;
-                    }
-                }
-                if !icon-only: Label {
-                    text: item.text;
-                    step: TypeStep.body;
-                    tone: chosen ? InkTone.normal : InkTone.muted;
-                    align: TextHorizontalAlignment.center;
-                    accessible-role: none;
-
-                    changed cut => {
-                        label-cut = self.cut;
-                    }
-                    init => {
-                        label-cut = self.cut;
-                    }
-                }
             }
 
             segment := Pressable {
@@ -204,7 +173,7 @@ export component SegmentedControl {
 
             // After the pointer area, so over a disabled segment it can watch the pointer itself.
             Tooltip {
-                text: item.tooltip != "" ? item.tooltip : icon-only || cut ? item.text : "";
+                text: item.tooltip != "" ? item.tooltip : icon-only || content.cut ? item.text : "";
                 hovered: asked && segment.hovered && root.hushed != index;
                 focused: asked && chosen && group.show-focus && root.hushed != index;
                 pressed: segment.pressed;
