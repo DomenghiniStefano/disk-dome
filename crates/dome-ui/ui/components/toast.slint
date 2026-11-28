@@ -1,0 +1,403 @@
+// Toast (§ 5.20, § 3.11): the notice of something done or ended by itself («3 items moved to the Recycle Bin»), as
+// shadcn's Sonner: the level-1 surface in the bottom-right corner of the area it covers, the kind's icon, up to
+// `toast-lines` of text (the whole text in its tooltip), an action right of the text («Undo»), up to two more in a
+// row under it, and a close `x`. It goes away by itself after the time it takes to read (`ToastClock`), which stops
+// while the pointer is over it or the keyboard focus is in it; a sticky notice (a failure) stays until closed. One at
+// a time: `show` replaces the notice shown. While `held` (a popup or a dialog is open) it is hidden and its time
+// stands still; it comes back with its full time.
+//
+// Where it is drawn: in the content, not in a `PopupWindow` and not in `DomeWindow`'s top layer. A popup takes the
+// keyboard focus when it shows (§ 3.11 traps), so a notice there would take it from a field being typed in. The top
+// layer is drawn over everything with no pointer area, while the notice has buttons, sits under popups and dialogs,
+// must never cover a bar, and in Settings appears inside the dialog: only the screen knows where its bars are. So the
+// screen lays one `Toast` over the area between its bars (`width` and `height` 100 %, last or at `Size.z-notice`);
+// the toast takes no pointer event outside its own card.
+
+import { Size } from "../tokens/size.slint";
+import { Theme } from "../tokens/theme.slint";
+import { Motion } from "../tokens/motion.slint";
+import { Type, TypeStep } from "../tokens/type.slint";
+import { Icons } from "../icons/icons.slint";
+import {
+    NoticeKind,
+    ToastEnd,
+    InkTone,
+    LabelWrap,
+    ButtonVariant,
+    ButtonSize,
+    PopupSide,
+} from "../enums.slint";
+import { NoticeLook } from "../primitives/notice-look.slint";
+import { PopupSurface } from "../primitives/popup-surface.slint";
+import { Pressable } from "../primitives/pressable.slint";
+import { FocusRing } from "../primitives/focus-ring.slint";
+import { Label } from "label.slint";
+import { Button } from "button.slint";
+import { Tooltip } from "tooltip.slint";
+import { NoticeIcon } from "notice-icon.slint";
+
+// One notice. Only `text` is needed; the rest defaults to an info notice with no action that goes by itself.
+export struct ToastNotice {
+    text: string,
+    kind: NoticeKind,
+    // The action right of the text («Undo», «Show details»); empty for none. With it the notice stays longer.
+    action: string,
+    // Up to two actions in a row under the text («Show in File Explorer», «Retry»); more are not drawn.
+    row-actions: [string],
+    // Stays until closed (a failure, § 5.20).
+    sticky: bool,
+}
+
+// How long a notice stays (§ 5.20), in one place: the reading time of its text, at least the minimum (a longer one
+// with an action, the time to reach it), at most the maximum; 0 for a sticky notice, which stays until closed.
+global ToastClock {
+    public pure function time(notice: ToastNotice, read: duration, per-character: duration, least: duration, least-with-action: duration, most: duration) -> duration {
+        return notice.sticky ? 0 : min(most, max(notice.action != "" ? least-with-action : least, read + per-character * notice.text.character-count));
+    }
+}
+
+// An action of the row under the text: `accent-text` on no fill, the ghost button's hover and press.
+component ToastRowAction {
+    in property <string> text;
+
+    out property <bool> has-focus: press.has-focus;
+
+    callback activated;
+
+    height: Size.control-sm;
+    min-width: min(self.preferred-width, Size.button-min-w);
+    preferred-width: content.preferred-width;
+    max-width: self.preferred-width;
+
+    forward-focus: press;
+    accessible-role: button;
+    accessible-label: root.text;
+    accessible-action-default => {
+        root.activated();
+    }
+
+    Rectangle {
+        border-radius: Size.radius-button;
+        background: press.pressed ? Theme.control-pressed : press.hovered ? Theme.control-hover : transparent;
+        animate background { duration: Motion.fast; }
+    }
+
+    content := HorizontalLayout {
+        padding-left: Size.toast-action-pad-x;
+        padding-right: Size.toast-action-pad-x;
+
+        Label {
+            text: root.text;
+            tone: InkTone.accent;
+            accessible-role: none;
+        }
+    }
+
+    if press.show-focus: FocusRing {
+        radius: Size.radius-button;
+    }
+
+    press := Pressable {
+        activated => {
+            root.activated();
+        }
+    }
+}
+
+// The card: what one notice shows, and whether the pointer is over it or the focus in it (its time then stops).
+component ToastCard inherits TouchArea {
+    in property <ToastNotice> notice;
+    in property <int> max-lines;
+    in property <string> close-label;
+    in property <bool> animate-in;
+
+    out property <bool> pointer-in: root.has-hover;
+    out property <bool> focus-in: close.has-focus || (root.has-action && root.action-focus)
+        || (root.row-count > 0 && root.first-row-focus) || (root.row-count > 1 && root.second-row-focus);
+
+    callback action-activated;
+    callback row-action-activated(index: int);
+    callback dismissed;
+
+    property <bool> has-action: root.notice.action != "";
+    property <int> row-count: root.notice.row-actions.length;
+    // The buttons inside an `if` say their focus here.
+    property <bool> action-focus;
+    property <bool> first-row-focus;
+    property <bool> second-row-focus;
+    property <TypeStep> step: TypeStep.body;
+    // The first line: as tall as the buttons beside it, the text, the icon and the buttons centred on it.
+    property <length> line-box: max(Size.control-sm, Size.toast-close, Type.line(root.step));
+    property <length> text-pad: (root.line-box - Type.line(root.step)) / 2;
+
+    min-height: surface.preferred-height;
+    preferred-height: surface.preferred-height;
+
+    // Slint 1.19 has no alert or status role: a named group, live, so Narrator reads the text when it appears or
+    // changes, at once for an error (§ 7).
+    accessible-role: groupbox;
+    accessible-label: root.notice.text;
+    accessible-live-region: NoticeLook.liveness(root.notice.kind);
+
+    keys := FocusScope {
+        // Not a Tab stop and not focused by a click: it only hears Esc from the buttons inside.
+        focus-on-click: false;
+        focus-on-tab-navigation: false;
+        key-pressed(event) => {
+            if (event.text == Key.Escape) {
+                root.dismissed();
+                return accept;
+            }
+            return reject;
+        }
+
+        surface := PopupSurface {
+            width: 100%;
+            height: 100%;
+            inset-x: Size.toast-pad-x;
+            inset-y: Size.toast-pad-y;
+            // It rises from below, from the bar under it.
+            side: PopupSide.top;
+            animate-in: root.animate-in;
+
+            HorizontalLayout {
+                spacing: Size.label-gap;
+
+                VerticalLayout {
+                    alignment: start;
+                    padding-top: (root.line-box - Size.icon) / 2;
+
+                    NoticeIcon {
+                        kind: root.notice.kind;
+                    }
+                }
+
+                // The text, and over it the tooltip with the whole text when it is cut.
+                Rectangle {
+                    horizontal-stretch: 1;
+                    min-height: message.preferred-height + 2 * root.text-pad;
+                    preferred-height: self.min-height;
+
+                    message := Label {
+                        y: root.text-pad;
+                        width: parent.width;
+                        height: parent.height - 2 * root.text-pad;
+                        text: root.notice.text;
+                        step: root.step;
+                        wrap: LabelWrap.word;
+                        max-lines: root.max-lines;
+                        accessible-role: none;
+                    }
+
+                    Tooltip {
+                        text: message.cut ? root.notice.text : "";
+                        watch-pointer: self.text != "";
+                    }
+                }
+
+                if root.has-action: VerticalLayout {
+                    alignment: start;
+                    padding-top: (root.line-box - Size.control-sm) / 2;
+
+                    Button {
+                        text: root.notice.action;
+                        variant: ButtonVariant.ghost;
+                        size: ButtonSize.small;
+                        clicked => {
+                            root.action-activated();
+                        }
+                        changed has-focus => {
+                            root.action-focus = self.has-focus;
+                        }
+                    }
+                }
+
+                VerticalLayout {
+                    alignment: start;
+                    padding-top: (root.line-box - Size.toast-close) / 2;
+
+                    close := Button {
+                        height: Size.toast-close;
+                        icon: Icons.x;
+                        variant: ButtonVariant.ghost;
+                        size: ButtonSize.small;
+                        accessible-label: root.close-label;
+                        clicked => {
+                            root.dismissed();
+                        }
+                    }
+                }
+            }
+
+            // Under the text, each action's word lined up with the text's start.
+            if root.row-count > 0: HorizontalLayout {
+                padding-top: Size.toast-gap;
+                padding-left: Size.icon + Size.label-gap - Size.toast-action-pad-x;
+                spacing: Size.label-gap;
+                alignment: start;
+
+                ToastRowAction {
+                    text: root.notice.row-actions[0];
+                    activated => {
+                        root.row-action-activated(0);
+                    }
+                    changed has-focus => {
+                        root.first-row-focus = self.has-focus;
+                    }
+                }
+
+                if root.row-count > 1: ToastRowAction {
+                    text: root.notice.row-actions[1];
+                    activated => {
+                        root.row-action-activated(1);
+                    }
+                    changed has-focus => {
+                        root.second-row-focus = self.has-focus;
+                    }
+                }
+            }
+        }
+    }
+}
+
+export component Toast {
+    // The times of § 5.20, each a property whose default is its token, so a test window can stretch them.
+    in property <duration> read-time: Motion.notice-read;
+    in property <duration> per-character: Motion.notice-per-character;
+    in property <duration> min-time: Motion.notice-min;
+    in property <duration> min-time-with-action: Motion.notice-min-action;
+    in property <duration> max-time: Motion.notice-max;
+    // A popup or a dialog is open (§ 3.11): the notice hides and its time stands still; it comes back with its full
+    // time when this goes false.
+    in property <bool> held;
+    // How far the card sits from the right and the bottom edges of the area (§ 3.11), and how wide it is; narrower
+    // when the area is.
+    in property <length> margin-x: Size.notice-margin;
+    in property <length> margin-y: Size.notice-margin;
+    in property <length> notice-width: Size.toast-w;
+    in property <int> max-lines: Size.toast-lines;
+    // False shows the card at once, without the fade and the rise (the Kit's samples).
+    in property <bool> animate-in: true;
+    // The close button's name for screen readers and its tooltip.
+    in property <string> close-label: @tr("Close");
+
+    // A notice is there, shown or waiting while held.
+    out property <bool> open;
+    out property <bool> shown: root.open && !root.held;
+    out property <ToastNotice> notice;
+    // How long the notice stays, by `ToastClock`; 0 when it stays until closed.
+    out property <duration> time: ToastClock.time(root.notice, root.read-time, root.per-character, root.min-time, root.min-time-with-action, root.max-time);
+    // Where the card is, in the toast's own coordinates (the tests read it).
+    out property <length> card-width: min(root.notice-width, root.width - 2 * root.margin-x);
+    out property <length> card-x: root.width - root.margin-x - root.card-width;
+    out property <length> card-height;
+    out property <length> card-y: root.height - root.margin-y - root.card-height;
+
+    // The action right of the text was chosen; the notice then goes (`closed(ToastEnd.action)`).
+    callback action-activated;
+    // An action of the row under the text, by its index (0 or 1); the notice then goes.
+    callback row-action-activated(index: int);
+    callback closed(end: ToastEnd);
+
+    // Shows a notice, in place of the one shown (that one says `closed(ToastEnd.replaced)`).
+    public function show(next: ToastNotice) {
+        if (root.open) {
+            root.open = false;
+            root.closed(ToastEnd.replaced);
+        }
+        root.notice = next;
+        root.left = root.time;
+        root.since = animation-tick();
+        root.open = true;
+        // Already running for the notice it replaces: its time starts again.
+        if (root.running) {
+            clock.restart();
+        }
+    }
+
+    // Puts the notice away, as its `x` does (the window's Esc, when no popup or dialog is open).
+    public function close() {
+        if (root.open) {
+            root.finish(ToastEnd.dismissed);
+        }
+    }
+
+    // What is left of the notice's time, and when it last started running.
+    property <duration> left;
+    property <duration> since;
+    // The card's pointer and focus, copied out of its `if`.
+    property <bool> pointer-in;
+    property <bool> focus-in;
+    property <bool> running: root.shown && root.time > 0 && !root.pointer-in && !root.focus-in;
+
+    // Laid over the area it may cover; the card sits in its corner.
+    width: 100%;
+    height: 100%;
+
+    changed running => {
+        if (self.running) {
+            root.since = animation-tick();
+        } else if (root.open) {
+            root.left = animation-tick() - root.since < root.left ? root.left - (animation-tick() - root.since) : 0;
+        }
+    }
+    // Back from under a popup or a dialog: the full time again (§ 5.20).
+    changed held => {
+        if (!self.held && root.open) {
+            root.left = root.time;
+        }
+    }
+
+    function finish(end: ToastEnd) {
+        root.open = false;
+        // The card goes, and with it what it said about the pointer and the focus.
+        root.pointer-in = false;
+        root.focus-in = false;
+        root.closed(end);
+    }
+
+    clock := Timer {
+        interval: root.left;
+        running: root.running;
+        triggered => {
+            root.finish(ToastEnd.timeout);
+        }
+    }
+
+    if root.shown: ToastCard {
+        x: root.card-x;
+        y: root.height - root.margin-y - self.height;
+        width: root.card-width;
+        height: self.preferred-height;
+        notice: root.notice;
+        max-lines: root.max-lines;
+        close-label: root.close-label;
+        animate-in: root.animate-in;
+
+        init => {
+            root.pointer-in = self.pointer-in;
+            root.focus-in = self.focus-in;
+            root.card-height = self.height;
+        }
+        changed pointer-in => {
+            root.pointer-in = self.pointer-in;
+        }
+        changed focus-in => {
+            root.focus-in = self.focus-in;
+        }
+        changed height => {
+            root.card-height = self.height;
+        }
+        action-activated => {
+            root.action-activated();
+            root.finish(ToastEnd.action);
+        }
+        row-action-activated(index) => {
+            root.row-action-activated(index);
+            root.finish(ToastEnd.action);
+        }
+        dismissed => {
+            root.finish(ToastEnd.dismissed);
+        }
+    }
+}

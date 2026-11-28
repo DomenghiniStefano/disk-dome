@@ -129,3 +129,10 @@ export enum DialogSize { small, medium, large }
 // Where the focus goes when a dialog opens (§ 5.18): to its `default-action`, as Windows (a delete confirmation's
 // «Cancel»), or to the `first` control in it, as Radix.
 export enum DialogFocus { default-action, first }
+// What a notice says (§ 5.19, § 5.20): its icon and colour, and how urgently screen readers announce it (assertive for
+// `danger` only, § 7). The same four kinds for the info bar and the toast.
+export enum NoticeKind { info, warning, danger, success }
+
+// Why a toast went away (§ 5.20): its time ran out, it was closed (its `x`, Esc, or the screen's `close()`), one of its
+// actions was chosen, or a newer notice took its place.
+export enum ToastEnd { timeout, dismissed, action, replaced }

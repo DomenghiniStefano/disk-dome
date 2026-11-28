@@ -1377,6 +1377,15 @@ A full-width message under the toolbar (32 / 28): `*-soft` fill of its state, a 
 `body` `ink` (one sentence: what happened, what to do), an action as a `ghost` button, a close `x` when it can
 be dismissed. Kinds: `info` (accent-soft and `info`), `warning`, `danger`, `success`.
 
+| InfoBar | |
+| --- | --- |
+| Interface | `kind`, `title` (optional, `body-strong` before the text, never cut: shadcn's AlertTitle), `text`, `action-text` (empty for none), `dismissible`, `close-label` («Close»); `action-clicked`, `closed` (the `x`: the screen takes the bar away) |
+| Kinds `NoticeKind` | `info` (`accent-soft`, `info`, `accent-text`), `warning` (`triangle-alert`), `danger` (`circle-alert`), `success` (`check`); the icon in the state's colour on its `-soft` fill. The look of a kind (`NoticeLook`) and its icon (`NoticeIcon`) are shared with the toast |
+| Height | one line is `info-bar` tall (32 / 28); a longer text wraps between words and grows the bar; the icon, the action and the `x` stay centred on the first line |
+| Width | the whole width its layout gives; its own preferred width is its minimum, so a long text wraps instead of widening what holds it |
+| Buttons | the action a `small` `ghost` button, the `x` a `small` icon-only `ghost` button named `close-label`, as far from the right edge as from the top; side padding `info-bar-pad-x` (pending design) |
+| Accessibility | Slint 1.19 has no alert role: a group named by its text («title: text» with a title), a live region (`accessible-live-region`: polite, assertive for `danger`), so Narrator reads it when it appears and when its text changes, without moving the focus; the icon is an image named by the kind's word («Warning», «Error», «Done», «Information») |
+
 ### 5.20 Toast
 
 The result of something you did or that ended by itself («3 items moved to the Recycle Bin · 4.2 GB freed»). In the
@@ -1392,6 +1401,18 @@ and a 20 px `x` to close it. «Undo» sits right of the text; other actions, at 
 - **Waits.** While a popup or a dialog is open it is not shown and its time does not run; it appears with its full
   time when they close. In Settings it appears inside the dialog, above the buttons.
 - **Covers.** Only content, and only for those seconds: never a bar, a popup or a dialog. Esc or `x` closes it.
+
+| Toast | |
+| --- | --- |
+| Interface | `show(ToastNotice)` (`text`, `kind: NoticeKind`, `action`: the one right of the text, `row-actions`: up to two under it, `sticky`), `close()`, `held`; `action-activated`, `row-action-activated(index)`, `closed(ToastEnd)` (`timeout`, `dismissed`, `action`, `replaced`); out `open`, `shown`, `notice`, `time` |
+| Where it is drawn | in the content, at `Size.z-notice`: the screen lays one `Toast` over the area between its bars (Settings, one inside its dialog above the buttons). Not a `PopupWindow`, which takes the keyboard focus when it shows; not `DomeWindow`'s top layer, which is drawn over everything with no pointer area and knows nothing of the bars, while the notice has buttons, stays under popups and dialogs and never covers a bar. Outside its card it takes no pointer event |
+| Placement | its card in the area's bottom-right corner, `notice-margin` (16) from the right edge and above the bar under it, `toast-w` (360) wide or the area's width less the margins; `margin-x`, `margin-y`, `notice-width` change them |
+| Card | level 1 (`raised`, `edge`, radius `panel`, shadow), `toast-pad-x` × `toast-pad-y` (pending design); the kind's icon, the text in `body` wrapping up to `toast-lines` (3) and cut with «…» (the whole text in its tooltip), the action a `small` `ghost` button, the `x` a 20 px (`toast-close`) `ghost` button named `close-label`; the row actions `accent-text` on no fill, lined up with the text, `toast-gap` under it (pending design). It fades and rises 4 px from below when it appears (`animate-in`) |
+| Time `ToastClock` | `read-time` (2.5 s) + `per-character` (60 ms) × the text's characters, at least `min-time` (4 s; `min-time-with-action`, 8 s, with an action), at most `max-time` (10 s), each a property whose default is its `Motion.notice-*` token; 0 for `sticky`, which stays until closed. Reduced motion does not shorten it |
+| Pauses | while the pointer is over the card or the keyboard focus is on one of its buttons the time stands still, and goes on from where it was (as Radix and Sonner); while `held` (the screen sets it while a popup or a dialog is open) the card is hidden and its time stands still, and it comes back with its whole time |
+| Ends | the `x`, Esc on its buttons, the screen's `close()` (the window's Esc when no popup or dialog is open): `dismissed`; an action: its event, then `action`; a new `show`: `replaced` for the one shown. The leaving fade is not drawn (the card goes at once), and the focus inside a closed toast goes back to the window, not to where it was |
+| Keyboard | its buttons are Tab stops where the screen placed it; no shortcut reaches it yet (Sonner's Alt+T) |
+| Accessibility | as the info bar's: a group named by its text, a live region (polite, assertive for `danger`), announced when the card appears (also when it comes back from `held`) and when a replacing notice changes the text; a notice replaced by the same text is not announced again. Slint 1.19 has no call to announce a text without an element, so a notice hidden under a popup is said when it appears |
 
 ### 5.21 ProgressBar and UsageBar
 

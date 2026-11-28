@@ -1,0 +1,131 @@
+// InfoBar (§ 5.19): a full-width message in the bars (under the toolbar, in the filter bar's place), as shadcn's
+// Alert: the `-soft` fill of its kind, the kind's icon named by its word, an optional title, one sentence of `body`
+// text that wraps (§ 3.3), an action as a ghost button and a close `x` when it can be put away. One line is
+// `info-bar` tall; icon and buttons stay on the first line while the text grows the bar. The screen shows it and
+// takes it away (`closed`); screen readers announce it when it appears or its text changes, at once for `danger`.
+
+import { Size } from "../tokens/size.slint";
+import { Type, TypeStep } from "../tokens/type.slint";
+import { Icons } from "../icons/icons.slint";
+import {
+    NoticeKind,
+    LabelWrap,
+    ButtonVariant,
+    ButtonSize,
+} from "../enums.slint";
+import { NoticeLook } from "../primitives/notice-look.slint";
+import { Label } from "label.slint";
+import { Button } from "button.slint";
+import { NoticeIcon } from "notice-icon.slint";
+
+export component InfoBar {
+    in property <NoticeKind> kind: NoticeKind.info;
+    // Optional: a few words in `body-strong` before the text (shadcn's AlertTitle); never cut.
+    in property <string> title;
+    // One sentence: what happened and what to do (§ 6.9).
+    in property <string> text;
+    // The action at the end, a ghost button («Retry», «Show»); empty for none.
+    in property <string> action-text;
+    // Whether the close `x` shows: the message can be put away.
+    in property <bool> dismissible;
+    // The `x`'s name for screen readers and its tooltip.
+    in property <string> close-label: @tr("Close");
+
+    callback action-clicked;
+    // The `x` was pressed: the screen takes the bar away.
+    callback closed;
+
+    property <TypeStep> step: TypeStep.body;
+    // The first line of text sits in the middle of a one-line bar; the icon and the buttons line up with it.
+    property <length> text-pad: (Size.info-bar - Type.line(root.step)) / 2;
+    property <length> button-pad: (Size.info-bar - Size.control-sm) / 2;
+
+    min-width: row.min-width;
+    // It fills the width its layout gives; its own preferred width is its minimum, so a long text wraps instead of
+    // widening what holds it.
+    preferred-width: row.min-width;
+    min-height: max(Size.info-bar, row.preferred-height);
+    preferred-height: self.min-height;
+    max-height: self.min-height;
+
+    // Slint 1.19 has no alert role: a named group, live, so Narrator reads the sentence when it appears.
+    accessible-role: groupbox;
+    accessible-label: root.title == "" ? root.text : @tr("{}: {}", root.title, root.text);
+    accessible-live-region: NoticeLook.liveness(root.kind);
+
+    Rectangle {
+        background: NoticeLook.fill(root.kind);
+    }
+
+    row := HorizontalLayout {
+        width: root.width;
+        height: root.height;
+        padding-left: Size.info-bar-pad-x;
+        // The `x` sits as far from the right edge as from the top.
+        padding-right: root.button-pad;
+        spacing: Size.label-gap;
+
+        VerticalLayout {
+            alignment: start;
+            padding-top: (Size.info-bar - Size.icon) / 2;
+
+            NoticeIcon {
+                kind: root.kind;
+            }
+        }
+
+        if root.title != "": VerticalLayout {
+            alignment: start;
+            padding-top: root.text-pad;
+
+            Label {
+                min-width: self.preferred-width;
+                text: root.title;
+                step: TypeStep.body-strong;
+                accessible-role: none;
+            }
+        }
+
+        VerticalLayout {
+            horizontal-stretch: 1;
+            padding-top: root.text-pad;
+            padding-bottom: root.text-pad;
+
+            Label {
+                text: root.text;
+                step: root.step;
+                wrap: LabelWrap.word;
+                accessible-role: none;
+            }
+        }
+
+        if root.action-text != "": VerticalLayout {
+            alignment: start;
+            padding-top: root.button-pad;
+
+            Button {
+                text: root.action-text;
+                variant: ButtonVariant.ghost;
+                size: ButtonSize.small;
+                clicked => {
+                    root.action-clicked();
+                }
+            }
+        }
+
+        if root.dismissible: VerticalLayout {
+            alignment: start;
+            padding-top: root.button-pad;
+
+            Button {
+                icon: Icons.x;
+                variant: ButtonVariant.ghost;
+                size: ButtonSize.small;
+                accessible-label: root.close-label;
+                clicked => {
+                    root.closed();
+                }
+            }
+        }
+    }
+}

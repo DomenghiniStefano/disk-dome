@@ -67,6 +67,7 @@ import { KitTextFieldSection } from "kit-textfield-section.slint";
 import { KitSelectSection } from "kit-select-section.slint";
 import { KitTabsSection } from "kit-tabs-section.slint";
 import { KitDialogSection } from "kit-dialog-section.slint";
+import { KitAlertsSection } from "kit-alerts-section.slint";
 
 struct KitIcon { name: string, source: image }
 struct KitStep { name: string, step: TypeStep }
@@ -1352,6 +1353,8 @@ export component KitWindow inherits DomeWindow {
 
                     // Dialog (§ 5.18).
                     KitDialogSection { }
+                    // InfoBar and Toast (§ 5.19, § 5.20).
+                    KitAlertsSection { }
 
                     KitSection {
                         title: "ScrollBar · states";

@@ -1,0 +1,390 @@
+// The Kit's sections of the notices (§ 9): InfoBar (§ 5.19) and Toast (§ 5.20) in every kind and with every part,
+// working: a bar closes and comes back and counts its action; the toasts close; the demo shows real notices over an
+// area with a bar under it, which go by themselves, stop under the pointer and wait while «Popup open» is on. Texts
+// are the Kit's own, not translated (rule `untranslated` exempts `kit/`); they are Italian, ~25 % longer than
+// English (§ 3.3).
+
+import {
+    Theme,
+    Size,
+    Motion,
+    TypeStep,
+    InkTone,
+    Label,
+    Button,
+    ToggleButton,
+    ToggleVariant,
+    InfoBar,
+    Toast,
+    ToastNotice,
+    ToastEnd,
+    NoticeKind,
+} from "@dome-ui";
+import { KitSection, KitRow } from "kit-parts.slint";
+
+struct KitNoticeKind { name: string, kind: NoticeKind, text: string, action: string }
+struct KitToast { name: string, notice: ToastNotice }
+
+global KitAlertsData {
+    out property <[KitNoticeKind]> bars: [
+        {
+            name: "info",
+            kind: NoticeKind.info,
+            text: "Gli aggiornamenti dal vivo seguono le modifiche ai file senza una nuova scansione.",
+            action: "Scopri",
+        },
+        {
+            name: "warning",
+            kind: NoticeKind.warning,
+            text: "Senza diritti di amministratore la scansione legge le cartelle una a una ed è più lenta.",
+            action: "Cambia",
+        },
+        {
+            name: "danger",
+            kind: NoticeKind.danger,
+            text: "L'unità D: è stata rimossa durante la scansione. Ricollegala e riprova.",
+            action: "Riprova",
+        },
+        {
+            name: "success",
+            kind: NoticeKind.success,
+            text: "Scansione di C: completata: 3.789.066 file.",
+            action: ""
+        },
+    ];
+    // Sticky, so the samples stay to be looked at.
+    out property <[KitToast]> toasts: [
+        {
+            name: "Undo",
+            notice: {
+                text: "3 elementi spostati nel Cestino · 4,2 GB liberati",
+                kind: NoticeKind.success,
+                action: "Annulla",
+                sticky: true,
+            },
+        },
+        {
+            name: "info",
+            notice: {
+                text: "Riepilogo salvato: lo trovi in Cronologia.",
+                kind: NoticeKind.info,
+                sticky: true
+            },
+        },
+        {
+            name: "row action",
+            notice: {
+                text: "2 file in uso sono stati saltati.",
+                kind: NoticeKind.warning,
+                row-actions: ["Mostra quali"],
+                sticky: true,
+            },
+        },
+        {
+            name: "failure",
+            notice: {
+                text: "Impossibile spostare «progetto_finale.mp4»: accesso negato.",
+                kind: NoticeKind.danger,
+                action: "Mostra dettagli",
+                sticky: true,
+            },
+        },
+        {
+            name: "two actions",
+            notice: {
+                text: "Esportazione completata: C_2026-11-28.csv",
+                kind: NoticeKind.success,
+                row-actions: ["Mostra in Esplora file", "Apri"],
+                sticky: true,
+            },
+        },
+        {
+            name: "cut",
+            notice: {
+                text: "12 elementi spostati nel Cestino · 18,4 GB liberati. 3 elementi erano in uso e sono rimasti al loro posto: chiudi i programmi che li usano e riprova, oppure scegli di spostarli al prossimo avvio di Windows.",
+                kind: NoticeKind.success,
+                action: "Annulla",
+                sticky: true,
+            },
+        },
+    ];
+
+    public pure function end-name(end: ToastEnd) -> string {
+        return end == ToastEnd.timeout ? "timeout"
+            : end == ToastEnd.dismissed ? "dismissed"
+            : end == ToastEnd.action ? "action"
+            : "replaced";
+    }
+}
+
+// One toast shown on its own, at rest, in the corner of a small area.
+component KitToastSample inherits Rectangle {
+    in property <ToastNotice> notice;
+
+    width: Size.toast-w + 2 * Size.notice-margin;
+    height: toast.card-height + 2 * Size.notice-margin;
+    background: Theme.surface;
+    border-radius: Size.radius-panel;
+
+    init => {
+        toast.show(root.notice);
+    }
+
+    toast := Toast {
+        animate-in: false;
+    }
+}
+
+export component KitAlertsSection inherits VerticalLayout {
+    // The working bar: closed or not, and how many times its action was chosen.
+    property <bool> bar-gone;
+    property <int> bar-actions;
+    // The working toast: what ended the last notice, and whether a popup holds it.
+    property <string> last-end: "none";
+    property <bool> popup-open;
+
+    KitSection {
+        title: "InfoBar · kinds";
+        for bar in KitAlertsData.bars: KitRow {
+            name: bar.name;
+
+            InfoBar {
+                width: Size.dialog-lg;
+                kind: bar.kind;
+                text: bar.text;
+                action-text: bar.action;
+                dismissible: true;
+            }
+        }
+    }
+
+    KitSection {
+        title: "InfoBar · parts";
+
+        KitRow {
+            name: "title";
+
+            InfoBar {
+                width: Size.dialog-lg;
+                kind: NoticeKind.warning;
+                title: "Modalità lenta";
+                text: "La scansione legge le cartelle una a una.";
+                action-text: "Cambia";
+            }
+        }
+
+        KitRow {
+            name: "text only";
+
+            InfoBar {
+                width: Size.dialog-lg;
+                text: "I file solo online contano 0 byte su questo disco.";
+            }
+        }
+
+        KitRow {
+            name: "wraps";
+
+            InfoBar {
+                width: Size.side-panel-max;
+                kind: NoticeKind.danger;
+                text: "Il percorso supera i 260 caratteri che Esplora file sa gestire: DiskDome può aprirlo, ma Esplora file no. Accorcia il nome di una cartella e riprova.";
+                action-text: "Riprova";
+                dismissible: true;
+            }
+        }
+
+        KitRow {
+            name: "working";
+
+            if !root.bar-gone: InfoBar {
+                width: Size.dialog-lg;
+                kind: NoticeKind.info;
+                text: "Scegli «Mostra» o chiudi il messaggio con la x.";
+                action-text: "Mostra";
+                dismissible: true;
+                action-clicked => {
+                    root.bar-actions += 1;
+                }
+                closed => {
+                    root.bar-gone = true;
+                }
+            }
+
+            if root.bar-gone: Button {
+                text: "Restore";
+                clicked => {
+                    root.bar-gone = false;
+                }
+            }
+
+            VerticalLayout {
+                alignment: center;
+
+                Label {
+                    text: "actions: " + root.bar-actions;
+                    step: TypeStep.caption;
+                    tone: InkTone.faint;
+                }
+            }
+        }
+    }
+
+    KitSection {
+        title: "Toast · kinds and parts";
+
+        KitRow {
+            name: KitAlertsData.toasts[0].name + " · " + KitAlertsData.toasts[1].name;
+
+            KitToastSample {
+                notice: KitAlertsData.toasts[0].notice;
+            }
+
+            KitToastSample {
+                notice: KitAlertsData.toasts[1].notice;
+            }
+        }
+
+        KitRow {
+            name: KitAlertsData.toasts[2].name + " · " + KitAlertsData.toasts[3].name;
+
+            KitToastSample {
+                notice: KitAlertsData.toasts[2].notice;
+            }
+
+            KitToastSample {
+                notice: KitAlertsData.toasts[3].notice;
+            }
+        }
+
+        KitRow {
+            name: KitAlertsData.toasts[4].name + " · " + KitAlertsData.toasts[5].name;
+
+            KitToastSample {
+                notice: KitAlertsData.toasts[4].notice;
+            }
+
+            KitToastSample {
+                notice: KitAlertsData.toasts[5].notice;
+            }
+        }
+    }
+
+    KitSection {
+        title: "Toast · working";
+
+        KitRow {
+            name: "show, wait, hover";
+
+            VerticalLayout {
+                spacing: Size.space-8;
+
+                HorizontalLayout {
+                    spacing: Size.space-8;
+                    alignment: start;
+
+                    Button {
+                        text: "Result";
+                        clicked => {
+                            demo.show({
+                                text: "3 elementi spostati nel Cestino · 4,2 GB liberati",
+                                kind: NoticeKind.success
+                            });
+                        }
+                    }
+
+                    Button {
+                        text: "With Undo";
+                        clicked => {
+                            demo.show({
+                                text: "«Vecchie foto» rinominata in «Foto 2019»",
+                                kind: NoticeKind.success,
+                                action: "Annulla",
+                            });
+                        }
+                    }
+
+                    Button {
+                        text: "Two actions";
+                        clicked => {
+                            demo.show({
+                                text: "Esportazione completata: C_2026-11-28.csv",
+                                kind: NoticeKind.success,
+                                row-actions: ["Mostra in Esplora file", "Apri"],
+                            });
+                        }
+                    }
+
+                    Button {
+                        text: "Failure";
+                        clicked => {
+                            demo.show({
+                                text: "Impossibile spostare 2 elementi: accesso negato.",
+                                kind: NoticeKind.danger,
+                                action: "Mostra dettagli",
+                                sticky: true,
+                            });
+                        }
+                    }
+
+                    Button {
+                        text: "Long text";
+                        clicked => {
+                            demo.show(KitAlertsData.toasts[5].notice);
+                        }
+                    }
+
+                    ToggleButton {
+                        text: "Popup open";
+                        variant: ToggleVariant.outline;
+                        checked <=> root.popup-open;
+                    }
+                }
+
+                // The area the toast may cover, and the bar under it, which it never covers.
+                Rectangle {
+                    width: Size.dialog-lg;
+                    height: Size.treemap-min * 2;
+                    border-width: Size.border-hairline;
+                    border-color: Theme.line;
+                    border-radius: Size.radius-panel;
+                    clip: true;
+
+                    VerticalLayout {
+                        Rectangle {
+                            background: Theme.surface;
+
+                            demo := Toast {
+                                held: root.popup-open;
+                                closed(end) => {
+                                    root.last-end = KitAlertsData.end-name(end);
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            height: Size.statusbar;
+                            background: Theme.bg;
+
+                            HorizontalLayout {
+                                padding-left: Size.panel-pad;
+
+                                Label {
+                                    text: "status bar";
+                                    step: TypeStep.caption;
+                                    tone: InkTone.muted;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Label {
+                    text: "shown: " + (demo.shown ? "yes" : demo.open ? "waiting" : "no") + " · time: " + (demo.time / Motion.unit) + " ms · last end: " + root.last-end;
+                    step: TypeStep.caption;
+                    tone: InkTone.faint;
+                }
+            }
+        }
+    }
+}

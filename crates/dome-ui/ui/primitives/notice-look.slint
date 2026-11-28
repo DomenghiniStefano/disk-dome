@@ -1,0 +1,38 @@
+// What a notice's kind looks like and how it is announced (§ 5.19, § 5.20, § 7): the `-soft` fill of an info bar,
+// the state's icon and colour, and polite or assertive. `InfoBar` and `Toast` share it (with `NoticeIcon`), so the
+// two can never disagree. A state colour always comes with its icon and its word (§ 3.2).
+//
+// Not a component of the design system: screens never use it (it is not exported from `index.slint`).
+
+import { Theme } from "../tokens/theme.slint";
+import { Icons } from "../icons/icons.slint";
+import { InkTone, NoticeKind } from "../enums.slint";
+
+export global NoticeLook {
+    // An info bar's ground (§ 5.19): the state at 14 %, the accent's own soft fill for `info`.
+    public pure function fill(kind: NoticeKind) -> color {
+        return kind == NoticeKind.warning ? Theme.warning-soft
+            : kind == NoticeKind.danger ? Theme.danger-soft
+            : kind == NoticeKind.success ? Theme.success-soft
+            : Theme.accent-soft;
+    }
+
+    public pure function tone(kind: NoticeKind) -> InkTone {
+        return kind == NoticeKind.warning ? InkTone.warning
+            : kind == NoticeKind.danger ? InkTone.danger
+            : kind == NoticeKind.success ? InkTone.success
+            : InkTone.accent;
+    }
+
+    public pure function icon(kind: NoticeKind) -> image {
+        return kind == NoticeKind.warning ? Icons.triangle-alert
+            : kind == NoticeKind.danger ? Icons.circle-alert
+            : kind == NoticeKind.success ? Icons.check
+            : Icons.info;
+    }
+
+    // Screen readers say a result when they are free and an error at once (§ 7): assertive for errors only.
+    public pure function liveness(kind: NoticeKind) -> AccessibleLiveness {
+        return kind == NoticeKind.danger ? AccessibleLiveness.assertive : AccessibleLiveness.polite;
+    }
+}

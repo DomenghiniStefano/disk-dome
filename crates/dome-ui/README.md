@@ -33,6 +33,9 @@ The Slint half, in `ui/`:
   have it through `tooltip`) and `TooltipBubble`, drawn by `DomeWindow` from `primitives/tooltip-layer.slint`.
   The choice controls (§ 5.8): `Checkbox` (three states), `RadioGroup` (items from `[RadioItem]`) and `Switch`, drawn
   on one shared row (`choice-row.slint`, private).
+  The notices (§ 5.19, § 5.20): `InfoBar` (a message in the bars) and `Toast` (laid by the screen over the area
+  between its bars; `show(ToastNotice)`, its time by `ToastClock`), sharing `NoticeIcon` (private) and
+  `primitives/notice-look.slint`.
 - `SegmentedNav`, `RadioNav` and `TabNav` — the walk over a group with one Tab stop (a segmented control's segments,
   a radio group's items, the tabs), skipping disabled items, answered by `src/roving.rs` and wired by
   `segmented_nav!`, `radio_nav!` and `tab_nav!` (which also builds the tabs' «⋯» menu).

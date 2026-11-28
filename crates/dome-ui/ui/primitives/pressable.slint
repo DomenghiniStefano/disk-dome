@@ -19,6 +19,8 @@ export component Pressable {
     out property <bool> hovered: enabled && (kit-state == KitState.hover || (live && touch.has-hover));
     out property <bool> pressed: enabled && (kit-state == KitState.pressed || (live && touch.pressed));
     out property <bool> show-focus: focus.show-focus;
+    // The keyboard focus is here, shown or not (a notice that stays while one of its buttons has the focus).
+    out property <bool> has-focus: focus.has-focus;
 
     // A click, Enter or Space.
     callback activated;
