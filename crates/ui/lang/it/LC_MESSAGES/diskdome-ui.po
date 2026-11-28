@@ -130,3 +130,15 @@ msgstr "Passa al tema chiaro"
 msgctxt "TitlebarSpike"
 msgid "Switch to the dark theme"
 msgstr "Passa al tema scuro"
+
+msgctxt "Splitter"
+msgid "Resize"
+msgstr "Ridimensiona"
+
+msgctxt "ToolBar"
+msgid "More"
+msgstr "Altro"
+
+msgctxt "PanelHeader"
+msgid "More"
+msgstr "Altro"

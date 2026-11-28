@@ -1,0 +1,84 @@
+// The frame `ToolBar` and `PanelHeader` share (§ 5.25): a bar of a fixed height on `bg`, `panel-pad` at its ends,
+// its items (`ToolBarRow`, folding into «⋯») at one end and the screen's own children (a search field, a breadcrumb,
+// a segmented control, a stretching gap) in the rest, centred on the bar's height, `tool-gap` apart, `group-gap` from
+// the items. Short of room the children give way to their minimum first, then the items fold.
+//
+// Not a component of the design system: screens use `ToolBar` and `PanelHeader`, which inherit it (it is not exported
+// from `index.slint`).
+
+import { Size } from "../tokens/size.slint";
+import { Theme } from "../tokens/theme.slint";
+import { ButtonSize, ToolBarItemsSide } from "../enums.slint";
+import { MenuEntry } from "menu-list.slint";
+import { ToolBarRow, ToolBarItem, ToolBarLayout } from "tool-bar-row.slint";
+
+export component ToolBarFrame {
+    in property <[ToolBarItem]> items;
+    // Always in the «⋯» menu, after the folded items (the app menu, § 2.1); with any, the «⋯» always shows.
+    in property <[MenuEntry]> more-entries;
+    in property <ToolBarItemsSide> items-side: ToolBarItemsSide.start;
+    // The «⋯» button's accessible name and tooltip.
+    in property <string> more-label;
+    // Set by `ToolBar` and `PanelHeader`: the bar's height and its controls' size (§ 3.5).
+    in property <length> bar-height;
+    in property <ButtonSize> control-size: ButtonSize.normal;
+
+    // How many items show, from the first; the others are in the «⋯» menu (the tests read it).
+    out property <int> shown-count: row.shown-count;
+    // The «⋯» button shows.
+    out property <bool> overflowing: row.overflowing;
+
+    // A button item was clicked, or chosen in the «⋯» menu.
+    callback activated(id: string);
+    // A toggle item was flipped, in the bar or in the «⋯» menu; its row of `items` already holds `checked`.
+    callback toggled(id: string, checked: bool);
+    // One of `more-entries` was chosen.
+    callback more-activated(entry: MenuEntry);
+
+    property <bool> at-end: root.items-side == ToolBarItemsSide.end;
+    property <bool> has-items: root.items.length > 0 || root.more-entries.length > 0;
+    property <length> gap: root.has-items ? Size.group-gap : 0;
+    property <length> inner: root.width - 2 * Size.panel-pad;
+    property <length> row-width: ToolBarLayout.row-width(row.min-width, row.preferred-width, root.inner - root.gap - slot.min-width);
+
+    height: root.bar-height;
+    min-width: 2 * Size.panel-pad + row.min-width + root.gap + slot.min-width;
+    preferred-width: 2 * Size.panel-pad + row.preferred-width + root.gap + slot.preferred-width;
+
+    // Slint 1.19 has no toolbar role: a named group, its controls each read in turn.
+    accessible-role: groupbox;
+
+    Rectangle {
+        background: Theme.bg;
+    }
+
+    row := ToolBarRow {
+        x: root.at-end ? root.width - Size.panel-pad - self.width : Size.panel-pad;
+        width: root.row-width;
+        height: root.height;
+        items: root.items;
+        more-entries: root.more-entries;
+        size: root.control-size;
+        side: root.items-side;
+        more-label: root.more-label;
+        activated(id) => {
+            root.activated(id);
+        }
+        toggled(id, checked) => {
+            root.toggled(id, checked);
+        }
+        more-activated(entry) => {
+            root.more-activated(entry);
+        }
+    }
+
+    slot := HorizontalLayout {
+        x: root.at-end ? Size.panel-pad : Size.panel-pad + root.row-width + root.gap;
+        width: max(0, root.inner - root.row-width - root.gap);
+        height: root.height;
+        spacing: Size.tool-gap;
+        cross-axis-alignment: center;
+
+        @children
+    }
+}

@@ -1,0 +1,15 @@
+// ToolBar (§ 5.25, § 2.1): the window's main toolbar, `toolbar` tall on `bg`, as Radix's Toolbar laid out by data. Its
+// `items` (buttons, toggles, separators) sit at the start, `tool-gap` apart, `group-gap` around a separator, and the
+// screen's children (the search field, Filters, a stretching gap, Settings) follow; with `items-side: end` they sit at
+// the end instead. When the bar is short of room its children give way first, then the last items fold into a «⋯»
+// menu at the row's end, which also holds `more-entries` (the app menu) when there are any.
+
+import { Size } from "../tokens/size.slint";
+import { ButtonSize } from "../enums.slint";
+import { ToolBarFrame } from "tool-bar-frame.slint";
+
+export component ToolBar inherits ToolBarFrame {
+    bar-height: Size.toolbar;
+    control-size: ButtonSize.normal;
+    more-label: @tr("More");
+}

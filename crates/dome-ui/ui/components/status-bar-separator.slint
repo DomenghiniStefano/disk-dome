@@ -1,0 +1,22 @@
+// StatusBarSeparator (§ 5.25): the line between two items of the status bar, 1 × `statusbar-separator-h` in `line`,
+// `statusbar-gap` of room on each side, centred on the bar's height.
+
+import { Size } from "../tokens/size.slint";
+import { Theme } from "../tokens/theme.slint";
+
+export component StatusBarSeparator {
+    width: 2 * Size.statusbar-gap + Size.border-hairline;
+    min-height: Size.statusbar-separator-h;
+    preferred-height: Size.statusbar-separator-h;
+
+    // Only a mark between items: the texts around it carry the meaning.
+    accessible-role: none;
+
+    Rectangle {
+        x: Size.statusbar-gap;
+        y: (parent.height - self.height) / 2;
+        width: Size.border-hairline;
+        height: Size.statusbar-separator-h;
+        background: Theme.line;
+    }
+}

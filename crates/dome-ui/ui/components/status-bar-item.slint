@@ -1,0 +1,156 @@
+// StatusBarItem (§ 5.25): one item of the status bar, a `caption` text in `ink-muted`, led by a 6 px round dot in a
+// state's colour when it has one («Live»). A `button` item (the live state, which opens its popup, § 2.2) has the
+// ghost button's hover and press fills, a Tab stop and Enter / Space. On a narrow window an item that may `give-way`
+// shortens down to `statusbar-item-min-w`, its text cut with «…» and said whole in its tooltip (§ 3.11).
+
+import { Size } from "../tokens/size.slint";
+import { Theme } from "../tokens/theme.slint";
+import { Motion } from "../tokens/motion.slint";
+import { TypeStep } from "../tokens/type.slint";
+import {
+    InkTone,
+    KitState,
+    PopupSide,
+    StatusBarDot,
+    StatusBarGiveWay,
+    StatusBarItemKind,
+} from "../enums.slint";
+import { Pressable } from "../primitives/pressable.slint";
+import { FocusRing } from "../primitives/focus-ring.slint";
+import { Label } from "label.slint";
+import { Tooltip } from "tooltip.slint";
+
+global StatusBarLook {
+    public pure function dot(dot: StatusBarDot) -> color {
+        return dot == StatusBarDot.success ? Theme.success
+            : dot == StatusBarDot.warning ? Theme.warning
+            : dot == StatusBarDot.danger ? Theme.danger
+            : Theme.ink-faint;
+    }
+
+    public pure function fill(hovered: bool, pressed: bool) -> color {
+        return pressed ? Theme.control-pressed : hovered ? Theme.control-hover : transparent;
+    }
+}
+
+export component StatusBarItem {
+    in property <string> text;
+    // Said on hover and keyboard focus (§ 5.17); a cut text is said whole when this is empty.
+    in property <string> tooltip;
+    in property <StatusBarDot> dot: StatusBarDot.none;
+    in property <StatusBarItemKind> kind: StatusBarItemKind.text;
+    in property <StatusBarGiveWay> give-way: StatusBarGiveWay.never;
+    in property <bool> enabled: true;
+    // The Kit window only (§ 9): the state of a `button` item.
+    in property <KitState> kit-state: KitState.live;
+
+    // The text does not fit (the tests read it).
+    out property <bool> cut: name.cut;
+    // Whether its tooltip is showing (the tests read it).
+    out property <bool> tooltip-shown: tip.shown;
+
+    // A `button` item was clicked, or activated with Enter or Space.
+    callback clicked;
+
+    property <bool> is-button: root.kind == StatusBarItemKind.button;
+
+    height: Size.statusbar;
+    // Whole unless it may give way; then down to the minimum (or the text, when that is smaller).
+    min-width: root.give-way == StatusBarGiveWay.never ? content.preferred-width : min(content.preferred-width, Size.statusbar-item-min-w);
+    preferred-width: content.preferred-width;
+    max-width: content.preferred-width;
+    // A shrinking row takes from its stretching items first: the `later` ones (no stretch) give way only once the
+    // `first` ones are at their minimum.
+    horizontal-stretch: root.give-way == StatusBarGiveWay.first ? 1 : 0;
+    opacity: root.enabled ? 1 : Size.disabled;
+
+    forward-focus: press;
+
+    Rectangle {
+        border-radius: Size.radius-button;
+        background: StatusBarLook.fill(press.hovered, press.pressed);
+        animate background { duration: Motion.fast; }
+    }
+
+    content := HorizontalLayout {
+        width: root.width;
+        height: root.height;
+        padding-left: Size.statusbar-pad-x;
+        padding-right: Size.statusbar-pad-x;
+        spacing: Size.label-gap;
+
+        if root.dot != StatusBarDot.none: VerticalLayout {
+            alignment: center;
+
+            Rectangle {
+                width: Size.status-dot;
+                height: Size.status-dot;
+                border-radius: Size.status-dot / 2;
+                background: StatusBarLook.dot(root.dot);
+            }
+        }
+
+        VerticalLayout {
+            alignment: center;
+
+            name := Label {
+                text: root.text;
+                step: TypeStep.caption;
+                tone: InkTone.muted;
+                accessible-role: none;
+            }
+        }
+    }
+
+    // `accessible-role` must be a constant: a button item is a button, a text item a text.
+    if root.is-button: Rectangle {
+        width: root.width;
+        height: root.height;
+        accessible-role: AccessibleRole.button;
+        accessible-label: root.text;
+        accessible-description: root.tooltip;
+        accessible-enabled: root.enabled;
+        accessible-action-default => {
+            root.clicked();
+        }
+    }
+    if !root.is-button: Rectangle {
+        width: root.width;
+        height: root.height;
+        accessible-role: AccessibleRole.text;
+        accessible-label: root.text;
+        accessible-description: root.tooltip;
+    }
+
+    if press.show-focus: FocusRing {
+        radius: Size.radius-button;
+    }
+
+    // Only a button item takes the pointer and the focus.
+    press := Pressable {
+        enabled: root.enabled && root.is-button;
+        kit-state: root.is-button ? root.kit-state : KitState.live;
+        activated => {
+            root.clicked();
+        }
+        // Esc puts the tooltip away (§ 5.17).
+        key-pressed(event) => {
+            if (event.text == Key.Escape && tip.shown) {
+                tip.dismiss();
+                return accept;
+            }
+            return reject;
+        }
+    }
+
+    // After the pointer area; on a text item, which has none, it watches the pointer itself.
+    tip := Tooltip {
+        text: root.tooltip != "" ? root.tooltip : name.cut ? root.text : "";
+        hovered: root.kit-state == KitState.live && press.hovered;
+        focused: root.kit-state == KitState.live && press.show-focus;
+        pressed: press.pressed;
+        watch-pointer: !root.is-button || !root.enabled;
+        // The status bar is at the window's bottom: its tooltips open above it.
+        side: PopupSide.top;
+    }
+}

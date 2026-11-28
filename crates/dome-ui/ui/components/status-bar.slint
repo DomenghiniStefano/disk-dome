@@ -1,0 +1,31 @@
+// StatusBar (§ 5.25, § 2.1): the window's bottom bar, `statusbar` tall on `bg`, `panel-pad` at its ends. It lays out
+// the screen's `StatusBarItem`s and `StatusBarSeparator`s in one row, centred on its height; a stretching gap (an
+// empty `Rectangle` with `horizontal-stretch: 1`) parts the left group (the drive's counts, the selection) from the
+// right one (the running operations, «Live», the scan mode, the unit). Nothing wraps: on a narrow window the items
+// that `give-way` shorten with «…», the `first` ones before the `later` ones (§ 3.11).
+
+import { Size } from "../tokens/size.slint";
+import { Theme } from "../tokens/theme.slint";
+
+export component StatusBar {
+    height: Size.statusbar;
+    min-width: box.min-width;
+    preferred-width: box.preferred-width;
+
+    // The landmark for information about the content, as a status bar is.
+    accessible-role: content-info;
+
+    Rectangle {
+        background: Theme.bg;
+    }
+
+    box := HorizontalLayout {
+        width: root.width;
+        height: root.height;
+        padding-left: Size.panel-pad;
+        padding-right: Size.panel-pad;
+        cross-axis-alignment: center;
+
+        @children
+    }
+}
