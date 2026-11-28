@@ -1,0 +1,88 @@
+// The TextField's test window (`tests/textfield_headless.rs`, § 5.4): a labelled field with help whose error the
+// test sets and whose edits it counts, a second field to move the focus to, a disabled one and a read-only one.
+// Kit only; texts are the Kit's own, not translated.
+
+import { DomeWindow, TextField, Size } from "@dome-ui";
+
+export component KitTextFieldHarness inherits DomeWindow {
+    preferred-width: Size.window-min-w;
+    preferred-height: Size.window-min-h;
+
+    // Set by the test, as the owner of a field does when the value is wrong.
+    in property <string> error-text;
+
+    // Where the fields start: the column's padding.
+    out property <length> inset: Size.space-16;
+    out property <length> field-y: field-row.y;
+    out property <length> field-box-y: field.box-y;
+    out property <length> field-box-height: field.box-height;
+    out property <length> field-height: field.height;
+    out property <length> field-width: field.width;
+    out property <string> field-text: field.text;
+    out property <bool> field-focus: field.has-focus;
+    // The edits and Enters the field reported, and the last text of each.
+    out property <int> edits;
+    out property <string> last-edit;
+    out property <int> accepts;
+    out property <string> last-accept;
+
+    out property <length> other-y: other-row.y + other.box-y;
+    out property <bool> other-focus: other.has-focus;
+
+    out property <length> off-y: off-row.y + off.box-y;
+    out property <string> off-text: off.text;
+
+    out property <length> fixed-y: fixed-row.y + fixed.box-y;
+    out property <string> fixed-text: fixed.text;
+
+    VerticalLayout {
+        padding: root.inset;
+        alignment: start;
+        spacing: Size.group-gap;
+
+        field-row := HorizontalLayout {
+            alignment: start;
+
+            field := TextField {
+                label: "Name";
+                placeholder: "Folder name";
+                help: "Shown in the list";
+                error: root.error-text;
+                edited(text) => {
+                    root.edits += 1;
+                    root.last-edit = text;
+                }
+                accepted(text) => {
+                    root.accepts += 1;
+                    root.last-accept = text;
+                }
+            }
+        }
+
+        other-row := HorizontalLayout {
+            alignment: start;
+
+            other := TextField {
+                placeholder: "Other";
+            }
+        }
+
+        off-row := HorizontalLayout {
+            alignment: start;
+
+            off := TextField {
+                text: "kept";
+                enabled: false;
+            }
+        }
+
+        fixed-row := HorizontalLayout {
+            alignment: start;
+
+            fixed := TextField {
+                text: "fixed";
+                read-only: true;
+            }
+        }
+    }
+}
