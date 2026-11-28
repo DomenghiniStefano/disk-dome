@@ -9,14 +9,13 @@
 // (`crates/dome-ui/src/radio.rs`, wired by `radio_nav!` on every window).
 
 import { Size } from "../tokens/size.slint";
-import { Theme } from "../tokens/theme.slint";
-import { Motion } from "../tokens/motion.slint";
 import { KitState, LabelWrap } from "../enums.slint";
 import { InputMode } from "../input-mode.slint";
 import { Pressable } from "../primitives/pressable.slint";
 import { FocusTarget } from "../primitives/focus-target.slint";
 import { FocusRing } from "../primitives/focus-ring.slint";
-import { ChoiceRow, ChoiceLook } from "choice-row.slint";
+import { ChoiceRow } from "choice-row.slint";
+import { RadioMark } from "radio-mark.slint";
 import { Tooltip } from "tooltip.slint";
 
 // One item. Only `text` is needed.
@@ -83,19 +82,10 @@ component RadioGroupItem {
         mark-height: Size.checkbox;
         opacity: root.item.disabled ? Size.disabled : 1;
 
-        Rectangle {
-            border-radius: self.width / 2;
-            border-width: Size.border-hairline;
-            border-color: ChoiceLook.edge(root.chosen, press.hovered, press.pressed);
-            background: ChoiceLook.fill(root.chosen, press.hovered, press.pressed);
-            animate background, border-color { duration: Motion.fast; }
-
-            if root.chosen: Rectangle {
-                width: Size.radio-mark;
-                height: Size.radio-mark;
-                border-radius: self.width / 2;
-                background: Theme.on-accent;
-            }
+        RadioMark {
+            chosen: root.chosen;
+            hovered: press.hovered;
+            pressed: press.pressed;
         }
 
         if root.focused: FocusRing {
