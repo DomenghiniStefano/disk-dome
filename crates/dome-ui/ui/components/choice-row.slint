@@ -1,0 +1,75 @@
+// The row every choice control draws (§ 5.8): its mark (the box, the circle, the track, given as children) and its
+// label (`body`), the mark beside the label's first line. On one line a label that does not fit is cut with «…» and
+// says so through `cut`; wrapped, it grows the row downwards. The label sits on the mark's right, or on its left with
+// the mark at the row's end (a settings row). `Checkbox`, `RadioGroup` and `Switch` lay their pointer area over it.
+//
+// Not exported from `index.slint`: screens use the controls.
+
+import { Size } from "../tokens/size.slint";
+import { Theme } from "../tokens/theme.slint";
+import { Type, TypeStep } from "../tokens/type.slint";
+import { LabelWrap } from "../enums.slint";
+import { Label } from "label.slint";
+
+// The box's fill and edge, shared with the radio button (§ 5.8: «the same, circle-shaped»).
+export global ChoiceLook {
+    public pure function fill(marked: bool, hovered: bool, pressed: bool) -> color {
+        return marked
+            ? (pressed ? Theme.accent-pressed : hovered ? Theme.accent-hover : Theme.accent)
+            : (pressed ? Theme.control-pressed : hovered ? Theme.control-hover : transparent);
+    }
+
+    // A marked box is all fill: its edge takes the fill's colour, so the box keeps its size.
+    public pure function edge(marked: bool, hovered: bool, pressed: bool) -> color {
+        return marked ? fill(marked, hovered, pressed) : Theme.line-strong;
+    }
+}
+
+export component ChoiceRow {
+    in property <string> text;
+    in property <LabelWrap> wrap: LabelWrap.none;
+    // The label on the left, the mark at the row's end.
+    in property <bool> label-first;
+    in property <length> mark-width;
+    in property <length> mark-height;
+
+    // The label does not fit on its line: the control says it whole in its tooltip.
+    out property <bool> cut: label.cut;
+
+    property <bool> has-text: root.text != "";
+    property <length> gap: root.has-text ? Size.label-gap : 0;
+    // The room above and under the label's first line, so a one-line row is `choice-h` tall with its text centred.
+    property <length> pad-y: max(0, (Size.choice-h - Type.line(TypeStep.body)) / 2);
+    property <length> label-width: max(0, root.width - root.mark-width - root.gap);
+
+    min-width: root.mark-width + root.gap;
+    preferred-width: root.mark-width + (root.has-text ? root.gap + label.preferred-width : 0);
+    // A label on the left pushes the mark to the row's end, as wide as the layout gives; otherwise the row hugs.
+    max-width: root.label-first ? Size.unbounded : self.preferred-width;
+    min-height: max(Size.choice-h, root.mark-height);
+    preferred-height: max(self.min-height, (root.has-text ? label.preferred-height : 0) + 2 * root.pad-y);
+    max-height: self.preferred-height;
+
+    // The mark, beside the label's first line.
+    Rectangle {
+        x: root.label-first ? root.width - root.mark-width : 0;
+        y: (root.has-text ? root.pad-y + (Type.line(TypeStep.body) - root.mark-height) / 2 : (root.height - root.mark-height) / 2);
+        width: root.mark-width;
+        height: root.mark-height;
+
+        @children
+    }
+
+    label := Label {
+        x: root.label-first ? 0 : root.mark-width + root.gap;
+        y: root.pad-y;
+        width: root.label-width;
+        height: max(Type.line(TypeStep.body), root.height - 2 * root.pad-y);
+        text: root.text;
+        step: TypeStep.body;
+        wrap: root.wrap;
+        visible: root.has-text;
+        // The control carries the text as its accessible name.
+        accessible-role: none;
+    }
+}

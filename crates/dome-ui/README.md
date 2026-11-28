@@ -31,8 +31,12 @@ The Slint half, in `ui/`:
   `MenuList` (entries from `[MenuEntry]`), `Menu` (the popup, three levels), `ContextMenu` (right click, Menu key,
   Shift+F10), `MenuButton`, and the tooltip (§ 5.17): `Tooltip` (inside a control; `Button` and `ToggleButton`
   have it through `tooltip`) and `TooltipBubble`, drawn by `DomeWindow` from `primitives/tooltip-layer.slint`.
+  The choice controls (§ 5.8): `Checkbox` (three states), `RadioGroup` (items from `[RadioItem]`) and `Switch`, drawn
+  on one shared row (`choice-row.slint`, private).
 - `MenuNav` (in `menu-list.slint`) — what Slint cannot compute (no loops, no prefix test): the walk over a menu's
   entries, its type-ahead and `toggled`, answered by `src/menu.rs` and wired by `menu_nav!`.
+- `SegmentedNav` and `RadioNav` — the walk over a segmented control's segments and a radio group's items, skipping the
+  disabled ones: `src/segmented.rs` (whose walk `src/radio.rs` reuses), wired by `segmented_nav!` and `radio_nav!`.
 - `primitives/` — the behaviour components share, never used by screens: `FocusTarget` (one keyboard stop),
   `Pressable` (pointer + keyboard, the states of § 5), `FocusRing`, `TextEntry` (the one editable text, which like
   `Label` sets font properties), `placement.slint` (`Viewport` and `Placement`: where a popup goes, § 3.11).
@@ -42,7 +46,8 @@ The Slint half, in `ui/`:
   units of `Size.unit` and `Motion.unit`); `kit-review.slint` is the review board (`KitReview.issues`, «Now» and
   «Proposal» drawn with the real components, counted by `src/kit.rs` for the top bar); `kit-text.slint` is «Text and
   digits» (test 7: the steps at 12–13 px, a tree total in bold, a live tabular-digits check);
-  `kit-parts.slint` the Kit's own layout pieces and `KitSearch`, the top bar's search over section titles (Rust
+  a component's sections may live in their own file, `kit-<component>-section.slint` (`kit-choice-section.slint`), instantiated
+  by `kit.slint`; `kit-parts.slint` the Kit's own layout pieces and `KitSearch`, the top bar's search over section titles (Rust
   answers the match, plain text or regular expression).
 
 How a component is built: variants and sizes are enums; every look is a token or a pure function over tokens

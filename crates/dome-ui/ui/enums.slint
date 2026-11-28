@@ -76,3 +76,11 @@ export enum PopupSide { bottom, top, right, left }
 // How a popup lines up with its anchor along the side it opens on: on the anchor's start edge, centred, or on its
 // end edge (the right edge for a button at the right of the window).
 export enum PopupAlign { start, center, end }
+
+// A check box's state (§ 5.8). `indeterminate` says that only some of what the box stands for is ticked (a group's
+// box over its rows); a click on it ticks the box, as Radix.
+export enum CheckboxState { unchecked, checked, indeterminate }
+
+// Which side of a switch its label sits on (§ 5.8): on the right, as a check box's, or on the left, the switch at the
+// end of the row (a settings row).
+export enum SwitchLabelSide { right, left }

@@ -3,6 +3,7 @@
 //! components ask Rust for, as pure functions, and the macro that wires them to an app's generated globals.
 
 pub mod menu;
+pub mod radio;
 pub mod segmented;
 
 /// Writes `pub fn install_menu_nav(window)` in the calling module: it wires a window's `MenuNav` global (`§ 5.16`) to
@@ -92,6 +93,38 @@ macro_rules! segmented_nav {
 
         /// Which segments are disabled, as `dome_ui::segmented` reads them.
         fn dome_ui_disabled(items: &slint::ModelRc<$item>) -> Vec<bool> {
+            slint::Model::iter(items)
+                .map(|item| item.disabled)
+                .collect()
+        }
+    };
+}
+
+/// Writes `pub fn install_radio_nav(window)` in the calling module: it wires a window's `RadioNav` global (§ 5.8) to
+/// [`radio`], as [`segmented_nav!`] does for segmented controls:
+///
+/// ```ignore
+/// use crate::generated::{RadioNav, RadioItem};
+/// dome_ui::radio_nav!(RadioNav, RadioItem);
+/// ```
+#[macro_export]
+macro_rules! radio_nav {
+    ($nav:ident, $item:ident) => {
+        /// Wires the window's `RadioNav` global to `dome_ui::radio`.
+        pub fn install_radio_nav<'a, T>(window: &'a T)
+        where
+            T: slint::ComponentHandle,
+            $nav<'a>: slint::Global<'a, T>,
+        {
+            let nav = window.global::<$nav>();
+            nav.on_step(|items, from, forward, wrap| {
+                $crate::radio::step(&dome_ui_radio_disabled(&items), from, forward, wrap)
+            });
+            nav.on_edge(|items, last| $crate::radio::edge(&dome_ui_radio_disabled(&items), last));
+        }
+
+        /// Which radio items are disabled, as `dome_ui::radio` reads them.
+        fn dome_ui_radio_disabled(items: &slint::ModelRc<$item>) -> Vec<bool> {
             slint::Model::iter(items)
                 .map(|item| item.disabled)
                 .collect()

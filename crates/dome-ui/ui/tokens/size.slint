@@ -65,6 +65,23 @@ export global Size {
     // Pending design: how narrow a text segment may get before its label is cut with «…» (§ 5.6).
     out property <length> segment-min-w: 40px;
 
+    // Choice controls (§ 5.8): the check box, the radio button, the switch.
+    out property <length> checkbox: 14px;
+    out property <length> checkbox-bar-h: 2px;
+    out property <length> switch-w: 28px;
+    out property <length> switch-h: 16px;
+    out property <length> switch-knob: 12px;
+    // Pending design: the check's side inside the box (§ 5.8 names the icon, not its size).
+    out property <length> checkbox-check: 12px;
+    // Pending design: the length of the indeterminate bar (§ 5.8 gives its 2 px thickness only).
+    out property <length> checkbox-bar-w: 8px;
+    // Pending design: the dot of a chosen radio button (§ 5.8: «the same, circle-shaped»).
+    out property <length> radio-mark: 6px;
+    // Pending design: how tall a choice row is, so the whole row is an easy target (§ 5.8 gives the box only).
+    out property <length> choice-h: control-sm;
+    // Pending design: the gap between the radio buttons of a horizontal group.
+    out property <length> choice-gap-x: 16px;
+
     // Fixed sizes (§ 3.5)
     out property <length> side-panel: 300px;
     out property <length> side-panel-min: 220px;
