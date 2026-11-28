@@ -1,0 +1,130 @@
+// Switch (§ 5.8): a setting that applies at once (a check box is for choices a button confirms). A round track of
+// `switch-w` × `switch-h` with a `switch-knob` knob; off, track `control` and knob `ink-muted` on the left; on, track
+// `accent` and knob `on-accent` on the right. The label on its right, or on its left with the switch at the row's end
+// (a settings row); the whole row clickable. A click, Space and Enter flip it, as Radix's switch (a button). Labels as
+// the check box's: one line, cut with «…» and said whole in the tooltip, or wrapped.
+
+import { Size } from "../tokens/size.slint";
+import { Theme } from "../tokens/theme.slint";
+import { Motion } from "../tokens/motion.slint";
+import { KitState, LabelWrap, SwitchLabelSide } from "../enums.slint";
+import { Pressable } from "../primitives/pressable.slint";
+import { FocusRing } from "../primitives/focus-ring.slint";
+import { ChoiceRow } from "choice-row.slint";
+import { Tooltip } from "tooltip.slint";
+
+global SwitchLook {
+    public pure function track(on: bool, hovered: bool, pressed: bool) -> color {
+        return on
+            ? (pressed ? Theme.accent-pressed : hovered ? Theme.accent-hover : Theme.accent)
+            : (pressed ? Theme.control-pressed : hovered ? Theme.control-hover : Theme.control);
+    }
+}
+
+export component Switch {
+    in property <string> text;
+    // Written by the switch when the user flips it, and by the screen to set it: both sides write.
+    in-out property <bool> checked;
+    in property <bool> enabled: true;
+    in property <SwitchLabelSide> label-side: SwitchLabelSide.right;
+    in property <LabelWrap> wrap: LabelWrap.none;
+    // The Kit window only (§ 9).
+    in property <KitState> kit-state: KitState.live;
+    // Said on hover and keyboard focus (§ 5.17); a cut label says its text. On a disabled switch, the reason.
+    in property <string> tooltip;
+
+    // Whether its tooltip is showing (the tests read it).
+    out property <bool> tooltip-shown: tip.shown;
+    // Where the knob is, from the track's left edge (the tests read it).
+    out property <length> knob-x: knob.x;
+
+    callback toggled(checked: bool);
+
+    // The gap around the knob inside the track.
+    property <length> inset: (Size.switch-h - Size.switch-knob) / 2;
+
+    function flip() {
+        root.checked = !root.checked;
+        root.toggled(root.checked);
+    }
+
+    min-width: row.min-width;
+    preferred-width: row.preferred-width;
+    max-width: row.max-width;
+    min-height: row.min-height;
+    preferred-height: row.preferred-height;
+    max-height: row.max-height;
+    opacity: root.enabled ? 1 : Size.disabled;
+
+    forward-focus: pressable;
+    accessible-role: switch;
+    accessible-label: root.text;
+    accessible-checkable: true;
+    accessible-checked: root.checked;
+    accessible-enabled: root.enabled;
+    accessible-description: root.tooltip;
+    accessible-action-default => {
+        root.flip();
+    }
+
+    row := ChoiceRow {
+        width: 100%;
+        height: 100%;
+        text: root.text;
+        wrap: root.wrap;
+        label-first: root.label-side == SwitchLabelSide.left;
+        mark-width: Size.switch-w;
+        mark-height: Size.switch-h;
+
+        Rectangle {
+            // Round by nature (§ 3.6): the track and the knob.
+            border-radius: self.height / 2;
+            background: SwitchLook.track(root.checked, pressable.hovered, pressable.pressed);
+            animate background { duration: Motion.fast; }
+
+            knob := Rectangle {
+                x: root.checked ? parent.width - self.width - root.inset : root.inset;
+                y: root.inset;
+                width: Size.switch-knob;
+                height: Size.switch-knob;
+                border-radius: self.width / 2;
+                background: root.checked ? Theme.on-accent : Theme.ink-muted;
+                // On whole pixels an eased slide of a few pixels jumps (`docs/slint.md`): it moves at an even pace.
+                animate x {
+                    duration: Motion.fast;
+                    easing: linear;
+                }
+                animate background { duration: Motion.fast; }
+            }
+        }
+
+        if pressable.show-focus: FocusRing {
+            radius: Size.switch-h / 2;
+        }
+    }
+
+    pressable := Pressable {
+        enabled: root.enabled;
+        kit-state: root.kit-state;
+        activated => {
+            root.flip();
+        }
+        // Esc puts the tooltip away (§ 5.17); other keys are not the switch's.
+        key-pressed(event) => {
+            if (event.text == Key.Escape && tip.shown) {
+                tip.dismiss();
+                return accept;
+            }
+            return reject;
+        }
+    }
+
+    // After the pointer area, so over a disabled switch it can watch the pointer itself.
+    tip := Tooltip {
+        text: root.tooltip != "" ? root.tooltip : row.cut ? root.text : "";
+        hovered: root.kit-state == KitState.live && pressable.hovered;
+        focused: root.kit-state == KitState.live && pressable.show-focus;
+        pressed: pressable.pressed;
+        watch-pointer: !root.enabled;
+    }
+}

@@ -10,6 +10,9 @@ import { KitState } from "../enums.slint";
 export component FocusTarget {
     in property <bool> enabled: true;
     in property <KitState> kit-state: KitState.live;
+    // False where only Space activates (a check box or a radio button, as WAI-ARIA and Radix): Enter then goes to
+    // the control's `key-pressed`, and on to the window (a dialog's default button).
+    in property <bool> enter-activates: true;
 
     // The focus ring shows only while the user moves with the keyboard.
     out property <bool> show-focus: enabled
@@ -34,7 +37,7 @@ export component FocusTarget {
             }
         }
         key-pressed(event) => {
-            if (event.text == Key.Return || event.text == Key.Space) {
+            if (event.text == Key.Space || (event.text == Key.Return && root.enter-activates)) {
                 InputMode.keyboard = true;
                 root.activated();
                 return accept;

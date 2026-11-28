@@ -1,0 +1,228 @@
+// RadioGroup (§ 5.8): one choice among its items, each a circle of `checkbox` side with a 1 px `line-strong` edge;
+// the chosen one an `accent` fill with an `on-accent` dot. Stacked (the default) or in a row. One Tab stop, as Radix:
+// Tab lands on the chosen item (the first enabled one with none chosen), the arrow keys choose the previous / next
+// enabled item and `wrap-around` goes round the ends, Space chooses the focused item; a click chooses an item. A
+// disabled item is faded, skipped by the keyboard, and says why in its tooltip. Labels as the check box's: one line,
+// cut with «…» and said whole in the tooltip, or wrapped.
+//
+// Slint functions have no loops, so skipping the disabled items is answered by Rust through `RadioNav`
+// (`crates/dome-ui/src/radio.rs`, wired by `radio_nav!` on every window).
+
+import { Size } from "../tokens/size.slint";
+import { Theme } from "../tokens/theme.slint";
+import { Motion } from "../tokens/motion.slint";
+import { KitState, LabelWrap } from "../enums.slint";
+import { InputMode } from "../input-mode.slint";
+import { Pressable } from "../primitives/pressable.slint";
+import { FocusTarget } from "../primitives/focus-target.slint";
+import { FocusRing } from "../primitives/focus-ring.slint";
+import { ChoiceRow, ChoiceLook } from "choice-row.slint";
+import { Tooltip } from "tooltip.slint";
+
+// One item. Only `text` is needed.
+export struct RadioItem {
+    // Shown, and its accessible name.
+    text: string,
+    // Said on hover and keyboard focus (§ 5.17); on a disabled item, why.
+    tooltip: string,
+    disabled: bool,
+}
+
+// The answers Slint cannot compute (`crates/dome-ui/src/radio.rs`).
+export global RadioNav {
+    // The nearest enabled item after `from` (`forward`) or before it; `wrap` goes round the ends, otherwise the
+    // choice stays. With `from` out of range, the first (forward) or last enabled one. -1 with none enabled.
+    pure callback step(items: [RadioItem], from: int, forward: bool, wrap: bool) -> int;
+    // The first or the last enabled item, -1 with none.
+    pure callback edge(items: [RadioItem], last: bool) -> int;
+}
+
+// One item of the group: its circle and label, its pointer area and its tooltip. The group owns the focus.
+component RadioGroupItem {
+    in property <RadioItem> item;
+    in property <bool> chosen;
+    // The group's keyboard focus is on this item: the ring shows around its circle.
+    in property <bool> focused;
+    in property <bool> group-enabled;
+    in property <LabelWrap> wrap;
+    in property <KitState> kit-state;
+    // Esc put this item's tooltip away.
+    in property <bool> hushed;
+
+    // The pointer or the keyboard asks for its tooltip, before Esc is heard.
+    out property <bool> asked: root.kit-state == KitState.live && (press.hovered || root.focused);
+    out property <bool> tooltip-shown: tip.shown;
+
+    callback clicked;
+
+    property <bool> live: root.group-enabled && !root.item.disabled;
+
+    min-width: row.min-width;
+    preferred-width: row.preferred-width;
+    max-width: row.max-width;
+    min-height: row.min-height;
+    preferred-height: row.preferred-height;
+    max-height: row.max-height;
+
+    accessible-role: radio-button;
+    accessible-label: root.item.text;
+    accessible-description: root.item.tooltip;
+    accessible-enabled: root.live;
+    accessible-checkable: true;
+    accessible-checked: root.chosen;
+    accessible-action-default => {
+        root.clicked();
+    }
+
+    row := ChoiceRow {
+        width: 100%;
+        height: 100%;
+        text: root.item.text;
+        wrap: root.wrap;
+        mark-width: Size.checkbox;
+        mark-height: Size.checkbox;
+        opacity: root.item.disabled ? Size.disabled : 1;
+
+        Rectangle {
+            border-radius: self.width / 2;
+            border-width: Size.border-hairline;
+            border-color: ChoiceLook.edge(root.chosen, press.hovered, press.pressed);
+            background: ChoiceLook.fill(root.chosen, press.hovered, press.pressed);
+            animate background, border-color { duration: Motion.fast; }
+
+            if root.chosen: Rectangle {
+                width: Size.radio-mark;
+                height: Size.radio-mark;
+                border-radius: self.width / 2;
+                background: Theme.on-accent;
+            }
+        }
+
+        if root.focused: FocusRing {
+            radius: Size.checkbox / 2;
+        }
+    }
+
+    press := Pressable {
+        enabled: root.live;
+        focusable: false;
+        kit-state: root.kit-state;
+        activated => {
+            root.clicked();
+        }
+    }
+
+    // After the pointer area, so over a disabled item it can watch the pointer itself.
+    tip := Tooltip {
+        text: root.item.tooltip != "" ? root.item.tooltip : row.cut ? root.item.text : "";
+        hovered: root.asked && press.hovered && !root.hushed;
+        focused: root.asked && root.focused && !root.hushed;
+        pressed: press.pressed;
+        watch-pointer: !root.live;
+    }
+}
+
+export component RadioGroup {
+    in property <[RadioItem]> items;
+    // Written by the group when the user chooses, and by the screen to set the choice: both sides write. Out of
+    // range, no item is chosen.
+    in-out property <int> current-index: -1;
+    in property <bool> enabled: true;
+    // Stacked (`vertical`) or side by side (`horizontal`); every arrow key moves the choice either way, as Radix.
+    in property <Orientation> orientation: Orientation.vertical;
+    // The arrow keys go round the ends.
+    in property <bool> wrap-around: true;
+    in property <LabelWrap> wrap: LabelWrap.none;
+    // The Kit window only (§ 9): hover and pressed are shown on the item after the focused one.
+    in property <KitState> kit-state: KitState.live;
+
+    // The item the keyboard is on: the chosen one, or the first enabled one with none chosen (Radix's roving focus).
+    out property <int> focus-index: root.current-index >= 0 && root.current-index < root.items.length
+        ? root.current-index : RadioNav.edge(root.items, false);
+    // The item whose tooltip shows, -1 with none (the tests read it).
+    out property <int> tooltip-index: -1;
+
+    // The user chose another item.
+    callback selected(index: int);
+
+    property <bool> vertical: root.orientation == Orientation.vertical;
+    property <int> kit-item: Math.mod(root.focus-index + 1, max(1, root.items.length));
+    // The item whose tooltip Esc put away, until the pointer and the focus leave it.
+    property <int> hushed: -1;
+
+    function choose(index: int) {
+        if (index >= 0 && index < root.items.length && index != root.current-index && !root.items[index].disabled) {
+            root.current-index = index;
+            root.selected(index);
+        }
+    }
+
+    min-width: grid.min-width;
+    preferred-width: grid.preferred-width;
+    max-width: grid.max-width;
+    min-height: grid.min-height;
+    preferred-height: grid.preferred-height;
+    max-height: grid.max-height;
+    opacity: root.enabled ? 1 : Size.disabled;
+
+    forward-focus: group;
+    accessible-role: radio-group;
+    accessible-enabled: root.enabled;
+
+    group := FocusTarget {
+        enabled: root.enabled;
+        kit-state: root.kit-state;
+        enter-activates: false;
+        activated => {
+            root.choose(root.focus-index);
+        }
+        key-pressed(event) => {
+            if (event.text == Key.LeftArrow || event.text == Key.UpArrow) {
+                root.choose(RadioNav.step(root.items, root.focus-index, false, root.wrap-around));
+            } else if (event.text == Key.RightArrow || event.text == Key.DownArrow) {
+                root.choose(RadioNav.step(root.items, root.focus-index, true, root.wrap-around));
+            } else if (event.text == Key.Escape && root.tooltip-index >= 0) {
+                // Esc puts the tooltip away (§ 5.17).
+                root.hushed = root.tooltip-index;
+            } else {
+                return reject;
+            }
+            InputMode.keyboard = true;
+            return accept;
+        }
+    }
+
+    grid := GridLayout {
+        spacing-horizontal: Size.choice-gap-x;
+        spacing-vertical: 0;
+
+        for item[index] in root.items: RadioGroupItem {
+            row: root.vertical ? index : 0;
+            col: root.vertical ? 0 : index;
+            item: item;
+            chosen: index == root.current-index;
+            focused: index == root.focus-index && group.show-focus;
+            group-enabled: root.enabled;
+            wrap: root.wrap;
+            kit-state: index == root.kit-item && root.kit-state != KitState.focus ? root.kit-state : KitState.live;
+            hushed: root.hushed == index;
+            clicked => {
+                group.focus();
+                root.choose(index);
+            }
+
+            changed asked => {
+                if (!self.asked && root.hushed == index) {
+                    root.hushed = -1;
+                }
+            }
+            changed tooltip-shown => {
+                if (self.tooltip-shown) {
+                    root.tooltip-index = index;
+                } else if (root.tooltip-index == index) {
+                    root.tooltip-index = -1;
+                }
+            }
+        }
+    }
+}
