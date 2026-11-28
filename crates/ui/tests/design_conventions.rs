@@ -293,15 +293,19 @@ fn sources_follow_the_rules() {
 }
 
 /// `kit-coverage`: every component the library exports (`dome-ui/index.slint`) from `dome-ui/components/` appears in
-/// `kit/kit.slint` or one of the sections it instantiates from their own files (`kit/kit-*-section.slint`). A
+/// `kit/kit.slint` or one of the sections it places from their own files (`kit/kit-<component>-section.slint`). A
 /// component the library keeps to itself (`ButtonContent`) cannot be imported by the Kit; it shows through the
-/// components built on it.
+/// components built on it. Blind spot: a section file the Kit window does not place still counts.
 fn kit_coverage(sources: &[Source]) -> Vec<String> {
-    let in_kit = |s: &&Source| {
-        s.path == "kit/kit.slint" || (s.path.starts_with("kit/kit-") && s.path.ends_with("-section.slint"))
-    };
-    let kit_code: Vec<&str> = sources.iter().filter(in_kit).map(|s| s.code.as_str()).collect();
-    let kit = (!kit_code.is_empty()).then(|| kit_code.join("\n"));
+    let kit_files: Vec<&str> = sources
+        .iter()
+        .filter(|s| {
+            s.path == "kit/kit.slint"
+                || (s.path.starts_with("kit/kit-") && s.path.ends_with("-section.slint"))
+        })
+        .map(|s| s.code.as_str())
+        .collect();
+    let kit = (!kit_files.is_empty()).then(|| kit_files.join("\n"));
     let index = sources.iter().find(|s| s.path == "dome-ui/index.slint");
     let export = Regex::new(r"export\s+component\s+([A-Za-z][\w-]*)").expect("test data is valid");
     sources
@@ -321,7 +325,7 @@ fn kit_coverage(sources: &[Source]) -> Vec<String> {
             })
         })
         .filter(|name| {
-            kit.as_ref().is_none_or(|k| {
+            kit.as_deref().is_none_or(|k| {
                 !Regex::new(&format!(r"\b{name}\b"))
                     .expect("test data is valid")
                     .is_match(k)
@@ -369,6 +373,20 @@ fn kit_coverage_catches_a_missing_component() {
         "export component KitWindow { Rectangle {} }",
     );
     assert_eq!(kit_coverage(&[component, kit]).len(), 1);
+}
+
+#[test]
+fn kit_coverage_reads_the_section_files() {
+    let component = Source::new("dome-ui/components/chip.slint", "export component Chip {}");
+    let kit = Source::new(
+        "kit/kit.slint",
+        "export component KitWindow { KitChipSection {} }",
+    );
+    let section = Source::new(
+        "kit/kit-chip-section.slint",
+        "export component KitChipSection { Chip {} }",
+    );
+    assert!(kit_coverage(&[component, kit, section]).is_empty());
 }
 
 #[test]

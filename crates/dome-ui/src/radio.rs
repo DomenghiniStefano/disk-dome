@@ -1,8 +1,8 @@
 //! The radio group's walk over its items (`docs/design-system.md` § 5.8): the arrow keys skip the disabled items,
-//! which Slint cannot do itself since its functions have no loops. It is the segmented control's walk (§ 5.6) over the
-//! items' `disabled` flags, so the two groups move alike; `radio_nav!` wires it to an app's `RadioNav` global.
+//! which Slint cannot do itself since its functions have no loops. It is the walk every group with one Tab stop
+//! shares ([`crate::roving`]), so radios, segments and tabs move alike; `radio_nav!` wires it to an app's `RadioNav`.
 
-pub use crate::segmented::{edge, step};
+pub use crate::roving::{edge, step};
 
 #[cfg(test)]
 mod tests {

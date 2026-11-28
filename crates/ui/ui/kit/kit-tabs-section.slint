@@ -1,0 +1,160 @@
+// The Kit's Tabs sections (§ 5.7, § 9): every state, a disabled tab with its reason, manual activation, nothing
+// current, long Italian labels shrinking in a narrow box, tabs overflowing into the «⋯» menu, and tabs with their
+// panel. Every sample works. Texts are the Kit's own, not translated (rule `untranslated` exempts `kit/`).
+
+import {
+    Size,
+    TypeStep,
+    Label,
+    InkTone,
+    KitState,
+    Tabs,
+    TabItem,
+    TabPanel,
+    TabActivation,
+    TabOverflow,
+} from "@dome-ui";
+import { KitSection, KitRow } from "kit-parts.slint";
+
+struct KitTabState { name: string, state: KitState, enabled: bool }
+
+global KitTabsData {
+    out property <[KitTabState]> states: [
+        { name: "rest", state: KitState.live, enabled: true },
+        { name: "hover", state: KitState.hover, enabled: true },
+        { name: "pressed", state: KitState.pressed, enabled: true },
+        { name: "focus", state: KitState.focus, enabled: true },
+        { name: "disabled", state: KitState.live, enabled: false },
+    ];
+    // The section bar's six sections (§ 6.11).
+    out property <[TabItem]> sections: [
+        { text: "Overview" },
+        { text: "Explore" },
+        { text: "Clean-up" },
+        { text: "Timeline" },
+        { text: "Statistics" },
+        { text: "Activity" },
+    ];
+    // A tab that cannot be chosen yet says why.
+    out property <[TabItem]> with-disabled: [
+        { text: "Overview" },
+        { text: "Explore" },
+        {
+            text: "Timeline",
+            disabled: true,
+            tooltip: "The timeline starts from the second scan"
+        },
+        { text: "Statistics" },
+    ];
+    // Italian labels, longer than the English ones (§ 3.3).
+    out property <[TabItem]> italian: [
+        { text: "Panoramica" },
+        { text: "Esplora" },
+        { text: "Pulizia" },
+        { text: "Cronologia" },
+        { text: "Statistiche" },
+        { text: "Attività" },
+    ];
+    // About's three tabs (§ 6.19).
+    out property <[TabItem]> about: [{ text: "DiskDome" }, { text: "Licences" }, { text: "Credits" }];
+}
+
+export component KitTabsSection inherits VerticalLayout {
+    KitSection {
+        title: "Tabs · states";
+        for state in KitTabsData.states: KitRow {
+            name: state.name;
+
+            Tabs {
+                items: KitTabsData.sections;
+                kit-state: state.state;
+                enabled: state.enabled;
+                accessible-label: "Sections";
+            }
+        }
+    }
+
+    KitSection {
+        title: "Tabs · options";
+
+        KitRow {
+            name: "disabled tab";
+
+            Tabs {
+                items: KitTabsData.with-disabled;
+                accessible-label: "Sections";
+            }
+        }
+
+        KitRow {
+            name: "manual activation";
+
+            Tabs {
+                items: KitTabsData.sections;
+                activation: TabActivation.manual;
+                accessible-label: "Sections";
+            }
+        }
+
+        KitRow {
+            name: "nothing current";
+
+            Tabs {
+                items: KitTabsData.about;
+                current-index: -1;
+                accessible-label: "About";
+            }
+        }
+
+        KitRow {
+            name: "Italian, shrink";
+
+            HorizontalLayout {
+                alignment: start;
+                width: Size.side-panel;
+
+                Tabs {
+                    items: KitTabsData.italian;
+                    accessible-label: "Sections";
+                }
+            }
+        }
+
+        KitRow {
+            name: "Italian, menu";
+
+            HorizontalLayout {
+                alignment: start;
+                width: Size.side-panel;
+
+                Tabs {
+                    items: KitTabsData.italian;
+                    current-index: 4;
+                    overflow-mode: TabOverflow.menu;
+                    accessible-label: "Sections";
+                }
+            }
+        }
+
+        KitRow {
+            name: "with panel";
+
+            VerticalLayout {
+                about := Tabs {
+                    items: KitTabsData.about;
+                    accessible-label: "About";
+                }
+
+                TabPanel {
+                    accessible-label: KitTabsData.about[about.current-index].text;
+
+                    Label {
+                        text: "The panel of «" + KitTabsData.about[about.current-index].text + "»";
+                        step: TypeStep.body;
+                        tone: InkTone.muted;
+                    }
+                }
+            }
+        }
+    }
+}

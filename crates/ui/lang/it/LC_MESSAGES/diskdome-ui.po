@@ -27,6 +27,10 @@ msgctxt "SearchField"
 msgid "Regular expression"
 msgstr "Espressione regolare"
 
+msgctxt "Tabs"
+msgid "More tabs"
+msgstr "Altre schede"
+
 msgctxt "ProofStatus"
 msgid "{} rows, sorting…"
 msgstr "{} righe, ordinamento…"

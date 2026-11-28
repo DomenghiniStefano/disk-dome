@@ -26,17 +26,18 @@ The Slint half, in `ui/`:
   property per file.
 - `components/` — one file per component of § 5, each exported through `index.slint`: `Label`, `SelectableLabel` (text
   that can be selected and copied), `Icon`, `Button`,
-  `SegmentedControl`, `ToggleButton`, `SearchField`, `ScrollBar` (vertical or horizontal), `DomeWindow` (the window
+  `SegmentedControl`, `Tabs` and `TabPanel` (§ 5.7), `ToggleButton`, `SearchField`, `ScrollBar` (vertical or horizontal), `DomeWindow` (the window
   every screen inherits: it tells the popups its size), and the menu (§ 5.16): `MenuFrame` (the level-1 surface),
   `MenuList` (entries from `[MenuEntry]`), `Menu` (the popup, three levels), `ContextMenu` (right click, Menu key,
   Shift+F10), `MenuButton`, and the tooltip (§ 5.17): `Tooltip` (inside a control; `Button` and `ToggleButton`
   have it through `tooltip`) and `TooltipBubble`, drawn by `DomeWindow` from `primitives/tooltip-layer.slint`.
   The choice controls (§ 5.8): `Checkbox` (three states), `RadioGroup` (items from `[RadioItem]`) and `Switch`, drawn
   on one shared row (`choice-row.slint`, private).
+- `SegmentedNav`, `RadioNav` and `TabNav` — the walk over a group with one Tab stop (a segmented control's segments,
+  a radio group's items, the tabs), skipping disabled items, answered by `src/roving.rs` and wired by
+  `segmented_nav!`, `radio_nav!` and `tab_nav!` (which also builds the tabs' «⋯» menu).
 - `MenuNav` (in `menu-list.slint`) — what Slint cannot compute (no loops, no prefix test): the walk over a menu's
   entries, its type-ahead and `toggled`, answered by `src/menu.rs` and wired by `menu_nav!`.
-- `SegmentedNav` and `RadioNav` — the walk over a segmented control's segments and a radio group's items, skipping the
-  disabled ones: `src/segmented.rs` (whose walk `src/radio.rs` reuses), wired by `segmented_nav!` and `radio_nav!`.
 - `primitives/` — the behaviour components share, never used by screens: `FocusTarget` (one keyboard stop),
   `Pressable` (pointer + keyboard, the states of § 5), `FocusRing`, `TextEntry` (the one editable text, which like
   `Label` sets font properties), `placement.slint` (`Viewport` and `Placement`: where a popup goes, § 3.11).

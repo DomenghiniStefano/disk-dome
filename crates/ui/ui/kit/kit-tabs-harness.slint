@@ -1,0 +1,109 @@
+// The Tabs' test window (`tests/tabs_headless.rs`, § 5.7): text tabs with a disabled one the arrow keys skip; tabs
+// with `manual` activation whose first tab is disabled; long labels shrinking in a narrow box; and tabs that overflow
+// into the «⋯» menu. Kit only; texts are the Kit's own, not translated.
+
+import {
+    DomeWindow,
+    Tabs,
+    TabActivation,
+    TabOverflow,
+    Size,
+    Theme,
+} from "@dome-ui";
+
+export component KitTabsHarness inherits DomeWindow {
+    preferred-width: Size.window-min-w;
+    preferred-height: Size.window-min-h;
+
+    out property <color> accent: Theme.accent;
+
+    out property <int> text-current-index: text.current-index;
+    out property <length> text-y: text-row.y;
+    out property <length> text-height: text.height;
+    // How many times `selected` was called on the text tabs.
+    out property <int> text-selections;
+
+    out property <int> manual-current-index: manual.current-index;
+    out property <int> manual-focus-index: manual.focus-index;
+    out property <length> manual-y: manual-row.y;
+
+    // The narrow box the long labels must fit in.
+    out property <length> narrow-box: Size.tab-min-w * 2;
+    out property <length> long-width: long.width;
+    out property <length> long-y: long-row.y;
+    out property <int> long-tooltip: long.tooltip-index;
+
+    // The box the overflowing tabs sit in, narrower than their labels.
+    out property <length> menu-box: Size.side-panel;
+    out property <length> menu-width: menu.width;
+    out property <length> menu-preferred: menu.preferred-width;
+    out property <length> menu-y: menu-row.y;
+    out property <bool> menu-overflowing: menu.overflowing;
+    out property <length> menu-shift: menu.shift;
+    out property <int> menu-current-index: menu.current-index;
+
+    VerticalLayout {
+        alignment: start;
+        spacing: Size.group-gap;
+
+        text-row := HorizontalLayout {
+            alignment: start;
+
+            text := Tabs {
+                items: [
+                    { text: "Overview" },
+                    { text: "Explore" },
+                    { text: "Clean-up", disabled: true, tooltip: "Not now" },
+                    { text: "Timeline" },
+                ];
+                accessible-label: "Sections";
+                selected => {
+                    root.text-selections += 1;
+                }
+            }
+        }
+
+        manual-row := HorizontalLayout {
+            alignment: start;
+
+            manual := Tabs {
+                items: [
+                    { text: "Off", disabled: true, tooltip: "Not now" },
+                    { text: "General" },
+                    { text: "Appearance" },
+                ];
+                current-index: 1;
+                activation: TabActivation.manual;
+                accessible-label: "Settings";
+            }
+        }
+
+        long-row := HorizontalLayout {
+            alignment: start;
+            width: root.narrow-box;
+
+            long := Tabs {
+                items: [{ text: "Panoramica dell'unità" }, { text: "Esplora le cartelle" }];
+                accessible-label: "Sections";
+            }
+        }
+
+        menu-row := HorizontalLayout {
+            alignment: start;
+            width: root.menu-box;
+
+            menu := Tabs {
+                items: [
+                    { text: "Overview" },
+                    { text: "Explore" },
+                    { text: "Clean-up" },
+                    { text: "Timeline" },
+                    { text: "Statistics" },
+                    { text: "Activity" },
+                ];
+                overflow-mode: TabOverflow.menu;
+                accessible-label: "Sections";
+            }
+        }
+    }
+}

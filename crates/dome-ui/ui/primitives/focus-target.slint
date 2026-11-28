@@ -18,6 +18,9 @@ export component FocusTarget {
     out property <bool> show-focus: enabled
         && (kit-state == KitState.focus || (kit-state == KitState.live && scope.has-focus && InputMode.keyboard));
 
+    // The keyboard focus is here, shown or not (a control that remembers a position while it has the focus).
+    out property <bool> has-focus: scope.has-focus;
+
     // Enter or Space.
     callback activated;
     // Every other key, for controls that move inside (arrows): return `accept` to take it.
