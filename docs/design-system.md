@@ -1359,6 +1359,18 @@ right-aligned, **primary first** (Windows order: «Move to Recycle Bin» then «
 (32) in both densities: dialogs keep the normal sizes. Esc and the window's close = «Cancel». The default button (Enter) is declared per dialog; for an
 irreversible action it is «Cancel».
 
+| Dialog | |
+| --- | --- |
+| Interface | `open` (written by the screen to open it and by the dialog when it closes itself), `title`, `description` (the body's first text, wrapped), free content after it, `size`, `actions: [DialogAction]` (`text`, `icon`, `variant`, `disabled` with its `reason` in the tooltip, `keep-open`), `default-index` (Enter), `cancel-index` (Esc, `cancel()`), `initial-focus`, `close-on-escape`, `close-on-scrim`, `margin` (`dialog-margin`); `activated(index)` when an action is chosen (-1: closed without one), `closed()` whatever closed it; `cancel()` for the window's close button, `activate-default()` for a field that takes Enter itself |
+| Layer | drawn in the window at `z-dialog`, over the element it is placed in (the window's content, under the title bar), not on a `PopupWindow`: a popup keeps the place and size it opened with, swallows every click outside it (the title bar's buttons) and covers the window's tooltip. Menus opened inside it are popups, above it |
+| Size | `small`, `medium`, `large` wide, never closer than `margin` to the edges; as tall as its content, at most the room less `margin` above and below: the body then scrolls between the title and the buttons, its scroll bar over the right padding. `dialog-pad` between title, body and footer, only around the parts that are there; `dialog-gap` between the body's blocks |
+| Motion | fades in over `slow` while its surface grows from 98 % (the content stays put: the software renderer cannot scale, and a narrowing body would re-wrap); fades out over `fast` |
+| Modal | the scrim takes every click, hover and wheel; a click on it does nothing unless `close-on-scrim`. Every key the controls inside leave stops at the dialog (the screen's shortcuts never fire behind it), except Tab and Shift+Tab |
+| Keyboard | Enter from anywhere in the dialog chooses the default action (a focused button takes Enter itself; a check box leaves it); a disabled default leaves Enter without effect. Esc chooses the cancel action, or closes with `activated(-1)` when there is none. Tab and Shift+Tab go round inside: past the last action to the first control, before the first control to the last action |
+| Focus | on opening, the default action (`DialogFocus.default-action`, Windows) or the first control (`first`, Radix); a disabled default sends it to the first control. On closing, the screen moves it back in `closed` (Slint tells no component which element had it) |
+| Confirmations | § 6.4 is built from it: «Cancel» as the default of what cannot be undone, a disabled primary with its reason when only system items are selected; «asks twice» is a second dialog opened from the first one's `activated`, the first one closing |
+| Accessibility | a group named by its title, described by its description (Slint 1.19 has no dialog role) |
+
 ### 5.19 InfoBar
 
 A full-width message under the toolbar (32 / 28): `*-soft` fill of its state, a 16 px state icon, text

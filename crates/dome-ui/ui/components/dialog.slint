@@ -1,0 +1,415 @@
+// Dialog (§ 5.18, § 3.11, § 3.8): a modal level-2 surface centred over a `scrim`: title, a body that wraps and
+// scrolls, the buttons at the bottom right in the order given (Windows: primary first). The default button takes
+// Enter from anywhere in the dialog, Esc and `cancel()` (the window's close) choose the cancel button; the keyboard
+// focus goes in when it opens and Tab and Shift+Tab go round inside it; the pointer and the keys never reach what
+// is behind. A delete confirmation (§ 6.4) is a Dialog with «Cancel» as its default; «asks twice» is two of them.
+//
+// Not a `PopupWindow`: Slint fixes a popup's place and size when it shows (`window.rs`, show_popup), so a scrim over
+// the window would not follow a resize; a popup that is not a menu swallows every click outside it, so the title
+// bar's own buttons would stop working; and the window's one tooltip (`DomeWindow`) would be drawn under it. The
+// dialog is drawn in the window instead, at `Size.z-dialog`, over the element it is placed in: put it in the
+// window's content (under the title bar), after the rest. Menus opened from inside it are popups, so above it.
+//
+// The focus goes back where it was through `closed`: Slint lets no component know which element had the focus, so
+// the screen moves it back (to the button that opened the dialog), as with `Menu`.
+
+import { Size } from "../tokens/size.slint";
+import { Theme } from "../tokens/theme.slint";
+import { Motion } from "../tokens/motion.slint";
+import { TypeStep } from "../tokens/type.slint";
+import {
+    ButtonVariant,
+    ButtonSize,
+    DialogSize,
+    DialogFocus,
+    KitState,
+    LabelWrap,
+    ScrollBarVisibility,
+} from "../enums.slint";
+import { InputMode } from "../input-mode.slint";
+import { Label } from "label.slint";
+import { Button } from "button.slint";
+import { ScrollBar } from "scroll-bar.slint";
+
+// One button of the footer. `variant` has no useful default (a struct field takes the enum's first value,
+// `primary`): set it on every action. `reason` is said in the tooltip, on a disabled one why it cannot be used.
+export struct DialogAction {
+    text: string,
+    icon: image,
+    variant: ButtonVariant,
+    disabled: bool,
+    reason: string,
+    // Choosing it leaves the dialog open (an «Apply» that keeps Settings on screen).
+    keep-open: bool,
+}
+
+// Size → width. One place, so the Kit and the screens can never disagree.
+global DialogLook {
+    public pure function width(size: DialogSize) -> length {
+        return size == DialogSize.small ? Size.dialog-sm : size == DialogSize.large ? Size.dialog-lg : Size.dialog-md;
+    }
+}
+
+export component Dialog {
+    // Written by the screen to open it and by the dialog when it closes itself (an action, Esc): both sides write.
+    in-out property <bool> open;
+    in property <string> title;
+    // The first text of the body, wrapped; free content (`@children`) follows it.
+    in property <string> description;
+    in property <DialogSize> size: DialogSize.medium;
+    in property <[DialogAction]> actions;
+    // The action Enter chooses from anywhere in the dialog; -1 for none. For an irreversible action, «Cancel».
+    in property <int> default-index: -1;
+    // The action Esc and `cancel()` choose; -1 closes without one (`activated(-1)`).
+    in property <int> cancel-index: -1;
+    // Where the focus goes when it opens: the default action, as Windows, or the first control, as Radix.
+    in property <DialogFocus> initial-focus: DialogFocus.default-action;
+    in property <bool> close-on-escape: true;
+    // A click on the scrim closes it, as Radix's Dialog; off by default, as Windows' modal dialogs and Radix's
+    // AlertDialog.
+    in property <bool> close-on-scrim: false;
+    // How far the dialog stays inside the element it covers; a taller body scrolls.
+    in property <length> margin: Size.dialog-margin;
+    // The Kit window only (§ 9): a sample that is not `live` is a still picture: drawn at once, it never takes the
+    // focus and its buttons do nothing, so it stays open.
+    in property <KitState> kit-state: KitState.live;
+
+    // The surface's place in the dialog's own coordinates (the tests read it).
+    out property <length> panel-width: min(DialogLook.width(root.size), root.width - 2 * root.margin);
+    out property <length> panel-height: min(content.preferred-height, root.height - 2 * root.margin);
+    // On whole pixels, so the text inside is not blurred.
+    out property <length> panel-x: Math.round((root.width - root.panel-width) / 2 / Size.unit) * Size.unit;
+    out property <length> panel-y: Math.round((root.height - root.panel-height) / 2 / Size.unit) * Size.unit;
+
+    // An action chosen (a click, Enter on the default one, Esc on the cancel one); -1 when it closed without one.
+    callback activated(index: int);
+    // It closed, whatever closed it: the screen moves the focus back (to the button that opened it).
+    callback closed();
+
+    // The window's close button: the same as Esc.
+    public function cancel() {
+        if (!root.open || !root.live) {
+            return;
+        }
+        root.activated(root.cancel-index >= 0 && root.cancel-index < root.actions.length ? root.cancel-index : -1);
+        root.open = false;
+    }
+
+    // What Enter does; a screen calls it from a field that takes Enter itself (a `TextField`'s `accepted`).
+    public function activate-default() {
+        root.choose(root.default-index);
+    }
+
+    property <bool> live: root.kit-state == KitState.live;
+    // Drives the look; follows `open` once the start values have been read, so the fade runs.
+    property <bool> shown;
+    property <float> grow: root.shown ? 1 : Motion.dialog-scale-from;
+    // The software renderer puts things on whole pixels: the few pixels of growth run at an even pace, as the rise of
+    // menus (§ 3.10), or eased they would come in jumps.
+    animate grow {
+        duration: root.shown ? Motion.slow : Motion.fast;
+        easing: Motion.rise-easing;
+    }
+    property <bool> has-body: body-content.preferred-height > 0;
+    // Raised to move the focus to the action at `focus-index` (only the repeated button can take it).
+    property <int> focus-request;
+    property <int> focus-index: -1;
+    // A wrap in progress: a dialog with nothing to focus must not wrap for ever.
+    property <bool> wrapping;
+    // Slint animates a change only from a value it has already read (`PopupSurface`).
+    property <float> start-opacity;
+    property <float> start-grow;
+
+    function usable(index: int) -> bool {
+        return index >= 0 && index < root.actions.length && !root.actions[index].disabled;
+    }
+
+    function choose(index: int) {
+        if (!root.open || !root.live || !root.usable(index)) {
+            return;
+        }
+        root.activated(index);
+        if (!root.actions[index].keep-open) {
+            root.open = false;
+        }
+    }
+
+    function focus-action(index: int) {
+        root.focus-index = index;
+        root.focus-request += 1;
+    }
+
+    // Whether the action at `index` is the one asked to take the focus; the request is then served.
+    function serve-focus(index: int) -> bool {
+        if (index != root.focus-index) {
+            return false;
+        }
+        root.focus-index = -1;
+        return true;
+    }
+
+    function take-focus() {
+        if (root.initial-focus == DialogFocus.default-action && root.usable(root.default-index)) {
+            root.focus-action(root.default-index);
+        } else {
+            root.focus-first();
+        }
+    }
+
+    // `first-stop` refuses the focus, so Slint hands it to the next control in the dialog.
+    function focus-first() {
+        if (root.wrapping) {
+            return;
+        }
+        root.wrapping = true;
+        first-stop.focus();
+        root.wrapping = false;
+    }
+
+    init => {
+        if (root.live) {
+            root.start-opacity = layer.opacity;
+            root.start-grow = root.grow;
+        }
+        root.shown = root.open;
+        if (root.open && root.live) {
+            root.take-focus();
+        }
+    }
+
+    changed open => {
+        root.shown = root.open;
+        if (root.open) {
+            if (root.live) {
+                root.take-focus();
+            }
+        } else {
+            root.closed();
+        }
+    }
+
+    // It covers the element it is placed in (a 0-sized element would be centred in it).
+    width: 100%;
+    height: 100%;
+    z: Size.z-dialog;
+    // While it fades out it is still drawn; then it is gone, and takes no pointer event.
+    visible: root.open || layer.opacity > 0;
+
+    // Disabled, so it never takes the focus; keys the controls inside leave still come here.
+    keys := FocusScope {
+        width: 100%;
+        height: 100%;
+        enabled: false;
+        key-pressed(event) => {
+            if (event.text == Key.Return) {
+                root.choose(root.default-index);
+                return accept;
+            }
+            if (event.text == Key.Escape) {
+                if (root.close-on-escape) {
+                    root.cancel();
+                }
+                return accept;
+            }
+            // Tab and Shift+Tab go to the window, which moves the focus; the stops at both ends bring it round.
+            if ((event.text == Key.Tab || event.text == Key.Backtab)
+                && !event.modifiers.control && !event.modifiers.alt && !event.modifiers.meta) {
+                return reject;
+            }
+            // Modal: no key reaches the screen behind (its shortcuts: Del must not delete).
+            return accept;
+        }
+
+        // The pointer never reaches what is behind: clicks, hover and the wheel stop here.
+        scrim-area := TouchArea {
+            width: 100%;
+            height: 100%;
+            enabled: root.open;
+            clicked => {
+                if (root.close-on-scrim) {
+                    root.cancel();
+                }
+            }
+            scroll-event(event) => {
+                return accept;
+            }
+        }
+
+        layer := Rectangle {
+            width: 100%;
+            height: 100%;
+            background: Theme.scrim;
+            opacity: root.shown ? 1 : 0;
+            animate opacity {
+                duration: root.shown ? Motion.slow : Motion.fast;
+                easing: Motion.ease-out;
+            }
+
+            panel := Rectangle {
+                x: root.panel-x;
+                y: root.panel-y;
+                width: root.panel-width;
+                height: root.panel-height;
+                accessible-role: groupbox;
+                accessible-label: root.title;
+                accessible-description: root.description;
+
+                // The level-2 surface (§ 3.8). It grows from 98 % (§ 3.10) while the content stays put: Slint's
+                // software renderer cannot scale, and a narrowing content would re-wrap its text on every frame.
+                Rectangle {
+                    x: (parent.width - self.width) / 2;
+                    y: (parent.height - self.height) / 2;
+                    width: parent.width * root.grow;
+                    height: parent.height * root.grow;
+                    background: Theme.raised;
+                    border-width: Size.border-hairline;
+                    border-color: Theme.edge;
+                    border-radius: Size.radius-panel;
+                    drop-shadow-color: Theme.shadow;
+                    drop-shadow-offset-y: Size.shadow-2-y;
+                    drop-shadow-blur: Size.shadow-2-blur;
+                }
+
+                // A click on the surface is not a click on the scrim.
+                TouchArea {
+                    width: 100%;
+                    height: 100%;
+                    enabled: root.open;
+                    scroll-event(event) => {
+                        return accept;
+                    }
+                }
+
+                // Reached by Shift+Tab from the first control: the focus goes round to the last action.
+                FocusScope {
+                    x: 0;
+                    y: 0;
+                    width: 0;
+                    height: 0;
+                    enabled: root.live;
+                    focus-on-click: false;
+                    focus-gained(reason) => {
+                        InputMode.keyboard = true;
+                        if (root.actions.length > 0) {
+                            root.focus-action(root.actions.length - 1);
+                        } else {
+                            root.focus-first();
+                        }
+                    }
+                }
+
+                // Never takes the focus: focusing it hands the focus to the first control after it.
+                first-stop := FocusScope {
+                    x: 0;
+                    y: 0;
+                    width: 0;
+                    height: 0;
+                    enabled: false;
+                }
+
+                content := VerticalLayout {
+                    width: parent.width;
+                    height: parent.height;
+                    padding: Size.dialog-pad + Size.border-hairline;
+
+                    Label {
+                        text: root.title;
+                        step: TypeStep.title;
+                        wrap: LabelWrap.word;
+                        min-height: self.preferred-height;
+                        vertical-stretch: 0;
+                    }
+
+                    // `dialog-pad` between title, body and footer (§ 3.4), only around parts that are there.
+                    body-zone := VerticalLayout {
+                        padding-top: root.has-body ? Size.dialog-pad : 0;
+                        vertical-stretch: 1;
+
+                        body := Rectangle {
+                            min-height: 0;
+                            preferred-height: body-content.preferred-height;
+
+                            flick := Flickable {
+                                width: parent.width;
+                                height: parent.height;
+                                content-height: body-content.preferred-height;
+
+                                body-content := VerticalLayout {
+                                    width: flick.width;
+                                    spacing: Size.dialog-gap;
+
+                                    if root.description != "": Label {
+                                        text: root.description;
+                                        wrap: LabelWrap.word;
+                                    }
+
+                                    @children
+                                }
+                            }
+                        }
+                    }
+
+                    HorizontalLayout {
+                        padding-top: root.actions.length > 0 ? Size.dialog-pad : 0;
+                        alignment: end;
+                        spacing: Size.dialog-button-gap;
+                        vertical-stretch: 0;
+
+                        for action[index] in root.actions: Button {
+                            // Dialogs keep the normal sizes in both densities (§ 3.5): `large` is 32 in both.
+                            property <int> request: root.focus-request;
+
+                            text: action.text;
+                            icon: action.icon;
+                            variant: action.variant;
+                            size: ButtonSize.large;
+                            enabled: !action.disabled;
+                            tooltip: action.reason;
+                            // A dialog opened as it is created asks before its buttons exist: they answer when made.
+                            // The request is served once, so a button made again later does not take the focus.
+                            init => {
+                                if (root.serve-focus(index)) {
+                                    self.focus();
+                                }
+                            }
+                            changed request => {
+                                if (root.serve-focus(index)) {
+                                    self.focus();
+                                }
+                            }
+                            clicked => {
+                                root.choose(index);
+                            }
+                        }
+                    }
+                }
+
+                // Over the right padding, beside the body: a cut body says it scrolls.
+                ScrollBar {
+                    x: parent.width - Size.border-hairline - (Size.dialog-pad + self.width) / 2;
+                    y: body-zone.y + body.y;
+                    height: body.height;
+                    visible: flick.content-height > flick.height;
+                    value <=> flick.content-y;
+                    content-length: flick.content-height;
+                    visible-length: flick.height;
+                    visibility: ScrollBarVisibility.auto;
+                }
+
+                // Reached by Tab from the last action: the focus goes round to the first control.
+                FocusScope {
+                    x: 0;
+                    y: 0;
+                    width: 0;
+                    height: 0;
+                    enabled: root.live;
+                    focus-on-click: false;
+                    focus-gained(reason) => {
+                        InputMode.keyboard = true;
+                        root.focus-first();
+                    }
+                }
+            }
+        }
+    }
+}
