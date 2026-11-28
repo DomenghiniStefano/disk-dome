@@ -10,6 +10,12 @@
 //! MFT record number for NTFS), then calls [`Tree::finish`], which links the children of every
 //! folder and sums the folder totals bottom-up.
 
+pub mod category;
+pub mod stats;
+
+pub use category::{FileCategory, category_of};
+pub use stats::{Extension, ExtensionRow, Stats, Totals, stats};
+
 /// Entry flags (`Tree::flags`).
 pub mod flag {
     /// The slot holds an entry. Slots without it (free MFT records, extension records) are skipped.
@@ -443,11 +449,13 @@ impl Tree {
     }
 }
 
+/// Builds small trees for the tests of every module.
 #[cfg(test)]
-mod tests {
-    use super::{Entry, NONE, Tree, attr, flag};
+pub(crate) mod testing {
+    use super::{Entry, Tree, flag};
 
-    fn add(tree: &mut Tree, name: &str, parent: u32, size: u64, dir: bool) -> u32 {
+    /// Adds an entry named `name` under `parent`, `size` bytes and as many clusters.
+    pub fn add(tree: &mut Tree, name: &str, parent: u32, size: u64, dir: bool) -> u32 {
         let off = tree.names.push(name.as_bytes());
         let flags = flag::PRESENT | if dir { flag::DIR } else { 0 };
         tree.push(Entry {
@@ -460,6 +468,12 @@ mod tests {
             ..Entry::default()
         })
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::testing::add;
+    use super::{Entry, NONE, Tree, attr, flag};
 
     #[test]
     fn names_are_found_across_pages() {
