@@ -15,7 +15,7 @@ fields, text).
 | `crates/ui` | `diskdome-ui` (binary `diskdome`) | the Slint app: screens, the Kit, a lazy `Model` that serves only the visible rows |
 | `crates/dome-ui` | `dome-ui` | the design system, Dome UI: tokens, primitives and components as a Slint library (`ui/`, imported as `@dome-ui`) and their Rust half; nothing specific to DiskDome, for every Dome app |
 | `crates/cli` | `diskdome-cli` | scan benchmarks and exports; every engine change is measured here |
-| `crates/platform` | `diskdome-platform` | OS services outside the scanners: process memory, the window's own title bar (spike of card 4.T1), the shell actions later |
+| `crates/platform` | `diskdome-platform` | OS services outside the scanners: process memory, a volume's free space (`GetDiskFreeSpaceExW`), the window's own title bar (spike of card 4.T1), the shell actions later |
 
 Packages are prefixed `diskdome-` because `core` is the name of Rust's own core library.
 

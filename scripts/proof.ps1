@@ -73,7 +73,7 @@ try {
         }
     }
 
-    Write-Host "`n==> 2. Full scan with folder totals (3b), three runs; the last one exports" -ForegroundColor Cyan
+    Write-Host "`n==> 2. Full scan with folder totals (3b) and the free-space check (4.T5), three runs; the last one exports" -ForegroundColor Cyan
     $ours = Join-Path $OutDir 'diskdome-folders.csv'
     & $cli scan "$($Drive):"
     & $cli scan "$($Drive):"
