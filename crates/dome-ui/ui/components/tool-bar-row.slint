@@ -1,0 +1,254 @@
+// The items of a toolbar or a panel header (§ 5.25), shared by `ToolBar` and `PanelHeader` through `ToolBarFrame`:
+// buttons, toggles and separators from data, `tool-gap` apart and `group-gap` around a separator. When they do not fit
+// the width their bar gives them, the last ones fold into a «⋯» `MenuButton` at the row's end, as WinUI's CommandBar:
+// a button becomes an item, a toggle a check box item, a separator a separator, each with its icon, its shortcut and,
+// disabled, its reason. `more-entries` (an app menu) always sit in that menu after the folded items, and keep it shown.
+//
+// Slint functions have no loops, so the fold is answered by Rust through `ToolBarFit` (`crates/dome-ui/src/tool_bar.rs`,
+// wired by `tool_bar_fit!` on every window): each item measures itself and hands its width over, and Rust says how
+// many fit and builds the menu.
+//
+// Not a component of the design system: screens use `ToolBar` and `PanelHeader` (it is not exported from
+// `index.slint`).
+
+import { Size } from "../tokens/size.slint";
+import { Icons } from "../icons/icons.slint";
+import {
+    ButtonSize,
+    ButtonVariant,
+    PopupAlign,
+    ToggleSize,
+    ToolBarButtonVariant,
+    ToolBarItemKind,
+    ToolBarItemsSide,
+} from "../enums.slint";
+import { Button } from "button.slint";
+import { ToggleButton } from "toggle-button.slint";
+import { MenuButton } from "menu-button.slint";
+import { MenuEntry } from "menu-list.slint";
+import { ToolBarSeparator } from "tool-bar-separator.slint";
+
+// One item of a toolbar. Only `kind` and, for a button or a toggle, `text` are needed.
+export struct ToolBarItem {
+    // What `activated` and `toggled` hand back: the screen's own key for the command. Unique in the bar and its
+    // `more-entries`.
+    id: string,
+    kind: ToolBarItemKind,
+    // Shown (unless `icon-only`), its accessible name, and its label in the «⋯» menu.
+    text: string,
+    icon: image,
+    // Only the icon in the bar: the text is then said by the tooltip and screen readers.
+    icon-only: bool,
+    variant: ToolBarButtonVariant,
+    // Said on hover and keyboard focus (§ 5.17); on a disabled item, why (also in the «⋯» menu).
+    tooltip: string,
+    tooltip-shortcut: string,
+    // A toggle's state. The bar flips it in its row of the model (a click on the toggle, or its item in the «⋯» menu)
+    // and says `toggled`; the screen may set it too.
+    checked: bool,
+    disabled: bool,
+}
+
+// The answers Slint cannot compute (`crates/dome-ui/src/tool_bar.rs`).
+export global ToolBarFit {
+    // `widths` with the one at `index` set to `width`: each item hands its natural width over.
+    pure callback with-width(widths: [length], index: int, width: length) -> [length];
+    // The width of the first `count` items, every one shown.
+    pure callback total(widths: [length], count: int) -> length;
+    // How many items show, from the first: all of them when they fit `available` (with the «⋯» button when
+    // `keep-more`), otherwise as many as fit before `gap` and the `more` button; a separator never ends the row.
+    pure callback shown-count(items: [ToolBarItem], widths: [length], available: length, gap: length, more: length, keep-more: bool) -> int;
+    // The «⋯» menu: the folded items (from `shown-count`), each entry's `id` the item's, then `more-entries` after a
+    // separator.
+    pure callback entries(items: [ToolBarItem], shown-count: int, more-entries: [MenuEntry]) -> [MenuEntry];
+    // The index of the folded item with `id`, -1 when the id is one of `more-entries`.
+    pure callback folded-index(items: [ToolBarItem], shown-count: int, id: string) -> int;
+}
+
+// How wide the items get: whole when the room allows, otherwise what the children leave them at their own minimum,
+// never below the items' minimum (the «⋯» button alone). So the children give way first, then the items fold.
+export global ToolBarLayout {
+    public pure function row-width(minimum: length, preferred: length, room: length) -> length {
+        return max(minimum, min(preferred, room));
+    }
+}
+
+export component ToolBarRow {
+    in property <[ToolBarItem]> items;
+    in property <[MenuEntry]> more-entries;
+    // The controls' size: `normal` in a toolbar, `small` in a panel header (§ 3.5).
+    in property <ButtonSize> size: ButtonSize.normal;
+    in property <ToolBarItemsSide> side: ToolBarItemsSide.start;
+    // The «⋯» button's accessible name and tooltip.
+    in property <string> more-label;
+
+    // How many items show, from the first; the others are in the «⋯» menu.
+    out property <int> shown-count: ToolBarFit.shown-count(root.items, root.widths, root.available, Size.tool-gap, root.more-side, root.keep-more);
+    // The «⋯» button shows: items are folded, or there are `more-entries`.
+    out property <bool> overflowing: root.shown-count < root.items.length || root.keep-more;
+
+    callback activated(id: string);
+    callback toggled(id: string, checked: bool);
+    callback more-activated(entry: MenuEntry);
+
+    // Each item's natural width with the gap before it, handed over by the items.
+    property <[length]> widths;
+    // The width the fold reads: a copy of `width` taken in `changed`, since a binding to `width` loops through the
+    // items' sizes, which follow the fold, back into the bar's layout (as `Breadcrumb`).
+    property <length> available;
+    property <bool> keep-more: root.more-entries.length > 0;
+    // The «⋯» is a square icon button of the items' size.
+    property <length> more-side: root.size == ButtonSize.small ? Size.control-sm : Size.control;
+    property <length> more-lead: root.items.length > 0 ? Size.tool-gap : 0;
+    // A toggle chosen in the «⋯» menu: its index, and a count each such choice raises, which the items watch (only an
+    // item can write its own row of the model).
+    property <int> flip-index: -1;
+    property <int> flip-count;
+    property <int> folded: -1;
+
+    // A choice in the «⋯» menu: a folded button or toggle, or one of `more-entries`.
+    function choose(entry: MenuEntry) {
+        root.folded = ToolBarFit.folded-index(root.items, root.shown-count, entry.id);
+        if (root.folded < 0) {
+            root.more-activated(entry);
+        } else if (root.items[root.folded].kind == ToolBarItemKind.toggle) {
+            root.flip-index = root.folded;
+            root.flip-count += 1;
+        } else {
+            root.activated(entry.id);
+        }
+    }
+
+    init => {
+        root.available = root.width;
+    }
+    changed width => {
+        root.available = root.width;
+    }
+
+    // Short of room every item can fold, leaving the «⋯» alone.
+    min-width: root.items.length > 0 || root.keep-more ? root.more-side : 0;
+    preferred-width: ToolBarFit.total(root.widths, root.items.length) + (root.keep-more ? root.more-lead + root.more-side : 0);
+    // Set, so it is not taken from the row inside, whose width follows the fold, which follows this width.
+    max-width: self.preferred-width;
+
+    HorizontalLayout {
+        width: root.width;
+        height: root.height;
+        alignment: root.side == ToolBarItemsSide.end ? LayoutAlignment.end : LayoutAlignment.start;
+
+        for item[index] in root.items: Rectangle {
+            property <bool> separator: item.kind == ToolBarItemKind.separator;
+            property <bool> after-separator: index > 0 && root.items[index - 1].kind == ToolBarItemKind.separator;
+            // `tool-gap` between two controls; a separator brings its own `group-gap`.
+            property <length> lead: index > 0 && !self.separator && !self.after-separator ? Size.tool-gap : 0;
+            // The control's own width, copied from inside its `if` (an element there cannot be read from outside).
+            property <length> control-width;
+            property <length> natural: self.lead + (self.separator ? Size.group-gap + Size.border-hairline : self.control-width);
+            property <bool> shown: index < root.shown-count;
+            property <int> flips: root.flip-count;
+
+            init => {
+                root.widths = ToolBarFit.with-width(root.widths, index, self.natural);
+            }
+            changed natural => {
+                root.widths = ToolBarFit.with-width(root.widths, index, self.natural);
+            }
+            changed flips => {
+                if (root.flip-index == index) {
+                    item.checked = !item.checked;
+                    root.toggled(item.id, item.checked);
+                }
+            }
+
+            // A folded item takes no room; it stays measured, so it comes back when the bar widens.
+            min-width: self.shown ? self.natural : 0;
+            preferred-width: self.shown ? self.natural : 0;
+            max-width: self.shown ? self.natural : 0;
+            horizontal-stretch: 0;
+
+            if separator && shown: ToolBarSeparator {
+                x: 0;
+                height: parent.height;
+            }
+
+            // A folded control is hidden and off, so Tab skips it.
+            if item.kind == ToolBarItemKind.button: Button {
+                property <length> natural-width: self.preferred-width;
+
+                x: parent.lead;
+                y: (parent.height - self.height) / 2;
+                width: self.preferred-width;
+                visible: shown;
+                text: item.icon-only ? "" : item.text;
+                icon: item.icon;
+                variant: item.variant == ToolBarButtonVariant.secondary ? ButtonVariant.secondary : ButtonVariant.ghost;
+                size: root.size;
+                enabled: shown && !item.disabled;
+                tooltip: item.tooltip;
+                tooltip-shortcut: item.tooltip-shortcut;
+                accessible-label: item.text;
+                clicked => {
+                    root.activated(item.id);
+                }
+                init => {
+                    parent.control-width = self.natural-width;
+                }
+                changed natural-width => {
+                    parent.control-width = self.natural-width;
+                }
+            }
+
+            if item.kind == ToolBarItemKind.toggle: ToggleButton {
+                property <length> natural-width: self.preferred-width;
+
+                x: parent.lead;
+                y: (parent.height - self.height) / 2;
+                width: self.preferred-width;
+                visible: shown;
+                text: item.icon-only ? "" : item.text;
+                icon: item.icon;
+                size: root.size == ButtonSize.small ? ToggleSize.small : ToggleSize.normal;
+                enabled: shown && !item.disabled;
+                tooltip: item.tooltip;
+                tooltip-shortcut: item.tooltip-shortcut;
+                accessible-label: item.text;
+                // The toggle and the screen both write the state: the row of the model holds it.
+                checked <=> item.checked;
+                toggled(checked) => {
+                    root.toggled(item.id, checked);
+                }
+                init => {
+                    parent.control-width = self.natural-width;
+                }
+                changed natural-width => {
+                    parent.control-width = self.natural-width;
+                }
+            }
+        }
+
+        if root.overflowing: Rectangle {
+            property <length> lead: root.shown-count > 0 ? Size.tool-gap : 0;
+
+            min-width: self.lead + root.more-side;
+            preferred-width: self.lead + root.more-side;
+            max-width: self.lead + root.more-side;
+            horizontal-stretch: 0;
+
+            MenuButton {
+                x: parent.lead;
+                y: (parent.height - self.height) / 2;
+                width: root.more-side;
+                icon: Icons.ellipsis;
+                size: root.size;
+                // At a bar's end the menu lines up on the button's right edge (§ 3.11).
+                align: root.side == ToolBarItemsSide.end ? PopupAlign.end : PopupAlign.start;
+                entries: ToolBarFit.entries(root.items, root.shown-count, root.more-entries);
+                accessible-label: root.more-label;
+                activated(entry) => {
+                    root.choose(entry);
+                }
+            }
+        }
+    }
+}

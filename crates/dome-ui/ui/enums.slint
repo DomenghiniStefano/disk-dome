@@ -129,6 +129,7 @@ export enum DialogSize { small, medium, large }
 // Where the focus goes when a dialog opens (§ 5.18): to its `default-action`, as Windows (a delete confirmation's
 // «Cancel»), or to the `first` control in it, as Radix.
 export enum DialogFocus { default-action, first }
+
 // What a notice says (§ 5.19, § 5.20): its icon and colour, and how urgently screen readers announce it (assertive for
 // `danger` only, § 7). The same four kinds for the info bar and the toast.
 export enum NoticeKind { info, warning, danger, success }
@@ -136,6 +137,7 @@ export enum NoticeKind { info, warning, danger, success }
 // Why a toast went away (§ 5.20): its time ran out, it was closed (its `x`, Esc, or the screen's `close()`), one of its
 // actions was chosen, or a newer notice took its place.
 export enum ToastEnd { timeout, dismissed, action, replaced }
+
 // Whether a progress bar knows how far along it is (§ 5.21): `determinate`, it fills `value` of `maximum`, or
 // `indeterminate` (Radix's `value={null}`: the total is not known yet, the MFT size before it is read), a segment
 // slides across it.
@@ -147,6 +149,32 @@ export enum ProgressBarState { indeterminate, loading, complete }
 // A usage bar's thickness (§ 5.21): `small` in the drive picker, `normal` on the drive cards; the same in both
 // densities.
 export enum UsageBarSize { small, normal }
+
 // What an option card draws beside its title (§ 5.9): the radio button's circle (§ 5.8: the radio is used inside the
 // option card), or nothing, the edge and the fill alone saying the choice (as a Radix radio card without indicator).
 export enum OptionCardIndicator { radio, none }
+
+// What a toolbar item is (§ 5.25): a `button` that reports `activated`, a `toggle` that stays on, or a `separator`
+// between groups. Folded into the «⋯» menu they become an item, a check box item and a separator.
+export enum ToolBarItemKind { button, toggle, separator }
+
+// A toolbar button's look (§ 5.25): `ghost` (the default, as every tool) or `secondary` (the bar's main action, as
+// «Scan again», § 2.1).
+export enum ToolBarButtonVariant { ghost, secondary }
+
+// Which end of a toolbar or panel header its items sit at (§ 5.25): the `start` (the main toolbar, its children after
+// them) or the `end` (a panel header's actions, its children before them). Either way the last item folds first.
+export enum ToolBarItemsSide { start, end }
+
+// When a status bar item shortens on a narrow window (§ 5.25, § 3.11): `never` (the live state, the scan mode, the
+// unit), `first` (the texts on the left) or `later`, once every `first` one is as short as it gets (the running
+// operations' label).
+export enum StatusBarGiveWay { never, first, later }
+
+// What a status bar item is (§ 5.25): a `text`, or a `button` that opens something of its own (the live state's
+// popup, § 2.2).
+export enum StatusBarItemKind { text, button }
+
+// The dot before a status bar item's text (§ 5.25): none, or 6 px round in a state's colour («Live» `success`, live
+// updates off `faint`).
+export enum StatusBarDot { none, success, warning, danger, faint }

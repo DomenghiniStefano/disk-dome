@@ -70,6 +70,7 @@ import { KitDialogSection } from "kit-dialog-section.slint";
 import { KitAlertsSection } from "kit-alerts-section.slint";
 import { KitProgressSection } from "kit-progress-section.slint";
 import { KitCardsSection } from "kit-cards-section.slint";
+import { KitBarsSection } from "kit-bars-section.slint";
 
 struct KitIcon { name: string, source: image }
 struct KitStep { name: string, step: TypeStep }
@@ -1282,6 +1283,9 @@ export component KitWindow inherits DomeWindow {
 
                     // Select: in its own file, `kit-select-section.slint`.
                     KitSelectSection { }
+
+                    // Splitter and bars: in their own file, `kit-bars-section.slint`.
+                    KitBarsSection { }
 
                     KitSection {
                         title: "Tooltip · bubble and buttons";

@@ -1,0 +1,539 @@
+// The Kit's Splitter and bars sections (§ 5.24, § 5.25, § 9): the toolbar, a panel header and the status bar at the
+// smallest window's width, at the Kit's whole width (the largest the window gives) and in a narrow box where their
+// items fold into «⋯» or their texts shorten; the separators; every state of a status bar button item and of the
+// splitter; and two working splitters, side by side and stacked, with their panes' limits. Every sample works: the
+// last command, toggle or menu choice shows under the bars. Texts are the Kit's own, not translated (rule
+// `untranslated` exempts `kit/`).
+
+import {
+    Theme,
+    Size,
+    Icons,
+    TypeStep,
+    Label,
+    InkTone,
+    KitState,
+    Button,
+    ButtonSize,
+    ButtonVariant,
+    SearchField,
+    SegmentedControl,
+    SegmentedItem,
+    SegmentedSize,
+    Breadcrumb,
+    BreadcrumbItem,
+    MenuEntry,
+    MenuEntryKind,
+    Splitter,
+    ToolBar,
+    ToolBarItem,
+    ToolBarItemKind,
+    ToolBarButtonVariant,
+    ToolBarSeparator,
+    PanelHeader,
+    StatusBar,
+    StatusBarItem,
+    StatusBarSeparator,
+    StatusBarDot,
+    StatusBarGiveWay,
+    StatusBarItemKind,
+} from "@dome-ui";
+import { KitSection, KitRow, KitCaption } from "kit-parts.slint";
+
+struct KitBarState { name: string, state: KitState, enabled: bool }
+
+global KitBarsData {
+    out property <[KitBarState]> states: [
+        { name: "rest", state: KitState.live, enabled: true },
+        { name: "hover", state: KitState.hover, enabled: true },
+        { name: "pressed", state: KitState.pressed, enabled: true },
+        { name: "focus", state: KitState.focus, enabled: true },
+        { name: "disabled", state: KitState.live, enabled: false },
+    ];
+    // The main toolbar's items (§ 2.1); written by its toggle, so every sample shares one state.
+    in-out property <[ToolBarItem]> toolbar: [
+        {
+            id: "up",
+            text: "Up one level",
+            icon: Icons.corner-left-up,
+            icon-only: true,
+            tooltip-shortcut: "Alt+↑"
+        },
+        {
+            id: "scan",
+            text: "Scan again",
+            icon: Icons.refresh-cw,
+            variant: ToolBarButtonVariant.secondary
+        },
+        { kind: ToolBarItemKind.separator },
+        { id: "filters", text: "Filters", icon: Icons.filter },
+        {
+            id: "panel",
+            kind: ToolBarItemKind.toggle,
+            text: "Side panel",
+            icon: Icons.panel-right,
+            icon-only: true,
+            checked: true,
+            tooltip-shortcut: "Ctrl+Alt+P"
+        },
+        {
+            id: "export",
+            text: "Export",
+            icon: Icons.share,
+            disabled: true,
+            tooltip: "Scan a drive first"
+        },
+    ];
+    // The app menu, always in «⋯» after the folded items (§ 6.19).
+    out property <[MenuEntry]> app-menu: [
+        { id: "palette", label: "Command palette", icon: Icons.command, shortcut: "Ctrl+K" },
+        { id: "shortcuts", label: "Keyboard shortcuts", icon: Icons.keyboard },
+        { id: "settings", label: "Settings", icon: Icons.settings, shortcut: "Ctrl+," },
+        { kind: MenuEntryKind.separator },
+        { id: "about", label: "About DiskDome", icon: Icons.info },
+    ];
+    // The map header's actions (§ 2.1) and its options menu.
+    in-out property <[ToolBarItem]> map-actions: [
+        { id: "free", kind: ToolBarItemKind.toggle, text: "Free space", icon: Icons.hard-drive },
+        {
+            id: "names",
+            kind: ToolBarItemKind.toggle,
+            text: "Names",
+            icon: Icons.file-text,
+            checked: true
+        },
+    ];
+    out property <[MenuEntry]> map-options: [
+        { id: "style", label: "Style…", icon: Icons.layers },
+        { id: "colours", label: "Colours…", icon: Icons.image },
+    ];
+    // The side panel header's actions.
+    in-out property <[ToolBarItem]> panel-actions: [
+        { id: "copy", text: "Copy the list", icon: Icons.copy, icon-only: true },
+        {
+            id: "hide",
+            text: "Hide the panel",
+            icon: Icons.x,
+            icon-only: true,
+            tooltip-shortcut: "Ctrl+Alt+P"
+        },
+    ];
+    out property <[SegmentedItem]> panel-lists: [{ text: "Extensions" }, { text: "Categories" }];
+    out property <[BreadcrumbItem]> path: [
+        { text: "C:", icon: Icons.hard-drive },
+        { text: "Users" },
+        { text: "stefa" },
+        { text: "Documents" },
+    ];
+    // What the last command, toggle or menu choice was.
+    in-out property <string> last: "nothing yet";
+    in-out property <length> side-position: Size.dialog-lg - Size.side-panel - Size.border-hairline;
+    in-out property <length> stack-position: Size.treemap-min;
+}
+
+// The main toolbar (§ 2.1): its items, then the search field, a gap and Settings; everything else in «⋯».
+component KitMainToolBar inherits ToolBar {
+    items: KitBarsData.toolbar;
+    more-entries: KitBarsData.app-menu;
+    accessible-label: "Toolbar";
+    activated(id) => {
+        KitBarsData.last = "toolbar: " + id;
+    }
+    toggled(id, checked) => {
+        KitBarsData.last = "toolbar: " + id + (checked ? " on" : " off");
+    }
+    more-activated(entry) => {
+        KitBarsData.last = "app menu: " + entry.id;
+    }
+
+    SearchField {
+        placeholder: "Search for a file or folder";
+    }
+
+    Rectangle {
+        horizontal-stretch: 1;
+    }
+}
+
+// The map header (§ 2.1): home, the breadcrumb and the hovered item lead; the actions and the options at the end.
+component KitMapHeader inherits PanelHeader {
+    items: KitBarsData.map-actions;
+    more-entries: KitBarsData.map-options;
+    more-label: "Map options";
+    accessible-label: "Map";
+    activated(id) => {
+        KitBarsData.last = "map: " + id;
+    }
+    toggled(id, checked) => {
+        KitBarsData.last = "map: " + id + (checked ? " on" : " off");
+    }
+    more-activated(entry) => {
+        KitBarsData.last = "map options: " + entry.id;
+    }
+
+    Button {
+        icon: Icons.house;
+        variant: ButtonVariant.ghost;
+        size: ButtonSize.small;
+        accessible-label: "The drive's root";
+        clicked => {
+            KitBarsData.last = "map: home";
+        }
+    }
+
+    Breadcrumb {
+        items: KitBarsData.path;
+        activated(index) => {
+            KitBarsData.last = "map: go to " + KitBarsData.path[index].text;
+        }
+    }
+
+    ToolBarSeparator { }
+
+    Label {
+        text: "docker_data.vhdx · 48,5 GB";
+        step: TypeStep.caption;
+        tone: InkTone.muted;
+        horizontal-stretch: 1;
+    }
+}
+
+// The side panel's header (§ 2.1): its two lists, its actions at the end.
+component KitSidePanelHeader inherits PanelHeader {
+    items: KitBarsData.panel-actions;
+    accessible-label: "File types";
+    activated(id) => {
+        KitBarsData.last = "side panel: " + id;
+    }
+
+    SegmentedControl {
+        items: KitBarsData.panel-lists;
+        size: SegmentedSize.small;
+        accessible-label: "Side panel list";
+    }
+
+    Rectangle {
+        horizontal-stretch: 1;
+    }
+}
+
+// The status bar (§ 2.1, § 5.25): the left texts shorten first, then the operation's label; the rest stays.
+component KitStatusBar inherits StatusBar {
+    StatusBarItem {
+        text: "3.789.066 files · scanned today at 21:14";
+        give-way: StatusBarGiveWay.first;
+    }
+
+    StatusBarSeparator { }
+
+    StatusBarItem {
+        text: "1 selected · 48,5 GB";
+        give-way: StatusBarGiveWay.first;
+    }
+
+    Rectangle {
+        horizontal-stretch: 1;
+    }
+
+    StatusBarItem {
+        text: "Moving 3 files to the Recycle Bin · 42%";
+        give-way: StatusBarGiveWay.later;
+    }
+
+    StatusBarSeparator { }
+
+    StatusBarItem {
+        text: "Live";
+        dot: StatusBarDot.success;
+        kind: StatusBarItemKind.button;
+        tooltip: "Live updates: changes on the drive show at once";
+        clicked => {
+            KitBarsData.last = "status: live";
+        }
+    }
+
+    StatusBarSeparator { }
+
+    StatusBarItem {
+        text: "Fast scan";
+    }
+
+    StatusBarSeparator { }
+
+    StatusBarItem {
+        text: "GB";
+    }
+}
+
+export component KitBarsSection inherits VerticalLayout {
+    KitSection {
+        title: "ToolBar · smallest window, whole width, narrow";
+
+        KitRow {
+            name: "960 (window min)";
+
+            KitMainToolBar {
+                width: Size.window-min-w;
+            }
+        }
+
+        KitCaption {
+            text: "whole width";
+        }
+
+        KitMainToolBar { }
+
+        KitRow {
+            name: "narrow: folds";
+
+            KitMainToolBar {
+                width: Size.side-panel;
+            }
+        }
+
+        KitRow {
+            name: "separator";
+
+            Rectangle {
+                height: Size.toolbar;
+                background: Theme.bg;
+
+                HorizontalLayout {
+                    padding-left: Size.panel-pad;
+                    padding-right: Size.panel-pad;
+                    cross-axis-alignment: center;
+
+                    Button {
+                        text: "Scan again";
+                        icon: Icons.refresh-cw;
+                    }
+
+                    ToolBarSeparator { }
+
+                    Button {
+                        text: "Filters";
+                        icon: Icons.filter;
+                        variant: ButtonVariant.ghost;
+                    }
+                }
+            }
+        }
+
+        KitRow {
+            name: "last action";
+
+            Label {
+                text: KitBarsData.last;
+                step: TypeStep.caption;
+                tone: InkTone.muted;
+            }
+        }
+    }
+
+    KitSection {
+        title: "PanelHeader · map header and side panel";
+
+        KitRow {
+            name: "960 (window min)";
+
+            KitMapHeader {
+                width: Size.window-min-w;
+            }
+        }
+
+        KitCaption {
+            text: "whole width";
+        }
+
+        KitMapHeader { }
+
+        KitRow {
+            name: "narrow: folds";
+
+            KitMapHeader {
+                width: Size.side-panel;
+            }
+        }
+
+        KitRow {
+            name: "side panel";
+
+            KitSidePanelHeader {
+                width: Size.side-panel;
+            }
+        }
+
+        KitRow {
+            name: "side panel, min";
+
+            KitSidePanelHeader {
+                width: Size.side-panel-min;
+            }
+        }
+    }
+
+    KitSection {
+        title: "StatusBar · smallest window, whole width, narrow, states";
+
+        KitRow {
+            name: "960 (window min)";
+
+            KitStatusBar {
+                width: Size.window-min-w;
+            }
+        }
+
+        KitCaption {
+            text: "whole width";
+        }
+
+        KitStatusBar { }
+
+        KitRow {
+            name: "narrow: shortens";
+
+            KitStatusBar {
+                width: Size.dialog-md;
+            }
+        }
+
+        for state in KitBarsData.states: KitRow {
+            name: "button · " + state.name;
+
+            StatusBarItem {
+                text: "Live updates paused";
+                dot: StatusBarDot.faint;
+                kind: StatusBarItemKind.button;
+                kit-state: state.state;
+                enabled: state.enabled;
+            }
+        }
+    }
+
+    KitSection {
+        title: "Splitter · side by side, stacked, states";
+
+        KitRow {
+            name: "side by side";
+
+            side-box := Rectangle {
+                width: Size.dialog-lg;
+                height: Size.treemap-min;
+                border-width: Size.border-hairline;
+                border-color: Theme.line;
+
+                Rectangle {
+                    x: 0;
+                    width: side.actual-position;
+                    height: parent.height;
+                    background: Theme.surface;
+
+                    Label {
+                        text: "table, at least 120: " + Math.round(parent.width / Size.unit);
+                        step: TypeStep.caption;
+                        tone: InkTone.muted;
+                    }
+                }
+
+                Rectangle {
+                    x: side.actual-position + Size.border-hairline;
+                    width: side-box.width - self.x;
+                    height: parent.height;
+                    background: Theme.bg;
+
+                    Label {
+                        text: "side panel, 220 to 480: " + Math.round(parent.width / Size.unit);
+                        step: TypeStep.caption;
+                        tone: InkTone.muted;
+                    }
+                }
+
+                // After both panes, so its hit area takes the pointer over their edges.
+                side := Splitter {
+                    x: self.actual-position;
+                    height: side-box.height;
+                    total: side-box.width;
+                    position <=> KitBarsData.side-position;
+                    default-position: side-box.width - Size.side-panel - Size.border-hairline;
+                    min-before: Size.table-min;
+                    min-after: Size.side-panel-min;
+                    max-after: Size.side-panel-max;
+                    accessible-label: "Resize the side panel";
+                    resized(position) => {
+                        KitBarsData.last = "splitter: " + Math.round(position / Size.unit);
+                    }
+                }
+            }
+        }
+
+        KitRow {
+            name: "stacked";
+
+            stack-box := Rectangle {
+                width: Size.side-panel;
+                height: 2 * Size.treemap-min + Size.toolbar;
+                border-width: Size.border-hairline;
+                border-color: Theme.line;
+
+                Rectangle {
+                    y: 0;
+                    width: parent.width;
+                    height: stack.actual-position;
+                    background: Theme.surface;
+
+                    Label {
+                        text: "table: " + Math.round(parent.height / Size.unit);
+                        step: TypeStep.caption;
+                        tone: InkTone.muted;
+                    }
+                }
+
+                Rectangle {
+                    y: stack.actual-position + Size.border-hairline;
+                    width: parent.width;
+                    height: stack-box.height - self.y;
+                    background: Theme.bg;
+
+                    Label {
+                        text: "map, at least 120: " + Math.round(parent.height / Size.unit);
+                        step: TypeStep.caption;
+                        tone: InkTone.muted;
+                    }
+                }
+
+                stack := Splitter {
+                    orientation: Orientation.vertical;
+                    y: self.actual-position;
+                    width: stack-box.width;
+                    total: stack-box.height;
+                    position <=> KitBarsData.stack-position;
+                    default-position: Size.treemap-min;
+                    min-before: Size.table-min;
+                    min-after: Size.treemap-min;
+                    accessible-label: "Resize the map";
+                    resized(position) => {
+                        KitBarsData.last = "splitter: " + Math.round(position / Size.unit);
+                    }
+                }
+            }
+        }
+
+        for state in KitBarsData.states: KitRow {
+            name: state.name;
+
+            Rectangle {
+                width: Size.control-lg;
+                height: Size.control-lg;
+
+                Splitter {
+                    x: (parent.width - self.width) / 2;
+                    height: parent.height;
+                    total: parent.width;
+                    position: parent.width / 2;
+                    kit-state: state.state;
+                    enabled: state.enabled;
+                }
+            }
+        }
+    }
+}

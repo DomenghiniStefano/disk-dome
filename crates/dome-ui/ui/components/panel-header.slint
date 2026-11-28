@@ -1,0 +1,15 @@
+// PanelHeader (§ 5.25, § 2.1): the bar above a panel (the side panel, the map), `tabbar` tall on `bg`, its controls
+// `control-sm`. The screen's children (a segmented control, a breadcrumb, the hovered item) lead; its `items`, the
+// panel's actions, sit at the end and fold into a «⋯» menu when the panel is narrow, the children giving way first.
+// A `ToolBar` in every other respect.
+
+import { Size } from "../tokens/size.slint";
+import { ButtonSize, ToolBarItemsSide } from "../enums.slint";
+import { ToolBarFrame } from "tool-bar-frame.slint";
+
+export component PanelHeader inherits ToolBarFrame {
+    bar-height: Size.tabbar;
+    control-size: ButtonSize.small;
+    items-side: ToolBarItemsSide.end;
+    more-label: @tr("More");
+}

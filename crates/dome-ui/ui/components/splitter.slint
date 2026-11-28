@@ -1,0 +1,177 @@
+// Splitter (§ 5.24): the 1 px `line` between two panes that the user drags to share the room between them, as
+// shadcn's Resizable handle (react-resizable-panels) and WAI-ARIA's window splitter. Its hit area is `splitter-hit`
+// wide, centred on the line, with the `col-resize` / `row-resize` pointer; the line turns `ink-faint` while hovered or
+// dragged. It keeps both panes inside their minimums and maximums. The keyboard moves it too: one Tab stop, the arrows
+// along its axis by `step`, Home and End to either limit, Enter back to the default; a double click restores the
+// default as well.
+//
+// The screen lays the panes out from `actual-position` (the first pane that long, the line after it, the second pane
+// the rest of `total`) and places the splitter between them, after both or with `z: Size.z-splitter`, so its hit area
+// takes the pointer over the panes' edges (§ 3.11).
+
+import { Size } from "../tokens/size.slint";
+import { Theme } from "../tokens/theme.slint";
+import { Motion } from "../tokens/motion.slint";
+import { KitState } from "../enums.slint";
+import { InputMode } from "../input-mode.slint";
+import { FocusTarget } from "../primitives/focus-target.slint";
+import { FocusRing } from "../primitives/focus-ring.slint";
+
+export component Splitter {
+    // `horizontal`: the panes sit side by side and the line stands upright (`col-resize`), as react-resizable-panels'
+    // `direction`; `vertical`: one above the other (the table over the map).
+    in property <Orientation> orientation: Orientation.horizontal;
+    // The first pane's length. Written by the splitter when the user moves it, and by the screen to restore a
+    // remembered one: both sides write. It may sit outside the limits (a window made smaller): `actual-position` is
+    // what is shown, and the position comes back when the room does.
+    in-out property <length> position;
+    // Where a double click and Enter put it.
+    in property <length> default-position;
+    // The whole length being split: both panes and the line.
+    in property <length> total;
+    // The first pane's (`before`) and the second pane's (`after`) limits. When both minimums do not fit, the first
+    // pane keeps its own.
+    in property <length> min-before;
+    in property <length> max-before: Size.unbounded;
+    in property <length> min-after;
+    in property <length> max-after: Size.unbounded;
+    // How far an arrow key moves it.
+    in property <length> step: Size.splitter-step;
+    in property <bool> enabled: true;
+    // The Kit window only (§ 9).
+    in property <KitState> kit-state: KitState.live;
+
+    // `position` kept inside both panes' limits: the first pane's length on screen.
+    out property <length> actual-position: root.limited(root.position);
+    // The pointer holds it (the tests read it).
+    out property <bool> dragging: root.enabled && (root.kit-state == KitState.pressed || (root.kit-state == KitState.live && touch.pressed));
+
+    // The user moved it: a drag, a key, a double click. Not for a change the screen makes.
+    callback resized(position: length);
+
+    property <bool> horizontal: root.orientation == Orientation.horizontal;
+    property <bool> hovered: root.enabled && (root.kit-state == KitState.hover || (root.kit-state == KitState.live && touch.has-hover));
+    property <length> line: Size.border-hairline;
+    // The first pane's limits, from both panes' own.
+    property <length> low: max(root.min-before, root.total - root.line - root.max-after);
+    property <length> high: max(root.low, min(root.max-before, root.total - root.line - root.min-after));
+    property <string> back-key: root.horizontal ? Key.LeftArrow : Key.UpArrow;
+    property <string> forward-key: root.horizontal ? Key.RightArrow : Key.DownArrow;
+    // A drag: the pointer's window coordinate along the axis and the position when it began.
+    property <bool> grabbed;
+    property <length> grab;
+    property <length> start;
+
+    pure function limited(wanted: length) -> length {
+        return max(root.low, min(root.high, wanted));
+    }
+
+    pure function along(x: length, y: length) -> length {
+        return root.horizontal ? x : y;
+    }
+
+    function move-to(wanted: length) {
+        if (root.limited(wanted) != root.actual-position) {
+            root.position = root.limited(wanted);
+            root.resized(root.position);
+        }
+    }
+
+    // Upright for side-by-side panes, lying for stacked ones; the length along the line is given where it is placed.
+    min-width: root.horizontal ? root.line : 0;
+    preferred-width: root.horizontal ? root.line : 0;
+    max-width: root.horizontal ? root.line : Size.unbounded;
+    min-height: root.horizontal ? 0 : root.line;
+    preferred-height: root.horizontal ? 0 : root.line;
+    max-height: root.horizontal ? Size.unbounded : root.line;
+    opacity: root.enabled ? 1 : Size.disabled;
+
+    forward-focus: focus;
+    // Slint 1.19 has no separator role: a slider over the first pane's length, as WAI-ARIA's window splitter values it.
+    accessible-role: slider;
+    accessible-label: @tr("Resize");
+    accessible-orientation: root.orientation;
+    accessible-enabled: root.enabled;
+    accessible-value: Math.round(root.actual-position / Size.unit);
+    accessible-value-minimum: root.low / Size.unit;
+    accessible-value-maximum: root.high / Size.unit;
+    accessible-value-step: root.step / Size.unit;
+    accessible-action-increment => {
+        root.move-to(root.actual-position + root.step);
+    }
+    accessible-action-decrement => {
+        root.move-to(root.actual-position - root.step);
+    }
+    accessible-action-set-value(value) => {
+        root.move-to(value.to-float() * Size.unit);
+    }
+
+    Rectangle {
+        width: root.width;
+        height: root.height;
+        background: root.hovered || root.dragging ? Theme.ink-faint : Theme.line;
+        animate background { duration: Motion.fast; }
+    }
+
+    // The hit area, wider than the line and centred on it.
+    Rectangle {
+        x: root.horizontal ? (root.width - self.width) / 2 : 0;
+        y: root.horizontal ? 0 : (root.height - self.height) / 2;
+        width: root.horizontal ? Size.splitter-hit : root.width;
+        height: root.horizontal ? root.height : Size.splitter-hit;
+
+        if focus.show-focus: FocusRing {
+            radius: 0;
+        }
+
+        focus := FocusTarget {
+            enabled: root.enabled;
+            kit-state: root.kit-state;
+            // Space does nothing; Enter restores the default (WAI-ARIA's Enter collapses: § 5.24, owner question).
+            enter-activates: false;
+            key-pressed(event) => {
+                if (event.text == root.back-key) {
+                    root.move-to(root.actual-position - root.step);
+                } else if (event.text == root.forward-key) {
+                    root.move-to(root.actual-position + root.step);
+                } else if (event.text == Key.Home) {
+                    root.move-to(root.low);
+                } else if (event.text == Key.End) {
+                    root.move-to(root.high);
+                } else if (event.text == Key.Return) {
+                    root.move-to(root.default-position);
+                } else {
+                    return reject;
+                }
+                InputMode.keyboard = true;
+                return accept;
+            }
+        }
+
+        touch := TouchArea {
+            width: parent.width;
+            height: parent.height;
+            enabled: root.enabled;
+            mouse-cursor: root.horizontal ? MouseCursor.col-resize : MouseCursor.row-resize;
+            pointer-event(event) => {
+                if (event.kind == PointerEventKind.down) {
+                    InputMode.keyboard = false;
+                    root.grabbed = false;
+                }
+            }
+            // The first move takes the grab, before the splitter has moved: the press point is then still where it
+            // was pressed, and the drag follows the pointer even past a limit and back.
+            moved => {
+                if (!root.grabbed) {
+                    root.grabbed = true;
+                    root.grab = root.along(self.absolute-position.x + self.pressed-x, self.absolute-position.y + self.pressed-y);
+                    root.start = root.actual-position;
+                }
+                root.move-to(root.start + root.along(self.absolute-position.x + self.mouse-x, self.absolute-position.y + self.mouse-y) - root.grab);
+            }
+            double-clicked => {
+                root.move-to(root.default-position);
+            }
+        }
+    }
+}

@@ -1504,6 +1504,17 @@ the action button.
 | Disabled | faded (`disabled` opacity), takes no pointer |
 | Accessibility | none of its own: Slint 1.19 has no scroll bar role, so screen readers and the keyboard scroll the content itself (as with Radix) |
 
+| Splitter | |
+| --- | --- |
+| Interface | `orientation` (Slint's `Orientation`: `horizontal`, the default, panes side by side and an upright line; `vertical`, panes stacked), `position` (the first pane's length: written by both the splitter and the screen, which restores a remembered one), `default-position`, `total` (both panes and the line), `min-before`, `max-before`, `min-after`, `max-after` (each pane's limits; no maximum by default), `step` (default `splitter-step`, 16, pending design), `enabled`; out `actual-position`, `dragging`; `resized(position)` when the user moves it, never for a change made by the screen |
+| Placement | the screen lays the first pane `actual-position` long, the line after it, the second pane the rest of `total`, and places the splitter after both panes (or with `z: Size.z-splitter`) so its hit area takes the pointer over their edges; its length along the line is given where it is placed |
+| Limits | `actual-position` is `position` kept inside both panes' limits; when both minimums do not fit, the first pane keeps its own. A smaller `total` (the window narrowed) moves the line, not `position`, which comes back with the room |
+| Pointer | dragging moves the line with the pointer, stopping at the limits and following the pointer again from where it was held once it comes back; a double click restores `default-position` |
+| Keyboard | one Tab stop (a click does not take the focus); the arrows along its axis move it by `step`, Home and End to the first pane's limits, Enter restores `default-position` |
+| Disabled | faded (`disabled` opacity), takes no pointer and no focus |
+| Accessibility | Slint 1.19 has no separator role: a `slider` over the first pane's length in logical pixels, with its limits and `step`, increment and decrement; its name is the screen's `accessible-label` (default «Resize») |
+| Not done | collapsing a pane to zero (react-resizable-panels' `collapsible`, WAI-ARIA's Enter), sizes in percent, one group of several panes: none is in the design |
+
 ### 5.25 ToolBar, StatusBar, PanelHeader
 
 Structure components that only lay out others with the right height, ground and padding; `ToolBarSeparator` is
@@ -1511,6 +1522,28 @@ Structure components that only lay out others with the right height, ground and 
 `line`; the live dot is 6 px round. From the left: the drive's counts and when it was scanned (or the scan's
 progress), the selection; then, at the right, the running operations (§ 5.29), «Live», the scan mode, the unit.
 Nothing in it wraps: at narrow widths the left texts shorten first, then the operations' label (§ 3.11).
+
+| ToolBar and PanelHeader | |
+| --- | --- |
+| Interface | `items` (`[ToolBarItem]`), `more-entries` (`[MenuEntry]`), `items-side`, `more-label` (the «⋯» button's accessible name and tooltip, default «More»); out `shown-count`, `overflowing`; `activated(id)` for a button item, `toggled(id, checked)` for a toggle item, `more-activated(entry)` for one of `more-entries`. The children are the screen's own controls |
+| Bar | `ToolBar`: `toolbar` tall, `normal` controls, items at the start; `PanelHeader`: `tabbar` tall, `small` controls (`control-sm`), items at the end. Both on `bg`, `panel-pad` at the ends; the children `tool-gap` apart, centred on the bar's height, `group-gap` from the items |
+| `ToolBarItem` | `id`, `kind` (`ToolBarItemKind`: `button`, `toggle`, `separator`), `text` (always the accessible name and the label in the menu), `icon`, `icon-only`, `variant` (`ToolBarButtonVariant`: `ghost`, the default, or `secondary` for the bar's main action), `tooltip`, `tooltip-shortcut`, `checked`, `disabled` (its `tooltip` says why). The items are `tool-gap` apart, a separator is `ToolBarSeparator` |
+| Toggles | the bar writes `checked` in the toggle's row of `items` (a click in the bar or its item in the menu) and says `toggled`; the screen may set it too, so `items` must be a model that takes writes (a Slint array, a `VecModel`) |
+| Overflow | short of room the children give way to their minimum first, then the last items fold into a ghost «⋯» `MenuButton` at the items' end (as WinUI's CommandBar): a button becomes an item, a toggle a check box item, a separator a separator, with its icon, its shortcut and, disabled, its reason. A separator never ends the row. A folded item is hidden and no Tab stop |
+| `more-entries` | always in the «⋯» menu after the folded items, behind a separator (the app menu of § 2.1); with any, the «⋯» always shows. Their ids must differ from the items' |
+| Side `ToolBarItemsSide` | `start` (`ToolBar`'s default: the items, then the children) or `end` (`PanelHeader`'s default: the children, then the items, the «⋯» menu aligned on its button's right edge) |
+| Keyboard | every control is its own Tab stop, as the children are; the «⋯» opens with ↓ as every `MenuButton` |
+| Accessibility | Slint 1.19 has no toolbar role: a named `groupbox` (the screen's `accessible-label`), its controls read in turn |
+| Not done | Radix Toolbar's roving focus (one Tab stop, arrows between the controls): Slint cannot walk the focus over a screen's children; vertical bars; links and toggle groups as items (a `SegmentedControl` goes in the children) |
+
+| StatusBar | |
+| --- | --- |
+| Bar | `statusbar` tall on `bg`, `panel-pad` at the ends; it lays out the screen's `StatusBarItem`s and `StatusBarSeparator`s in one row centred on its height; an empty `Rectangle` with `horizontal-stretch: 1` parts the left group from the right one |
+| `StatusBarItem` | `text`, `tooltip`, `dot` (`StatusBarDot`: `none`, `success`, `warning`, `danger`, `faint`: 6 px round, `label-gap` before the text), `kind`, `give-way`, `enabled`; out `cut`, `tooltip-shown`; `clicked()` for a button item. `statusbar-pad-x` (4, pending design) at its sides |
+| Kind `StatusBarItemKind` | `text` (default) or `button` (the live state, which opens its popup, § 2.2): the ghost button's hover and press fills, a Tab stop, Enter and Space |
+| Give way `StatusBarGiveWay` | `never` (default: the live state, the scan mode, the unit stay whole), `first` (the left texts shorten first), `later` (the operations' label, once every `first` one is at its minimum); a shortened text goes down to `statusbar-item-min-w` (48, pending design), cut with «…» and said whole in its tooltip, which opens above the bar |
+| `StatusBarSeparator` | 1 × `statusbar-separator-h` `line`, `statusbar-gap` (4, pending design) on each side |
+| Accessibility | the bar is the `content-info` landmark; an item is a text, or a button with its tooltip as description |
 
 ### 5.26 Kbd
 

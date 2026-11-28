@@ -1,0 +1,23 @@
+// ToolBarSeparator (§ 5.25): the line between two groups of a toolbar or a panel header, 1 × `toolbar-separator-h` in
+// `line`, `group-gap` / 2 of room on each side, centred on the bar's height. A `ToolBar` draws it for its separator
+// items; a screen places it between its own children.
+
+import { Size } from "../tokens/size.slint";
+import { Theme } from "../tokens/theme.slint";
+
+export component ToolBarSeparator {
+    width: Size.group-gap + Size.border-hairline;
+    min-height: Size.toolbar-separator-h;
+    preferred-height: Size.toolbar-separator-h;
+
+    // Only a mark between groups: the controls around it carry the meaning.
+    accessible-role: none;
+
+    Rectangle {
+        x: Size.group-gap / 2;
+        y: (parent.height - self.height) / 2;
+        width: Size.border-hairline;
+        height: Size.toolbar-separator-h;
+        background: Theme.line;
+    }
+}

@@ -8,6 +8,7 @@ pub mod radio;
 pub mod roving;
 pub mod segmented;
 pub mod select;
+pub mod tool_bar;
 
 /// Writes `pub fn install_menu_nav(window)` in the calling module: it wires a window's `MenuNav` global (`§ 5.16`) to
 /// [`menu`]. The app names its own generated types, since each app compiles the Slint half itself:
@@ -287,6 +288,107 @@ macro_rules! breadcrumb_fit {
         /// A count from Slint, never negative.
         fn dome_ui_count(count: i32) -> usize {
             usize::try_from(count).unwrap_or(0)
+        }
+    };
+}
+
+/// Writes `pub fn install_tool_bar_fit(window)` in the calling module: it wires a window's `ToolBarFit` global (§ 5.25)
+/// to [`tool_bar`], with the breadcrumb's [`breadcrumb::with_width`] and [`breadcrumb::total`] for the items' widths.
+/// The folded items become entries of the «⋯» menu, so the app names its `MenuEntry` and `MenuEntryKind` too:
+///
+/// ```ignore
+/// use crate::generated::{MenuEntry, MenuEntryKind, ToolBarFit, ToolBarItem, ToolBarItemKind};
+/// dome_ui::tool_bar_fit!(ToolBarFit, ToolBarItem, ToolBarItemKind, MenuEntry, MenuEntryKind);
+/// ```
+#[macro_export]
+macro_rules! tool_bar_fit {
+    ($fit:ident, $item:ident, $kind:ident, $entry:ident, $entry_kind:ident) => {
+        /// Wires the window's `ToolBarFit` global to `dome_ui::tool_bar`.
+        pub fn install_tool_bar_fit<'a, T>(window: &'a T)
+        where
+            T: slint::ComponentHandle,
+            $fit<'a>: slint::Global<'a, T>,
+        {
+            /// The widths Slint measured, as plain numbers.
+            fn widths_of(widths: &slint::ModelRc<f32>) -> Vec<f32> {
+                slint::Model::iter(widths).collect()
+            }
+
+            /// Which items are separators, as `dome_ui::tool_bar` reads them.
+            fn separators(items: &slint::ModelRc<$item>) -> Vec<bool> {
+                slint::Model::iter(items)
+                    .map(|item| match item.kind {
+                        $kind::Separator => true,
+                        $kind::Button | $kind::Toggle => false,
+                    })
+                    .collect()
+            }
+
+            /// A folded item as an entry of the «⋯» menu: a button an item, a toggle a check box item.
+            fn entry(item: $item) -> $entry {
+                $entry {
+                    kind: match item.kind {
+                        $kind::Button => $entry_kind::Item,
+                        $kind::Toggle => $entry_kind::Checkbox,
+                        $kind::Separator => $entry_kind::Separator,
+                    },
+                    id: item.id,
+                    label: item.text,
+                    icon: item.icon,
+                    shortcut: item.tooltip_shortcut,
+                    disabled: item.disabled,
+                    // A disabled item's tooltip says why; an enabled one's adds nothing to the menu.
+                    reason: if item.disabled {
+                        item.tooltip
+                    } else {
+                        slint::SharedString::default()
+                    },
+                    checked: item.checked,
+                    ..Default::default()
+                }
+            }
+
+            let fit = window.global::<$fit>();
+            fit.on_with_width(|widths, index, width| {
+                let widths = $crate::breadcrumb::with_width(&widths_of(&widths), index, width);
+                slint::ModelRc::new(slint::VecModel::from(widths))
+            });
+            fit.on_total(|widths, count| {
+                $crate::breadcrumb::total(&widths_of(&widths), usize::try_from(count).unwrap_or(0))
+            });
+            fit.on_shown_count(|items, widths, available, gap, more, keep_more| {
+                $crate::tool_bar::shown_count(
+                    &widths_of(&widths),
+                    &separators(&items),
+                    available,
+                    gap,
+                    more,
+                    keep_more,
+                )
+            });
+            fit.on_entries(|items, shown_count, more_entries| {
+                let range = $crate::tool_bar::folded(shown_count, slint::Model::row_count(&items));
+                let mut entries: Vec<$entry> = slint::Model::iter(&items)
+                    .enumerate()
+                    .filter(|(index, _)| range.contains(index))
+                    .map(|(_, item)| entry(item))
+                    .collect();
+                if slint::Model::row_count(&more_entries) > 0 {
+                    // The menu draws no separator at its start, so an app menu alone starts clean.
+                    entries.push($entry {
+                        kind: $entry_kind::Separator,
+                        ..Default::default()
+                    });
+                    entries.extend(slint::Model::iter(&more_entries));
+                }
+                slint::ModelRc::new(slint::VecModel::from(entries))
+            });
+            fit.on_folded_index(|items, shown_count, id| {
+                let ids: Vec<slint::SharedString> =
+                    slint::Model::iter(&items).map(|item| item.id).collect();
+                let ids: Vec<&str> = ids.iter().map(slint::SharedString::as_str).collect();
+                $crate::tool_bar::folded_index(&ids, shown_count, &id)
+            });
         }
     };
 }
