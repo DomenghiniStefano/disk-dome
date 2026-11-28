@@ -1,0 +1,129 @@
+// The test window of InfoBar and Toast (`tests/alerts_headless.rs`, § 5.19, § 5.20): along the top an info bar with
+// an action and a close `x` and a long one that wraps; under them the area a toast covers, and a status bar under
+// that, which the toast must never cover. The toast keeps the spec's times. The area comes first in the tree, so the
+// toast's buttons are the first Tab stops whatever happened to an earlier notice. Kit only; texts are the Kit's own,
+// not translated.
+
+import {
+    DomeWindow,
+    InfoBar,
+    Toast,
+    ToastEnd,
+    NoticeKind,
+    Size,
+    Theme,
+} from "@dome-ui";
+
+export component KitAlertsHarness inherits DomeWindow {
+    preferred-width: Size.window-min-w;
+    preferred-height: Size.window-min-h;
+
+    // A popup or a dialog is open: the toast waits.
+    in property <bool> held;
+
+    // The bars: their heights, and what their buttons said.
+    out property <length> bar-height: bar.height;
+    out property <length> long-bar-height: long-bar.height;
+    out property <int> bar-actions;
+    out property <int> bar-closes;
+
+    // The toast's area and the status bar under it, and where the card is, in window coordinates.
+    out property <length> area-y: area.y;
+    out property <length> area-height: area.height;
+    out property <length> status-y: status.y;
+    out property <length> card-x: area.x + toast.card-x;
+    out property <length> card-y: area.y + toast.card-y;
+    out property <length> card-width: toast.card-width;
+    out property <length> card-height: toast.card-height;
+
+    // The toast's state and what ended its notices.
+    out property <bool> toast-open: toast.open;
+    out property <bool> toast-shown: toast.shown;
+    out property <duration> toast-time: toast.time;
+    out property <string> toast-text: toast.notice.text;
+    out property <int> timeouts;
+    out property <int> dismissals;
+    out property <int> actions;
+    out property <int> replacements;
+    out property <int> action-clicks;
+    out property <int> row-clicks;
+    out property <int> last-row-index: -1;
+
+    // A notice with an action right of the text (empty for none), 0, 1 or 2 actions under it, sticky or not.
+    public function show-notice(text: string, action: string, rows: int, sticky: bool) {
+        toast.show({
+            text: text,
+            kind: NoticeKind.success,
+            action: action,
+            row-actions: rows <= 0 ? [] : rows == 1 ? ["Show"] : ["Show", "Open"],
+            sticky: sticky,
+        });
+    }
+
+    public function close-notice() {
+        toast.close();
+    }
+
+    area := Rectangle {
+        x: 0;
+        y: bars.height;
+        width: root.width;
+        height: root.height - bars.height - status.height;
+        background: Theme.surface;
+
+        toast := Toast {
+            held: root.held;
+            action-activated => {
+                root.action-clicks += 1;
+            }
+            row-action-activated(index) => {
+                root.row-clicks += 1;
+                root.last-row-index = index;
+            }
+            closed(end) => {
+                if (end == ToastEnd.timeout) {
+                    root.timeouts += 1;
+                } else if (end == ToastEnd.dismissed) {
+                    root.dismissals += 1;
+                } else if (end == ToastEnd.action) {
+                    root.actions += 1;
+                } else {
+                    root.replacements += 1;
+                }
+            }
+        }
+    }
+
+    status := Rectangle {
+        x: 0;
+        y: root.height - self.height;
+        width: root.width;
+        height: Size.statusbar;
+        background: Theme.bg;
+    }
+
+    bars := VerticalLayout {
+        x: 0;
+        y: 0;
+        width: root.width;
+        height: self.preferred-height;
+
+        bar := InfoBar {
+            kind: NoticeKind.warning;
+            text: "Without administrator rights the scan reads the folders one by one.";
+            action-text: "Change";
+            dismissible: true;
+            action-clicked => {
+                root.bar-actions += 1;
+            }
+            closed => {
+                root.bar-closes += 1;
+            }
+        }
+
+        long-bar := InfoBar {
+            kind: NoticeKind.danger;
+            text: "The path is longer than the 260 characters File Explorer can handle: DiskDome can open it, but File Explorer cannot, and neither can most of the programs that would open the files inside it. Shorten the name of one of the folders on the way, or move the folder closer to the root of the drive, and try again.";
+        }
+    }
+}
