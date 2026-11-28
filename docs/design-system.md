@@ -1063,6 +1063,37 @@ inside the bar's bottom. Ctrl+1 / 2 / 3 switch them (Ctrl+Tab belongs to the dri
 - `Switch`: track 28 × 16, knob 12; off: track `control`, knob `ink-muted`; on: track `accent`, knob
   `on-accent`. For settings that apply at once; a checkbox for choices confirmed by a button.
 
+The three draw the same row: the mark (box, circle, track) beside the first line of a `body` label, `label-gap`
+between them, `choice-h` tall on one line (pending design: `control-sm`). The whole row is the pointer target; hover
+and press change the mark (`control-hover` / `control-pressed`, or `accent-hover` / `accent-pressed` when marked); the
+focus ring follows the mark. Disabled: `disabled` opacity on the whole row, its `tooltip` says why.
+
+| Common | |
+| --- | --- |
+| Label `wrap: LabelWrap` | `none` (default): one line, cut with «…» and said whole in the tooltip; `word` / `anywhere`: more lines, the mark beside the first |
+| `tooltip` | said on hover and keyboard focus (§ 5.17); on a disabled control, why; Esc puts it away |
+| Accessibility | `accessible-role` `checkbox` / `radio-button` (in a `radio-group`) / `switch`, the label as name, `accessible-checked`, `accessible-enabled`, the tooltip as description. Slint 1.19 has no «mixed» state: an indeterminate box reads as not checked |
+
+| Checkbox | |
+| --- | --- |
+| Interface | `text`, `state` (written by both the box and the screen), `wrap`, `enabled`, `tooltip`; `toggled(state)` when the user flips it |
+| `CheckboxState` | `unchecked`, `checked`, `indeterminate` (some of what the box stands for is ticked: a group's box over its rows). A click or Space from `indeterminate` ticks it; `toggled` never carries `indeterminate` |
+| Keyboard | Space flips it; Enter does not (it belongs to the dialog's default button), as WAI-ARIA and Radix |
+
+| RadioGroup | |
+| --- | --- |
+| Interface | `items: [RadioItem]`, `current-index` (written by both the group and the screen; -1, the default, chooses none), `orientation` (`vertical` default, `horizontal` with `choice-gap-x` between items), `wrap-around` (default on), `wrap`, `enabled`; `selected(index)` when the user chooses; `focus-index` out |
+| `RadioItem` | `text` (shown, the accessible name), `tooltip`, `disabled` |
+| Keyboard | one Tab stop, on the chosen item or, with none, the first enabled one; every arrow chooses the previous / next enabled item (as Radix, in either orientation), `wrap-around` goes round the ends; Space chooses the focused item; Enter does nothing |
+| Disabled item | faded, not clickable, skipped by the arrows; its `tooltip` says why |
+
+| Switch | |
+| --- | --- |
+| Interface | `text`, `checked` (written by both the switch and the screen), `label-side`, `wrap`, `enabled`, `tooltip`; `toggled(checked)` when the user flips it |
+| `SwitchLabelSide` | `right` (default, as a check box), `left`: the label first and the switch at the end of the width its layout gives (a settings row) |
+| Keyboard | Space and Enter flip it (a switch is a button, as Radix) |
+| Motion | the knob slides in `fast`, at an even pace (on whole pixels an eased slide jumps) |
+
 ### 5.9 OptionCard
 
 A card-sized radio (scan mode, first launch): `surface` fill, 1 px `line`, radius `card`, `card-pad`; title
