@@ -1,8 +1,10 @@
 //! Operating-system services outside the scanners. For now: the process's memory, which every
-//! benchmark reports, a volume's free space, and the window's own title bar ([`titlebar`]). The shell actions (Recycle Bin,
+//! benchmark reports, a volume's free space, Windows' own tools ([`windows_tools`]), and the window's own title bar
+//! ([`titlebar`]). The shell actions (Recycle Bin,
 //! Explorer, Properties) will live here too, so no other crate needs `#[cfg(windows)]`.
 
 pub mod titlebar;
+pub mod windows_tools;
 
 /// Memory of the current process, in bytes.
 #[derive(Debug, Clone, Copy, Default)]
